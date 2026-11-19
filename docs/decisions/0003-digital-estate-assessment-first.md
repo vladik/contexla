@@ -1,0 +1,24 @@
+# Digital Estate Assessment is the first Application
+
+Status: Accepted
+Date: 2026-11-19
+
+## Context
+
+The agency sees current demand for Sitecore modernization and Drupal estate
+assessment. A small team needs a vertical slice connected to a paid outcome,
+not a broad platform demonstration.
+
+## Decision
+
+Digital Estate Assessment is the first bundled first-party Application. Its
+first integration and evidence profile target a college Drupal assessment using
+an offline snapshot.
+
+## Consequences
+
+- Platform priorities follow the assessment execution path.
+- Web History, a general agent, and an Application marketplace are deferred.
+- The first reusable abstractions must emerge from this slice and later be
+  validated by a second Application.
+
