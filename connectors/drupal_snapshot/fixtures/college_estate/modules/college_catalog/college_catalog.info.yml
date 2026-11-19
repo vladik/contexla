@@ -1,0 +1,7 @@
+name: College Catalog Integration
+type: module
+description: Synthetic integration between Drupal and a college student information system.
+package: College Custom
+core_version_requirement: ^11
+dependencies:
+  - drupal:node

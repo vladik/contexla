@@ -28,6 +28,10 @@ Key attributes:
 - policy/configuration version;
 - owner and reviewers.
 
+For the first bundled slice, the platform `application_instances` row is the
+Assessment record. Decision and scope live in its validated configuration. A
+second `assessments` or `assessment_instances` table is deliberately avoided.
+
 ### Target
 
 A system or bounded estate included in an Assessment, such as one Drupal
@@ -80,6 +84,13 @@ Key attributes:
 
 The normalized view of a Target derived by a specific Adapter version from a
 specific set of Evidence Items. A Snapshot is immutable after a Run completes.
+
+### Snapshot Comparison
+
+An immutable deterministic comparison between consecutive successful Snapshots
+for the same Application Instance and target. Inventory is matched by kind and
+stable external key, then classified as added, removed, or changed. It records
+the exact before/after normalized values rather than an AI interpretation.
 
 ### Inventory Item
 
@@ -157,6 +168,7 @@ Evidence Package
 Snapshot
   -> contains Inventory Items
   -> contains Relationships
+  -> compared with prior Snapshot by a Snapshot Comparison
 
 Finding
   -> affects Targets or Inventory Items
@@ -173,4 +185,24 @@ Finding
 - Missing evidence is recorded as unknown or as an evidence gap, not as proof of
   absence.
 - Re-running does not overwrite completed snapshots or historical findings.
+
+## Current table mapping
+
+```text
+public.application_instances                 Assessment configuration (platform-owned)
+public.artifacts                             immutable uploaded Evidence Package
+contexla_estate.estate_assessment_runs       Assessment Run
+contexla_estate.estate_evidence_items        package-relative Evidence Items
+contexla_estate.estate_snapshots             normalized target Snapshot
+contexla_estate.estate_snapshot_comparisons  immutable inventory comparison
+contexla_estate.estate_inventory_items       normalized inventory/resources
+contexla_estate.estate_relationships         typed inventory relationships
+contexla_estate.estate_findings              deterministic and expert Findings
+contexla_estate.estate_review_decisions      reviewer dispositions and rationale
+public.capability_invocations                Capability/Processor execution provenance
+```
+
+The first slice uses one Drupal target per imported package. A separate Target
+table should be introduced when a real assessment requires multiple targets or
+live Connection bindings, not merely to complete an abstract model.
 

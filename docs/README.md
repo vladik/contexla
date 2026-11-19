@@ -12,6 +12,7 @@ The documentation is organized by the kind of decision it supports.
 ## Architecture
 
 - [System overview](architecture/overview.md)
+- [Application package format](architecture/application-package-format.md)
 - [Core concepts and boundaries](architecture/concepts.md)
 - [Glossary](architecture/glossary.md)
 - [Capability and Processor runtime](architecture/capability-runtime.md)

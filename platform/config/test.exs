@@ -4,11 +4,15 @@ import Config
 config :pbkdf2_elixir, :rounds, 1
 
 config :contexla,
+  application_packages: [Contexla.TestApplication],
+  integration_packages: [Contexla.TestIntegration],
   artifact_storage_path:
     Path.expand(
       "../.tmp/test-artifacts/#{System.get_env("MIX_TEST_PARTITION", "default")}",
       __DIR__
     )
+
+config :contexla, Oban, testing: :manual, queues: false
 
 # Configure your database
 #

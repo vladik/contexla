@@ -1,0 +1,7 @@
+name: College Search Integration
+type: module
+description: Synthetic integration that models delivery of Drupal content to an external search service.
+package: College Custom
+core_version_requirement: ^11
+dependencies:
+  - drupal:node

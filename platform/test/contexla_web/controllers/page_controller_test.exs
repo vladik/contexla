@@ -13,7 +13,7 @@ defmodule ContexlaWeb.PageControllerTest do
 
     conn = conn |> log_in_user(user) |> get(~p"/")
 
-    assert html_response(conn, 200) =~ "Peace of mind from prototype to production"
+    assert html_response(conn, 200) =~ "Applications"
   end
 
   test "redirects a bootstrap-password user to settings", %{conn: conn} do

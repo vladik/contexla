@@ -18,7 +18,7 @@ and require it to be changed; they must not ship a universal default password.
 ## Repository and package structure
 
 ```text
-platform/                 Phoenix release, catalog, binding, and runtime
+platform/                 Phoenix host, package registry, services, and runtime
 applications/
   sdk/                    Application package contracts
   digital_estate_assessment/
@@ -32,10 +32,10 @@ integrations/
   drupal/
 ```
 
-Each directory is a separate Mix project today. A substantial Application is
-an OTP application and owns its domain. Capability definitions and Processor
-implementations remain separate even when v1 has only one Processor for a
-Capability.
+Each directory is a separate Mix project. A substantial Application is an
+independently compiled OTP application. The platform depends on the Application
+SDK, never on a concrete Application package. Source-linked development packages
+and installed packages enter through the same registry contract.
 
 ## Shared platform responsibilities
 
@@ -70,13 +70,20 @@ Application-specific entities and findings belong to the Application.
 - Python Processors will execute as isolated operating-system processes with
   locked dependencies, explicit limits, and structured input/output.
 
+The Digital Estate Assessment package owns its worker, executor, domain services,
+UI, reports, schemas, and migrations. It accesses Artifacts, Adapters,
+Capabilities, jobs, and actor-scoped Instance services only through the bounded
+service modules supplied by `Contexla.ApplicationSDK.Runtime`.
+
 Microservices and container-per-Processor sandboxing may become appropriate
 later, but are not required to prove the model.
 
 ## Application installation and instances
 
-An Application package is installed once into a Contexla release. Its migrations
-create its tables when the release is deployed or upgraded. A user then creates
+An Application package is installed once without recompiling the platform. Its
+manifest identifies its OTP application and SDK entry module. At controlled
+startup, Contexla loads and validates the compiled package, runs its owned
+migrations, and registers its declared UI surfaces and operations. A user then creates
 one or more Application Instances, for example:
 
 ```text
@@ -86,8 +93,16 @@ Installed Application: Digital Estate Assessment
   Instance: Legacy Sitecore estate
 ```
 
-Instances hold configuration and scope. They are not separate copies of code or
-separate database schemas by default.
+The platform owns stable routes such as
+`/applications/:instance_id/:surface`. It resolves the surface module from the
+runtime registry and mounts the Application LiveView dynamically. No concrete
+Application route or LiveView is compiled into the platform.
+
+Each Application owns one PostgreSQL schema and migration history. Instances
+hold configuration and rows identified by `application_instance_id`; they are
+not separate copies of code or separate schemas. For example,
+`contexla_estate` is owned by the Digital Estate Assessment package while
+platform tables remain in `public`.
 
 ## Secrets and offline operation
 

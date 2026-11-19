@@ -21,7 +21,8 @@ defmodule Contexla.ApplicationSDK.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:contexla_capability_sdk, path: "../../capabilities/sdk"}
+      {:contexla_capability_sdk, path: "../../capabilities/sdk"},
+      {:jason, "~> 1.2"}
     ]
   end
 end

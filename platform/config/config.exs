@@ -23,11 +23,19 @@ config :contexla, :scopes,
 config :contexla,
   ecto_repos: [Contexla.Repo],
   generators: [timestamp_type: :utc_datetime, binary_id: true],
-  application_packages: [Contexla.Estate],
-  integration_packages: [Contexla.Drupal],
+  application_packages: [],
+  integration_packages: [],
   capability_packages: [Contexla.Capabilities.Bundled],
   processor_packages: [Contexla.Processors.Native],
   artifact_storage_path: Path.expand("../.tmp/artifacts", __DIR__)
+
+config :contexla, Oban,
+  engine: Oban.Engines.Basic,
+  repo: Contexla.Repo,
+  queues: [application_runs: 4]
+
+config :contexla_application_sdk,
+  services: %{repo: Contexla.Repo, platform: Contexla.ApplicationServices}
 
 # Configure the endpoint
 config :contexla, ContexlaWeb.Endpoint,

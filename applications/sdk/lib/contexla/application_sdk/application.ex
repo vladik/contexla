@@ -3,7 +3,7 @@ defmodule Contexla.ApplicationSDK.Application do
   Behaviour implemented by a trusted Contexla Application package.
   """
 
-  alias Contexla.ApplicationSDK.Definition
+  alias Contexla.ApplicationSDK.{Definition, Instance}
   alias Contexla.ApplicationSDK.Operation
 
   @callback definition() :: Definition.t()
@@ -14,4 +14,11 @@ defmodule Contexla.ApplicationSDK.Application do
   @callback available_operations() :: [Operation.t()]
 
   @callback required_adapter_contracts() :: [String.t()]
+
+  @callback migrate_install(module()) :: :ok | {:error, term()}
+
+  @callback execute_operation(String.t(), Instance.t(), map()) ::
+              {:ok, term()} | {:error, term()} | {:download, binary(), keyword()}
+
+  @optional_callbacks migrate_install: 1, execute_operation: 3
 end

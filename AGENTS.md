@@ -18,6 +18,9 @@ boundaries below when planning or changing it.
 - The initial deployment model is one organization per installation. Do not add
   organizations, tenants, or workspaces without an explicit product decision.
 - Applications are installed once and may have many Application Instances.
+- The platform depends only on Application/Integration SDKs and must compile and
+  boot with zero concrete packages. Never add a concrete Application or
+  Integration as a platform dependency.
 - AI is optional. Core workflows must remain usable manually through UI or API.
 - Agents may operate and extend the platform, but deterministic execution and
   stored evidence are authoritative.
@@ -49,6 +52,9 @@ translations.
 ## Implementation principles
 
 - Applications own their domain and database tables.
+- Applications also own their services, migrations, workers, execution, reports,
+  UI surfaces, and browser assets. The platform exposes only generic routes and
+  bounded SDK runtime services.
 - Shared platform code owns only cross-Application concerns.
 - Use Oban for durable jobs and OTP supervision for runtime processes.
 - Store secrets encrypted and never include them in logs, artifacts, prompts, or
@@ -83,12 +89,40 @@ translations.
 
 1. Validate Digital Estate Assessment with real buyer conversations and a
    manually deliverable assessment shape.
-2. Prove the OTP Application boundary and Application Instance model.
-3. Prove one Capability contract with a native Processor, then an isolated
-   Python Processor for a real assessment need.
-4. Deliver a narrow Digital Estate Assessment vertical slice.
-5. Add agent operation only after deterministic manual execution works.
-6. Prove reuse through a second paid or strongly validated Application.
+2. Run the implemented fixture-backed vertical slice against real college
+   evidence and refine its input/output contract.
+3. Add an isolated Python Processor only for a real assessment operation that
+   the native slice cannot reasonably provide.
+4. Add agent operation only after the deterministic assessment is accepted.
+5. Prove reuse through a second paid or strongly validated Application.
 
 Do not implement later roadmap phases unless the current proof requires them.
+
+## Current implementation state
+
+- Digital Estate Assessment is independently compiled and source-linked through
+  the runtime registry; it is not a platform dependency.
+- The platform owns stable generic Application routes and dynamically mounts
+  package-declared LiveView surfaces.
+- The Application owns the `contexla_estate` PostgreSQL schema and migration
+  lifecycle. Instances share its tables through `application_instance_id`.
+- The fixture-backed Digital Estate Assessment vertical slice is implemented:
+  create Instance, upload/validate Artifact, queue Oban Run, normalize through
+  the Drupal Adapter, invoke Composer Capability, persist evidence/inventory/
+  relationships/findings, inspect results, and render HTML/JSON reports.
+- Findings preserve deterministic versus expert origin, and status changes are
+  recorded as append-only Review Decisions with reviewer and rationale.
+- Consecutive successful Snapshots for an Instance and target are compared by
+  stable inventory identity, preserving added, changed, and removed values.
+- A read-only Drush collector spike under `connectors/drupal_snapshot/` has been
+  run against a disposable Drupal 11 site. Clean and seeded synthetic-college
+  snapshots completed the real Artifact, native Composer Processor, Oban,
+  persistence, comparison, deterministic Finding, and report path. Aggregate
+  content/media counts are normalized as evidence-backed Resources.
+- The synthetic proof is not real buyer evidence and must not be presented as
+  commercial validation. Local DDEV database checkpoints and generated ZIPs are
+  development state, not repository fixtures or customer artifacts.
+- The next priority is real college evidence and customer review. Refine the
+  snapshot contract, rules, and report from that evidence before adding agents,
+  Python Processors, live Connections, or a second Application.
 

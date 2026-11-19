@@ -18,4 +18,40 @@ defmodule Contexla.EstateTest do
     assert {:ok, ^config} = Contexla.Estate.validate_instance_config(config)
     assert {:error, {:invalid_config, _reason}} = Contexla.Estate.validate_instance_config(%{})
   end
+
+  test "produces deterministic evidence-gap and custom-module findings" do
+    normalized = %{
+      evidence: [
+        %{path: "sources/drupal-status.json"},
+        %{path: "sources/modules.json"}
+      ],
+      resources: [
+        %{
+          kind: "cms",
+          external_key: "college",
+          name: "College",
+          attributes: %{},
+          evidence_path: "sources/drupal-status.json"
+        },
+        %{
+          kind: "module",
+          external_key: "college_sis",
+          name: "College SIS",
+          attributes: %{"origin" => "custom"},
+          evidence_path: "sources/modules.json"
+        }
+      ]
+    }
+
+    findings = Contexla.Estate.Rules.evaluate(normalized)
+
+    assert Enum.any?(findings, &(&1.rule_id == "drupal.version.unknown"))
+
+    assert Enum.any?(
+             findings,
+             &(&1.rule_id == "custom_module.maintenance_metadata_missing")
+           )
+
+    assert Enum.any?(findings, &(&1.rule_id == "evidence.missing.themes.json"))
+  end
 end

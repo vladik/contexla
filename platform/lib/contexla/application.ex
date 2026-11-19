@@ -14,6 +14,7 @@ defmodule Contexla.Application do
       {Phoenix.PubSub, name: Contexla.PubSub},
       Contexla.Packages.Registry,
       Contexla.CapabilityRuntime.Registry,
+      {Oban, Application.fetch_env!(:contexla, Oban)},
       # Start to serve requests, typically the last entry
       ContexlaWeb.Endpoint
     ]

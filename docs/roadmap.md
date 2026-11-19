@@ -8,21 +8,45 @@ and leaves behind something usable.
 As of 2026-11-19, the repository proves:
 
 - the Phoenix/PostgreSQL platform boots against a repository-local database;
-- the bundled Digital Estate Assessment Application and Drupal Integration are
-  discovered and contract-validated;
+- the platform compiles, boots, and is tested with no concrete Application or
+  Integration dependency;
+- independently compiled Application and Integration BEAM paths are discovered
+  and contract-validated through the runtime registry;
+- Digital Estate Assessment owns its services, executor, workers, UI surfaces,
+  reports, PostgreSQL schema, and migrations;
 - an administrator can be bootstrapped without public registration or a shared
   default password;
 - bootstrap credentials must be replaced before platform access;
 - a validated, version-pinned Application Instance can be persisted;
 - a Drupal snapshot ZIP can be security-checked, contract-validated, retained in
   content-addressed storage, and associated with an Instance as an immutable
-  Artifact.
+  Artifact;
 - bundled Capability and Processor packages are separately contract-validated;
 - PostgreSQL mirrors Capability contracts and Processor versions, resolves
-  scoped Bindings, validates I/O, and records auditable native Invocations.
+  scoped Bindings, validates I/O, and records auditable native Invocations;
+- Oban durably queues Digital Estate Assessment Runs;
+- the Drupal Adapter normalizes approved snapshot evidence into an immutable
+  Snapshot, Inventory Items, and Relationships;
+- the Application persists Evidence Items and deterministic Findings;
+- authenticated LiveViews support creating an Assessment, uploading evidence,
+  starting a Run, and inspecting the latest results;
+- completed Runs expose a human-readable HTML report and machine-readable JSON
+  report with an evidence appendix;
+- reviewers can add attributed expert findings and record append-only Finding
+  disposition decisions with rationale;
+- consecutive successful snapshots are compared deterministically, preserving
+  added, changed, and removed inventory with before/after normalized values.
+- a read-only Drush collector spike has produced clean and seeded snapshots from
+  a disposable Drupal 11 site, and both completed the Artifact, native Composer
+  Processor, Oban, persistence, comparison, Finding, and report path;
+- aggregate content and media counts are retained as evidence-backed inventory.
 
-The next proof is normalizing a validated snapshot into Assessment Resources,
-Relationships, and Evidence.
+The Application boundary and technical vertical slice work against controlled
+fixtures and a synthetic Drupal installation. Source-linked development loading
+is implemented; validated archive installation remains a later package-lifecycle
+step. The synthetic Drupal proof does not validate the commercial outcome. The
+next proof is running against real college evidence and obtaining customer
+acceptance.
 
 ## Proof 0 — Commercial problem
 
@@ -55,6 +79,10 @@ authentication, Application Instances, and Oban execution.
 
 Avoid a sophisticated sandbox until this process-level proof works.
 
+The native half is implemented. The isolated Python half is deliberately
+deferred until real assessment evidence exposes an operation that justifies it;
+it is not a blocker for validating the commercial vertical slice.
+
 ## Proof 3 — Assessment vertical slice
 
 **Question:** Can the product create a valuable assessment from real evidence?
@@ -65,6 +93,10 @@ Avoid a sophisticated sandbox until this process-level proof works.
 - generate several deterministic findings with linked evidence;
 - render a useful report;
 - support repeat execution and comparison.
+
+All six bullets are implemented for controlled snapshots, including snapshots
+collected from a synthetic Drupal 11 estate. Real-estate validation and
+refinement against the buying decision remain open.
 
 ## Proof 4 — Agent-operated assessment
 

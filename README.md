@@ -82,16 +82,27 @@ See [docs/README.md](docs/README.md) for the documentation map.
 ## Status
 
 Contexla is at the commercial-validation and first architecture-proof stage.
-The repository contains a Phoenix/PostgreSQL platform skeleton, Application and
-Integration and Capability SDK contracts, the bundled Digital Estate Assessment
-Application, a bundled native Processor, the bundled Drupal Integration
-definition, password-based administrator authentication, and persistent
-Application Instances. The Capability catalog, scoped binding resolution,
-contract validation, and auditable native invocation path are implemented. It
-does not yet implement the normalized assessment inventory, findings, or
-assessment UI. The backend can validate and retain Drupal snapshot ZIPs as
-evidence-bearing Artifacts.
+The platform now compiles and boots without concrete Applications. Digital
+Estate Assessment and Drupal compile independently and are loaded through the
+SDK registry; the Application owns its PostgreSQL schema, migrations, execution,
+reports, and UI surfaces behind generic platform routes.
+The repository contains an executable first Digital Estate Assessment vertical
+slice. An authenticated user can create an Assessment Instance, upload and
+validate a Drupal snapshot, retain it as immutable evidence, queue an Oban Run,
+normalize inventory through the Drupal Adapter, invoke the Composer Capability,
+persist relationships and deterministic findings, inspect results, and produce
+HTML or JSON report output. Reviewers can disposition deterministic findings
+with an append-only rationale and add attributed expert findings. The slice is
+also compares consecutive normalized snapshots as added, changed, and removed
+inventory.
+
+A read-only Drush collector spike has now been exercised against a disposable
+Drupal 11 installation in both clean and synthetic-college states. Those
+snapshots completed the full Artifact, Capability, Oban, persistence,
+comparison, Finding, and JSON-report path. This is a stronger technical proof
+than hand-authored fixtures, but it is still synthetic evidence; real college
+evidence and customer review remain required for commercial validation.
 
 See [the development guide](docs/development/getting-started.md) to run the
-current skeleton.
+current platform.
 

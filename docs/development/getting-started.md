@@ -23,9 +23,10 @@ integrations/drupal/                     first bundled Integration
 docs/                                    product and architecture source of truth
 ```
 
-Each package is a separate Mix project. The platform includes the bundled
-packages through path dependencies. This follows the package-versus-instance
-pattern without making dynamic package installation part of the first slice.
+Each package is a separate Mix project. The platform depends only on the SDKs;
+it does not compile against Digital Estate Assessment or Drupal. Applications
+and Integrations are compiled independently and registered from their BEAM paths
+during development.
 
 ## Start PostgreSQL
 
@@ -58,6 +59,31 @@ mix phx.server
 ```
 
 Open `http://localhost:4000`.
+
+Database setup includes platform and Oban tables only. An installed Application
+runs its own migrations into its owned PostgreSQL schema when the package is
+loaded. In tests, Oban uses manual mode.
+
+To compile the Assessment and Drupal packages independently and start the
+platform with them source-linked through the runtime registry, run from the
+repository root:
+
+```powershell
+.\scripts\dev-platform.ps1
+```
+
+Starting `mix phx.server` directly under `platform/` intentionally boots with
+zero concrete Applications installed.
+
+To avoid a local port conflict, set `PORT` before starting the source-linked
+platform:
+
+```powershell
+$env:PORT = "4100"
+.\scripts\dev-platform.ps1
+```
+
+This changes only the Contexla listener for that process.
 
 ## Bootstrap the administrator
 
@@ -101,12 +127,10 @@ Set-Location ../../processors/native
 mix test
 ```
 
-The combined package registry can be smoke-checked without PostgreSQL:
-
-```powershell
-Set-Location ../../platform
-mix run --no-start -e '{:ok, pid} = Contexla.Packages.Registry.start_link(); IO.inspect({Contexla.Packages.Registry.applications(), Contexla.Packages.Registry.integrations()}); GenServer.stop(pid)'
-```
+`CONTEXLA_APPLICATION_PACKAGES` and `CONTEXLA_INTEGRATION_PACKAGES` accept
+semicolon-separated `EBIN_PATH|Entry.Module` registrations. The development
+script sets these variables; production installation will populate equivalent
+validated package registrations from the package catalog.
 
 The platform also starts `Contexla.CapabilityRuntime.Registry`. Bundled
 Capability and Processor definitions are code-authoritative and are mirrored
@@ -116,4 +140,35 @@ to PostgreSQL lazily before invocation. Applications invoke contracts through
 The platform's generated `mix test` alias provisions the test database before
 running ExUnit, so the complete platform suite intentionally requires the
 database service.
+
+## Local Drupal collector proof
+
+The read-only collector spike lives under `connectors/drupal_snapshot/`. Its
+synthetic college fixture is intentionally separate from the Drupal Integration
+package: the collector acquires source-native evidence, while the Integration
+validates and normalizes it.
+
+Generated DDEV database checkpoints and snapshot ZIPs are local development
+state and are not committed. After producing a clean and a seeded ZIP, the full
+local proof can be run without starting a web listener:
+
+```powershell
+Set-Location platform
+
+$env:CONTEXLA_APPLICATION_PACKAGES = `
+  "<assessment-ebin>|Contexla.Estate"
+$env:CONTEXLA_INTEGRATION_PACKAGES = `
+  "<drupal-ebin>|Contexla.Drupal"
+$env:CONTEXLA_BASELINE_SNAPSHOT = "<clean-snapshot.zip>"
+$env:CONTEXLA_SEEDED_SNAPSHOT = "<seeded-snapshot.zip>"
+$env:CONTEXLA_PROOF_REPORT = "<report-output.json>"
+
+mix run ..\scripts\run-local-drupal-proof.exs
+```
+
+The runner reuses the named local Assessment Instance, imports immutable
+Artifacts by hash, executes two auditable Runs, and writes the seeded Run's JSON
+report. It requires an existing administrator because the Run and artifacts
+must have a real local actor. This is a development proof, not a replacement for
+real college evidence or customer acceptance.
 

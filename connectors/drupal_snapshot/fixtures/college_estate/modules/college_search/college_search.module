@@ -1,0 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Synthetic college search integration used only by Contexla fixtures.
+ */
+
+/**
+ * Implements hook_cron().
+ */
+function college_search_cron(): void
+{
+    // Intentionally performs no external call.
+}

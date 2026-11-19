@@ -1,6 +1,13 @@
 # Contexla.ApplicationSDK
 
-**TODO: Add description**
+The Contexla Application SDK is the only supported compile-time contract between
+the platform and an independently developed trusted Application.
+
+An Application declares its identity, configuration schema, operations, Adapter
+requirements, PostgreSQL schema, and UI surfaces. It may own Ecto schemas,
+migrations, Oban workers, LiveViews, reports, assets, and supervised runtime code.
+It accesses shared platform facilities through `Contexla.ApplicationSDK.Runtime`
+instead of depending on platform modules.
 
 ## Installation
 

@@ -29,6 +29,9 @@ Date: YYYY-MM-DD
 - [0007 — Isolated out-of-process Python Processors](0007-isolated-python-processors.md)
 - [0008 — Immutable content-addressed Artifact storage](0008-content-addressed-artifacts.md)
 - [0009 — Capability contracts and Processor implementations](0009-capability-processor-runtime.md)
+- [0010 — Bundled Application domain and infrastructure execution boundary](0010-bundled-application-domain-execution.md)
+
+- [0011 — Independent Application packages](0011-independent-application-packages.md)
 
 Create additional ADRs when implementation makes choices concrete, for
 example:

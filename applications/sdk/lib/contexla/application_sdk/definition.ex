@@ -3,7 +3,7 @@ defmodule Contexla.ApplicationSDK.Definition do
   Declarative identity and contract for a trusted Application package.
   """
 
-  alias Contexla.ApplicationSDK.Operation
+  alias Contexla.ApplicationSDK.{Operation, Surface}
 
   @enforce_keys [:id, :name, :version, :otp_application, :entry_module]
   defstruct [
@@ -12,9 +12,11 @@ defmodule Contexla.ApplicationSDK.Definition do
     :version,
     :otp_application,
     :entry_module,
+    :database_schema,
     description: "",
     config_schema: %{},
     operations: [],
+    surfaces: [],
     required_adapter_contracts: []
   ]
 
@@ -24,9 +26,11 @@ defmodule Contexla.ApplicationSDK.Definition do
           version: String.t(),
           otp_application: atom(),
           entry_module: module(),
+          database_schema: String.t() | nil,
           description: String.t(),
           config_schema: map(),
           operations: [Operation.t()],
+          surfaces: [Surface.t()],
           required_adapter_contracts: [String.t()]
         }
 
@@ -38,9 +42,11 @@ defmodule Contexla.ApplicationSDK.Definition do
       {:version, definition.version, &non_empty_string?/1},
       {:otp_application, definition.otp_application, &is_atom/1},
       {:entry_module, definition.entry_module, &is_atom/1},
+      {:database_schema, definition.database_schema, &optional_identifier?/1},
       {:description, definition.description, &is_binary/1},
       {:config_schema, definition.config_schema, &is_map/1},
       {:operations, definition.operations, &operations?/1},
+      {:surfaces, definition.surfaces, &surfaces?/1},
       {:required_adapter_contracts, definition.required_adapter_contracts, &string_list?/1}
     ]
 
@@ -58,4 +64,14 @@ defmodule Contexla.ApplicationSDK.Definition do
         Enum.all?(value, &(match?(%Operation{}, &1) and Operation.validate(&1) == :ok))
 
   defp string_list?(value), do: is_list(value) and Enum.all?(value, &non_empty_string?/1)
+
+  defp surfaces?(value),
+    do:
+      is_list(value) and
+        Enum.all?(value, &(match?(%Surface{}, &1) and Surface.validate(&1) == :ok))
+
+  defp optional_identifier?(nil), do: true
+
+  defp optional_identifier?(value),
+    do: non_empty_string?(value) and value =~ ~r/^[a-z][a-z0-9_]*$/
 end

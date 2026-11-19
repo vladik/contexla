@@ -117,3 +117,12 @@ that its inventory, evidence gaps, and findings are more defensible or efficient
 than the current spreadsheet/interview process. Completing the screens alone is
 not success.
 
+## Implementation status
+
+The current fixture-backed slice implements steps 1–12 and produces an initial
+HTML/JSON report. It persists Application-owned Runs, Evidence Items, Snapshots,
+Inventory Items, Relationships, deterministic and attributed expert Findings,
+append-only review decisions, and deterministic comparisons between consecutive
+Snapshots. Normalized-value correction history and richer report sections
+remain to be implemented after testing the slice with real college evidence.
+

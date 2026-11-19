@@ -22,7 +22,13 @@ defmodule Contexla.Estate.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:contexla_application_sdk, path: "../sdk"}
+      {:contexla_application_sdk, path: "../sdk"},
+      {:ecto_sql, "~> 3.13"},
+      {:postgrex, ">= 0.0.0"},
+      {:phoenix_live_view, "~> 1.2"},
+      {:phoenix_html, "~> 4.1"},
+      {:jason, "~> 1.2"},
+      {:oban, "~> 2.24"}
     ]
   end
 end

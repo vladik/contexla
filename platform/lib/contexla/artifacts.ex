@@ -8,6 +8,22 @@ defmodule Contexla.Artifacts do
   alias Contexla.Artifacts.{Artifact, Storage}
   alias Contexla.Repo
 
+  import Ecto.Query, warn: false
+
+  def fetch(%Scope{user: %Contexla.Accounts.User{}}, id) do
+    case Repo.get(Artifact, id) do
+      nil -> {:error, :not_found}
+      artifact -> {:ok, artifact}
+    end
+  end
+
+  def list_for_instance(%Scope{user: %Contexla.Accounts.User{}}, instance_id) do
+    Artifact
+    |> where([artifact], artifact.application_instance_id == ^instance_id)
+    |> order_by([artifact], desc: artifact.inserted_at)
+    |> Repo.all()
+  end
+
   @doc false
   def store_validated_source(
         %Scope{user: %Contexla.Accounts.User{} = user},

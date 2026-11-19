@@ -46,4 +46,10 @@ defmodule Contexla.Applications.ApplicationInstance do
     |> unique_constraint([:application_id, :name])
     |> foreign_key_constraint(:created_by_user_id)
   end
+
+  def status_changeset(instance, status) do
+    instance
+    |> change(status: status)
+    |> validate_required([:status])
+  end
 end

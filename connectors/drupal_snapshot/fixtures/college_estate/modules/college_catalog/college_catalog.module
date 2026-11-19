@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Synthetic college catalog integration used only by Contexla fixtures.
+ */
+
+/**
+ * Implements hook_cron().
+ */
+function college_catalog_cron(): void
+{
+    // Intentionally performs no external call. The fixture only models that a
+    // scheduled integration exists.
+}

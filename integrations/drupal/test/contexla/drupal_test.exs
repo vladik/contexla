@@ -24,6 +24,69 @@ defmodule Contexla.DrupalTest do
     assert byte_size(validation.sha256) == 64
   end
 
+  test "normalizes validated Drupal evidence into resources and relationships" do
+    path = snapshot_fixture!()
+
+    assert {:ok, normalized} = AssessmentSnapshotAdapter.normalize_source(path)
+    assert normalized.target_key == "college-public-web"
+    assert [%{kind: "cms", external_key: "college-public-web"}] = normalized.resources
+    assert [%{path: "sources/drupal-status.json"}] = normalized.evidence
+    assert normalized.relationships == []
+    assert normalized.documents["sources/drupal-status.json"]["environment"] == "production"
+  end
+
+  test "normalizes aggregate usage counts as evidence-backed resources" do
+    collected_at = "2026-11-19T15:00:00Z"
+
+    validated = %{
+      manifest: %{
+        "created_at" => collected_at,
+        "source" => %{"installation_id" => "college-public-web"},
+        "collection" => %{"limitations" => []}
+      },
+      documents: %{
+        "sources/drupal-status.json" => %{"name" => "College"},
+        "sources/content-counts.json" => [
+          %{"bundle" => "program", "label" => "Program", "count" => 4}
+        ],
+        "sources/media-counts.json" => [
+          %{"bundle" => "document", "label" => "Document", "count" => 12}
+        ]
+      },
+      files: [
+        %{
+          "path" => "sources/content-counts.json",
+          "kind" => "drupal.content_counts",
+          "media_type" => "application/json",
+          "sha256" => String.duplicate("a", 64),
+          "bytes" => 1
+        },
+        %{
+          "path" => "sources/media-counts.json",
+          "kind" => "drupal.media_counts",
+          "media_type" => "application/json",
+          "sha256" => String.duplicate("b", 64),
+          "bytes" => 1
+        }
+      ]
+    }
+
+    assert {:ok, normalized} =
+             Contexla.Drupal.AssessmentSnapshotNormalizer.normalize(validated)
+
+    assert Enum.any?(normalized.resources, fn resource ->
+             resource.kind == "content_count" and resource.external_key == "program" and
+               resource.attributes["count"] == 4 and
+               resource.evidence_path == "sources/content-counts.json"
+           end)
+
+    assert Enum.any?(normalized.resources, fn resource ->
+             resource.kind == "media_count" and resource.external_key == "document" and
+               resource.attributes["count"] == 12 and
+               resource.evidence_path == "sources/media-counts.json"
+           end)
+  end
+
   test "rejects a declared file whose checksum does not match" do
     path = snapshot_fixture!(declaration: &Map.put(&1, "sha256", String.duplicate("0", 64)))
 

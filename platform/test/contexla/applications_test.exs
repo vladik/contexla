@@ -10,37 +10,34 @@ defmodule Contexla.ApplicationsTest do
     %{scope: user_scope_fixture()}
   end
 
-  test "lists the bundled Digital Estate Assessment Application", %{scope: scope} do
+  test "lists an installed Application without compiling against it", %{scope: scope} do
     assert [definition] = Applications.list_installed_applications(scope)
-    assert definition.id == "com.contexla.application.digital-estate-assessment"
+    assert definition.id == "com.contexla.test.application"
   end
 
   test "creates and version-pins a validated Application Instance", %{scope: scope} do
     attrs = %{
-      "application_id" => "com.contexla.application.digital-estate-assessment",
-      "name" => "College Drupal Estate",
-      "config" => %{
-        "decision" => "Assess modernization readiness",
-        "scope" => %{"cms" => "drupal"}
-      }
+      "application_id" => "com.contexla.test.application",
+      "name" => "Configured Test Instance",
+      "config" => %{"profile" => "test"}
     }
 
     assert {:ok, %ApplicationInstance{} = instance} =
              Applications.create_instance(scope, attrs)
 
-    assert instance.name == "College Drupal Estate"
-    assert instance.application_version == "0.1.0"
+    assert instance.name == "Configured Test Instance"
+    assert instance.application_version == "1.0.0"
     assert instance.status == :draft
     assert instance.created_by_user_id == scope.user.id
     assert [^instance] = Applications.list_instances(scope)
   end
 
   test "rejects invalid Application configuration", %{scope: scope} do
-    assert {:error, {:invalid_instance_config, {:invalid_config, _message}}} =
+    assert {:error, {:invalid_instance_config, :must_be_a_map}} =
              Applications.create_instance(scope, %{
-               "application_id" => "com.contexla.application.digital-estate-assessment",
+               "application_id" => "com.contexla.test.application",
                "name" => "Invalid",
-               "config" => %{}
+               "config" => "invalid"
              })
   end
 

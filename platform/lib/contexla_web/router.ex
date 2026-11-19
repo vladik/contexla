@@ -55,7 +55,17 @@ defmodule ContexlaWeb.Router do
   scope "/", ContexlaWeb do
     pipe_through [:browser, :require_authenticated_user, :require_password_change_completed]
 
-    get "/", PageController, :home
+    get "/applications/new/:application_id/:surface", ApplicationSurfaceController, :new
+    get "/applications/:instance_id/:surface", ApplicationSurfaceController, :show
+
+    get "/application-operations/:instance_id/:operation_id",
+        ApplicationOperationController,
+        :execute
+
+    live_session :platform,
+      on_mount: [{ContexlaWeb.UserAuth, :require_authenticated}] do
+      live "/", ApplicationLive.Index, :index
+    end
   end
 
   scope "/", ContexlaWeb do

@@ -118,7 +118,20 @@ The Drupal Assessment Adapter validates the snapshot profile and produces:
 It does not assign modernization disposition, business severity, or final
 recommendations. Those belong to Assessment rules and architect review.
 
+The initial implementation maps Drupal status, modules, themes, sites, content
+types, fields, Views, workflows, role summaries, aggregate content/media counts,
+and scheduled jobs when those JSON documents are present. It preserves missing
+evidence as a limitation rather than producing empty inventory. Composer
+manifests are passed to the separately versioned Composer Capability rather than
+interpreted inside the Adapter.
+
 ## Open questions for the collector spike
+
+The first local proof uses a read-only Drush `php:script` collector. This is an
+implementation spike, not yet the production Connector contract. It exists to
+test the package shape against a disposable Drupal 11 installation before the
+college evidence determines whether a Drupal module or another delivery form is
+needed.
 
 - Which data is available consistently through Drush across supported Drupal
   versions?

@@ -1,5 +1,24 @@
 import Config
 
+parse_packages = fn value ->
+  value
+  |> String.split(";", trim: true)
+  |> Enum.map(fn registration ->
+    case String.split(registration, "|", parts: 2) do
+      [ebin, entry_module] -> %{ebin: Path.expand(ebin), entry_module: entry_module}
+      _ -> raise "invalid package registration: #{registration}"
+    end
+  end)
+end
+
+if value = System.get_env("CONTEXLA_APPLICATION_PACKAGES") do
+  config :contexla, application_packages: parse_packages.(value)
+end
+
+if value = System.get_env("CONTEXLA_INTEGRATION_PACKAGES") do
+  config :contexla, integration_packages: parse_packages.(value)
+end
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration

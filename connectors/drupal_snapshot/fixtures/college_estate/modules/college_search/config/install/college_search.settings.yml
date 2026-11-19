@@ -1,0 +1,4 @@
+endpoint: 'https://search.example.invalid/index/college-public'
+authentication_type: api_key
+direction: outbound
+schedule: '*/15 * * * *'

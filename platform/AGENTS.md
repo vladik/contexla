@@ -23,6 +23,9 @@ This is a web application written using the Phoenix web framework.
 - A changed Capability contract or Processor definition requires a new version;
   catalog synchronization rejects same-version definition drift.
 - Capability Binding resolution is Instance, then Application, then Platform.
+- Concrete Applications are not platform dependencies. They contribute surfaces,
+  operations, migrations, and runtime code through the Application SDK and use
+  only the bounded service modules supplied through `ApplicationSDK.Runtime`.
 
 ## Project guidelines
 

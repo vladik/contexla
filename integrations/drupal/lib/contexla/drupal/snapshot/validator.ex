@@ -46,6 +46,16 @@ defmodule Contexla.Drupal.Snapshot.Validator do
     end
   end
 
+  @doc "Validates a snapshot and returns decoded declared JSON documents."
+  @spec validate_and_read(Path.t(), keyword()) :: {:ok, map()} | {:error, term()}
+  def validate_and_read(path, opts \\ []) when is_binary(path) do
+    with {:ok, validation} <- validate(path, opts),
+         {:ok, extracted} <- extract_to_memory(path),
+         {:ok, documents} <- decode_declared_json(validation.files, extracted) do
+      {:ok, Map.put(validation, :documents, documents)}
+    end
+  end
+
   defp regular_file(path) do
     case File.stat(path) do
       {:ok, %{type: :regular} = stat} -> {:ok, stat}
@@ -191,6 +201,22 @@ defmodule Contexla.Drupal.Snapshot.Validator do
       {:ok, _other} -> {:error, :manifest_must_be_an_object}
       {:error, error} -> {:error, {:invalid_manifest_json, Exception.message(error)}}
     end
+  end
+
+  defp decode_declared_json(files, extracted) do
+    files
+    |> Enum.filter(&(&1["media_type"] == "application/json"))
+    |> Enum.reduce_while({:ok, %{}}, fn declaration, {:ok, decoded} ->
+      path = declaration["path"]
+
+      case Jason.decode(Map.fetch!(extracted, path)) do
+        {:ok, document} ->
+          {:cont, {:ok, Map.put(decoded, path, document)}}
+
+        {:error, error} ->
+          {:halt, {:error, {:invalid_declared_json, path, Exception.message(error)}}}
+      end
+    end)
   end
 
   defp validate_manifest(manifest) do

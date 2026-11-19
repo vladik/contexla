@@ -1,10 +1,9 @@
 defmodule Contexla.Packages.Registry do
   @moduledoc """
-  Runtime registry for trusted Application and Integration packages bundled
-  into the Contexla release.
+  Runtime registry for independently compiled trusted packages.
 
-  The registry validates package definitions at startup. It does not implement
-  dynamic package installation; that lifecycle is deliberately deferred.
+  Development registrations and installed packages are loaded through metadata;
+  the platform never compiles against a concrete Application module.
   """
 
   use GenServer
@@ -27,6 +26,12 @@ defmodule Contexla.Packages.Registry do
   @spec fetch_application(package_id()) ::
           {:ok, ApplicationSDK.Definition.t()} | {:error, :not_found}
   def fetch_application(id), do: GenServer.call(__MODULE__, {:fetch_application, id})
+
+  def fetch_application_entry(id), do: GenServer.call(__MODULE__, {:fetch_application_entry, id})
+
+  def fetch_surface(id, path, role \\ nil) do
+    GenServer.call(__MODULE__, {:fetch_surface, id, path, role})
+  end
 
   @spec fetch_integration(package_id()) ::
           {:ok, IntegrationSDK.Definition.t()} | {:error, :not_found}
@@ -60,6 +65,32 @@ defmodule Contexla.Packages.Registry do
     {:reply, fetch_definition(state.applications, id), state}
   end
 
+  def handle_call({:fetch_application_entry, id}, _from, state) do
+    result =
+      case Map.fetch(state.applications, id) do
+        {:ok, {module, definition}} -> {:ok, {module, definition}}
+        :error -> {:error, :not_found}
+      end
+
+    {:reply, result, state}
+  end
+
+  def handle_call({:fetch_surface, id, path, role}, _from, state) do
+    result =
+      with {:ok, {_module, definition}} <- Map.fetch(state.applications, id),
+           surface when not is_nil(surface) <-
+             Enum.find(definition.surfaces, fn surface ->
+               surface.path == path and (is_nil(role) or surface.role == role)
+             end),
+           true <- Code.ensure_loaded?(surface.module) do
+        {:ok, surface}
+      else
+        _ -> {:error, :not_found}
+      end
+
+    {:reply, result, state}
+  end
+
   def handle_call({:fetch_integration, id}, _from, state) do
     {:reply, fetch_definition(state.integrations, id), state}
   end
@@ -82,29 +113,79 @@ defmodule Contexla.Packages.Registry do
   defp load_applications do
     :contexla
     |> Application.get_env(:application_packages, [])
-    |> load_packages(&ApplicationSDK.validate_module/1)
+    |> load_packages(&load_application/1)
   end
 
   defp load_integrations do
     :contexla
     |> Application.get_env(:integration_packages, [])
-    |> load_packages(&IntegrationSDK.validate_module/1)
+    |> load_packages(&load_integration/1)
   end
 
   defp load_packages(modules, validator) do
-    Enum.reduce_while(modules, {:ok, %{}}, fn module, {:ok, packages} ->
-      case validator.(module) do
+    Enum.reduce_while(modules, {:ok, %{}}, fn registration, {:ok, packages} ->
+      case validator.(registration) do
         {:ok, definition} ->
           if Map.has_key?(packages, definition.id) do
             {:halt, {:error, {:duplicate_package_id, definition.id}}}
           else
+            module = definition.entry_module
             {:cont, {:ok, Map.put(packages, definition.id, {module, definition})}}
           end
 
         {:error, reason} ->
-          {:halt, {:error, {:invalid_package, module, reason}}}
+          {:halt, {:error, {:invalid_package, registration, reason}}}
       end
     end)
+  end
+
+  defp load_application(module) when is_atom(module), do: ApplicationSDK.validate_module(module)
+
+  defp load_application(%{ebin: ebin, entry_module: entry_module}) do
+    module = Module.concat([entry_module])
+
+    with true <- Code.append_path(String.to_charlist(ebin)),
+         true <- Code.ensure_loaded?(module),
+         {:ok, definition} <- ApplicationSDK.validate_module(module),
+         :ok <- load_otp_application(definition.otp_application),
+         :ok <- migrate_application(module) do
+      {:ok, definition}
+    else
+      false -> {:error, :entry_module_not_loaded}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp load_integration(module) when is_atom(module), do: IntegrationSDK.validate_module(module)
+
+  defp load_integration(%{ebin: ebin, entry_module: entry_module}) do
+    module = Module.concat([entry_module])
+
+    with true <- Code.append_path(String.to_charlist(ebin)),
+         true <- Code.ensure_loaded?(module),
+         {:ok, definition} <- IntegrationSDK.validate_module(module),
+         :ok <- load_otp_application(definition.otp_application) do
+      {:ok, definition}
+    else
+      false -> {:error, :entry_module_not_loaded}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp migrate_application(module) do
+    if function_exported?(module, :migrate_install, 1) do
+      module.migrate_install(Contexla.Repo)
+    else
+      :ok
+    end
+  end
+
+  defp load_otp_application(application) do
+    case Application.load(application) do
+      :ok -> :ok
+      {:error, {:already_loaded, ^application}} -> :ok
+      {:error, reason} -> {:error, {:application_load_failed, reason}}
+    end
   end
 
   defp definitions(packages) do

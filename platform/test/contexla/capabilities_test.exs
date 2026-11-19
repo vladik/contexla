@@ -12,12 +12,9 @@ defmodule Contexla.CapabilitiesTest do
 
     {:ok, instance} =
       Applications.create_instance(scope, %{
-        "application_id" => "com.contexla.application.digital-estate-assessment",
-        "name" => "Capability Test Estate",
-        "config" => %{
-          "decision" => "Assess modernization readiness",
-          "scope" => %{"cms" => "drupal"}
-        }
+        "application_id" => "com.contexla.test.application",
+        "name" => "Capability Test Instance",
+        "config" => %{"profile" => "dependency-test"}
       })
 
     %{scope: scope, instance: instance}
@@ -50,10 +47,10 @@ defmodule Contexla.CapabilitiesTest do
     instance: instance
   } do
     input = %{
-      "composer_json" => %{"require" => %{"drupal/core" => "^10"}},
+      "composer_json" => %{"require" => %{"vendor/core" => "^10"}},
       "composer_lock" => %{
         "packages" => [
-          %{"name" => "drupal/core", "version" => "10.4.0", "type" => "drupal-core"}
+          %{"name" => "vendor/core", "version" => "10.4.0", "type" => "library"}
         ]
       }
     }
@@ -68,9 +65,9 @@ defmodule Contexla.CapabilitiesTest do
              )
 
     assert dependency == %{
-             "name" => "drupal/core",
+             "name" => "vendor/core",
              "version" => "10.4.0",
-             "type" => "drupal-core",
+             "type" => "library",
              "development" => false,
              "direct" => true
            }
