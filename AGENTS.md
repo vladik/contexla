@@ -109,7 +109,9 @@ Do not implement later roadmap phases unless the current proof requires them.
 - The fixture-backed Digital Estate Assessment vertical slice is implemented:
   create Instance, upload/validate Artifact, queue Oban Run, normalize through
   the Drupal Adapter, invoke Composer Capability, persist evidence/inventory/
-  relationships/findings, inspect results, and render HTML/JSON reports.
+  relationships/findings, inspect results, and render HTML/JSON reports. The
+  HTML report includes decision and scope, method, declared limitations,
+  inventory, comparison, finding provenance, review history, and evidence.
 - Findings preserve deterministic versus expert origin, and status changes are
   recorded as append-only Review Decisions with reviewer and rationale.
 - Consecutive successful Snapshots for an Instance and target are compared by

@@ -143,6 +143,8 @@ defmodule Contexla.Estate.Assessments do
         "completed_at" => result.run.completed_at,
         "summary" => result.run.summary
       },
+      "snapshot" => snapshot_projection(result.snapshot),
+      "summary" => report_summary(result),
       "inventory" => Enum.map(result.inventory_items, &inventory_projection/1),
       "comparison" => comparison_projection(result.comparison),
       "relationships" => Enum.map(result.relationships, &relationship_projection/1),
@@ -226,6 +228,37 @@ defmodule Contexla.Estate.Assessments do
       |> Map.from_struct()
       |> Map.take([:id, :path, :kind, :media_type, :sha256, :byte_size, :metadata])
       |> stringify_keys()
+
+  defp snapshot_projection(nil), do: nil
+
+  defp snapshot_projection(snapshot) do
+    %{
+      "target_key" => snapshot.target_key,
+      "collected_at" => snapshot.collected_at,
+      "adapter" => %{"id" => snapshot.adapter_id, "version" => snapshot.adapter_version},
+      "limitations" => snapshot.limitations
+    }
+  end
+
+  defp report_summary(result) do
+    %{
+      "inventory_total" => length(result.inventory_items),
+      "inventory_by_kind" => frequencies(result.inventory_items, & &1.kind),
+      "relationship_total" => length(result.relationships),
+      "finding_total" => length(result.findings),
+      "findings_by_severity" => frequencies(result.findings, &to_string(&1.severity)),
+      "findings_by_status" => frequencies(result.findings, &to_string(&1.status)),
+      "findings_by_origin" => frequencies(result.findings, &to_string(&1.origin)),
+      "evidence_total" => length(result.evidence_items),
+      "review_decision_total" => length(result.review_decisions)
+    }
+  end
+
+  defp frequencies(items, key_function) do
+    items
+    |> Enum.frequencies_by(key_function)
+    |> Map.new(fn {key, count} -> {to_string(key), count} end)
+  end
 
   defp review_decision_projection(item) do
     %{

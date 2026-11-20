@@ -31,7 +31,8 @@ As of 2026-11-19, the repository proves:
 - authenticated LiveViews support creating an Assessment, uploading evidence,
   starting a Run, and inspecting the latest results;
 - completed Runs expose a human-readable HTML report and machine-readable JSON
-  report with an evidence appendix;
+  report with scope, limitations, inventory, findings provenance, comparison,
+  review history, and an evidence appendix;
 - reviewers can add attributed expert findings and record append-only Finding
   disposition decisions with rationale;
 - consecutive successful snapshots are compared deterministically, preserving
