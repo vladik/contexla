@@ -26,6 +26,24 @@ defmodule Contexla.Applications do
     |> Repo.all()
   end
 
+  @doc "Lists generic Instance navigation entries with their Application icons."
+  def list_navigation_instances(%Scope{} = scope) do
+    icons = Map.new(Registry.applications(), &{&1.id, &1.icon})
+
+    scope
+    |> list_instances()
+    |> Enum.map(fn instance ->
+      %{
+        id: instance.id,
+        name: instance.name,
+        description: instance.description,
+        application_id: instance.application_id,
+        icon: instance.icon || Map.get(icons, instance.application_id, "hero-cube"),
+        settings_path: settings_path(instance.application_id)
+      }
+    end)
+  end
+
   @doc "Gets an Application Instance visible in this installation."
   def get_instance!(%Scope{user: %Contexla.Accounts.User{}}, id) do
     Repo.get!(ApplicationInstance, id)
@@ -64,5 +82,36 @@ defmodule Contexla.Applications do
 
   def create_instance(%Scope{user: %Contexla.Accounts.User{}}, _attrs) do
     {:error, :application_id_required}
+  end
+
+  def change_instance_settings(%Scope{} = scope, id, attrs \\ %{}) do
+    with {:ok, instance} <- fetch_instance(scope, id) do
+      {:ok, ApplicationInstance.settings_changeset(instance, attrs)}
+    end
+  end
+
+  def update_instance_settings(%Scope{} = scope, id, attrs) do
+    with {:ok, instance} <- fetch_instance(scope, id) do
+      instance
+      |> ApplicationInstance.settings_changeset(attrs)
+      |> Repo.update()
+    end
+  end
+
+  def update_instance_config(%Scope{} = scope, id, config) when is_map(config) do
+    with {:ok, instance} <- fetch_instance(scope, id),
+         {:ok, definition} <- Registry.fetch_application(instance.application_id),
+         {:ok, normalized_config} <- definition.entry_module.validate_instance_config(config) do
+      instance
+      |> ApplicationInstance.config_changeset(normalized_config)
+      |> Repo.update()
+    end
+  end
+
+  defp settings_path(application_id) do
+    case Registry.fetch_settings_surface(application_id) do
+      {:ok, surface} -> surface.path
+      {:error, :not_found} -> nil
+    end
   end
 end

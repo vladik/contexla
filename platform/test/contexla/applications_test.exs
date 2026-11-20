@@ -49,4 +49,47 @@ defmodule Contexla.ApplicationsTest do
                "config" => %{}
              })
   end
+
+  test "updates Instance identity and uses an icon override in navigation", %{scope: scope} do
+    {:ok, instance} =
+      Applications.create_instance(scope, %{
+        "application_id" => "com.contexla.test.application",
+        "name" => "Original",
+        "config" => %{}
+      })
+
+    assert {:ok, updated} =
+             Applications.update_instance_settings(scope, instance.id, %{
+               "name" => "Renamed",
+               "description" => "The primary assessment estate",
+               "icon" => "hero-rocket-launch"
+             })
+
+    assert updated.name == "Renamed"
+    assert updated.description == "The primary assessment estate"
+    assert updated.icon == "hero-rocket-launch"
+
+    assert [
+             %{
+               name: "Renamed",
+               description: "The primary assessment estate",
+               icon: "hero-rocket-launch"
+             }
+           ] =
+             Applications.list_navigation_instances(scope)
+  end
+
+  test "validates Application-owned configuration before updating it", %{scope: scope} do
+    {:ok, instance} =
+      Applications.create_instance(scope, %{
+        "application_id" => "com.contexla.test.application",
+        "name" => "Configurable",
+        "config" => %{}
+      })
+
+    assert {:ok, updated} =
+             Applications.update_instance_config(scope, instance.id, %{"profile" => "updated"})
+
+    assert updated.config == %{"profile" => "updated"}
+  end
 end

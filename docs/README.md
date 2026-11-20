@@ -5,6 +5,7 @@ The documentation is organized by the kind of decision it supports.
 ## Product
 
 - [Vision and positioning](product/vision.md)
+- [Solution-led commercial model](product/solution-led-commercial-model.md)
 - [Initial market wedge](product/initial-market.md)
 - [Application portfolio](product/application-portfolio.md)
 - [Digital Estate Assessment v1](product/digital-estate-assessment-v1.md)
@@ -13,6 +14,7 @@ The documentation is organized by the kind of decision it supports.
 
 - [System overview](architecture/overview.md)
 - [Application package format](architecture/application-package-format.md)
+- [UI and layout architecture](architecture/ui-and-layout.md)
 - [Core concepts and boundaries](architecture/concepts.md)
 - [Glossary](architecture/glossary.md)
 - [Capability and Processor runtime](architecture/capability-runtime.md)

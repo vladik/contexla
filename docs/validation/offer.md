@@ -81,3 +81,22 @@ Avoid leading with OTP, Oban, Python isolation, or agent-generated Capabilities.
 Those explain how Contexla can become efficient and adaptable; they are not the
 outcome the initial buyer purchases.
 
+## Delivery and expansion path
+
+Offer the least-friction approved delivery mode:
+
+- customer-run collection with an approved snapshot processed in an agreed
+  secure environment;
+- customer-hosted Contexla when evidence residency or network policy requires
+  it;
+- ongoing deployment only when repeated monitoring, verification, or assurance
+  has a funded purpose.
+
+A successful assessment may lead to modernization planning, remediation,
+migration implementation, migration verification, or managed assurance. These
+are legitimate consulting and recurring-revenue paths, but the assessment must
+not predetermine that the agency receives the follow-on work.
+
+Customer-specific analysis should be implemented through configuration or
+bounded versioned extensions rather than a fork of the platform or Application.
+

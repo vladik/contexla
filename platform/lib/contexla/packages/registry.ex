@@ -33,6 +33,14 @@ defmodule Contexla.Packages.Registry do
     GenServer.call(__MODULE__, {:fetch_surface, id, path, role})
   end
 
+  def fetch_default_surface(id) do
+    GenServer.call(__MODULE__, {:fetch_default_surface, id})
+  end
+
+  def fetch_settings_surface(id) do
+    GenServer.call(__MODULE__, {:fetch_settings_surface, id})
+  end
+
   @spec fetch_integration(package_id()) ::
           {:ok, IntegrationSDK.Definition.t()} | {:error, :not_found}
   def fetch_integration(id), do: GenServer.call(__MODULE__, {:fetch_integration, id})
@@ -82,6 +90,34 @@ defmodule Contexla.Packages.Registry do
              Enum.find(definition.surfaces, fn surface ->
                surface.path == path and (is_nil(role) or surface.role == role)
              end),
+           true <- Code.ensure_loaded?(surface.module) do
+        {:ok, surface}
+      else
+        _ -> {:error, :not_found}
+      end
+
+    {:reply, result, state}
+  end
+
+  def handle_call({:fetch_default_surface, id}, _from, state) do
+    result =
+      with {:ok, {_module, definition}} <- Map.fetch(state.applications, id),
+           surface when not is_nil(surface) <-
+             Enum.find(definition.surfaces, &(&1.role == :instance and &1.default)),
+           true <- Code.ensure_loaded?(surface.module) do
+        {:ok, surface}
+      else
+        _ -> {:error, :not_found}
+      end
+
+    {:reply, result, state}
+  end
+
+  def handle_call({:fetch_settings_surface, id}, _from, state) do
+    result =
+      with {:ok, {_module, definition}} <- Map.fetch(state.applications, id),
+           surface when not is_nil(surface) <-
+             Enum.find(definition.surfaces, &(&1.role == :instance and &1.kind == :settings)),
            true <- Code.ensure_loaded?(surface.module) do
         {:ok, surface}
       else

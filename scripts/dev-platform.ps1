@@ -1,6 +1,8 @@
 param(
   [string]$ApplicationPath = (Join-Path $PSScriptRoot "..\applications\digital_estate_assessment"),
-  [string]$IntegrationPath = (Join-Path $PSScriptRoot "..\integrations\drupal")
+  [string]$IntegrationPath = (Join-Path $PSScriptRoot "..\integrations\drupal"),
+  [ValidateRange(1, 65535)]
+  [int]$Port = 4100
 )
 
 $ErrorActionPreference = "Stop"
@@ -30,6 +32,7 @@ $integrationEbin = Join-Path $integration "_build\dev\lib\contexla_drupal\ebin"
 
 $env:CONTEXLA_APPLICATION_PACKAGES = "$applicationEbin|Contexla.Estate"
 $env:CONTEXLA_INTEGRATION_PACKAGES = "$integrationEbin|Contexla.Drupal"
+$env:PORT = $Port.ToString()
 
 Push-Location $platform
 try {

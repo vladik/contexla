@@ -18,6 +18,8 @@ defmodule Contexla.Applications.ApplicationInstance do
     field :application_id, :string
     field :application_version, :string
     field :name, :string
+    field :description, :string
+    field :icon, :string
     field :status, Ecto.Enum, values: [:draft, :active, :archived], default: :draft
     field :config, :map, default: %{}
 
@@ -29,7 +31,8 @@ defmodule Contexla.Applications.ApplicationInstance do
   @doc false
   def create_changeset(instance, attrs, definition, %User{} = user) do
     instance
-    |> cast(attrs, [:name, :config])
+    |> cast(attrs, [:name, :description, :icon, :config])
+    |> normalize_icon()
     |> put_change(:application_id, definition.id)
     |> put_change(:application_version, definition.version)
     |> put_change(:created_by_user_id, user.id)
@@ -42,6 +45,7 @@ defmodule Contexla.Applications.ApplicationInstance do
       :created_by_user_id
     ])
     |> validate_length(:name, min: 1, max: 200)
+    |> validate_length(:description, max: 500)
     |> validate_format(:name, ~r/\S/, message: "must contain a visible character")
     |> unique_constraint([:application_id, :name])
     |> foreign_key_constraint(:created_by_user_id)
@@ -51,5 +55,28 @@ defmodule Contexla.Applications.ApplicationInstance do
     instance
     |> change(status: status)
     |> validate_required([:status])
+  end
+
+  def settings_changeset(instance, attrs) do
+    instance
+    |> cast(attrs, [:name, :description, :icon])
+    |> normalize_icon()
+    |> validate_required([:name])
+    |> validate_length(:name, min: 1, max: 200)
+    |> validate_length(:description, max: 500)
+    |> validate_format(:name, ~r/\S/, message: "must contain a visible character")
+    |> validate_format(:icon, ~r/^hero-[a-z0-9-]+$/)
+    |> unique_constraint([:application_id, :name])
+  end
+
+  def config_changeset(instance, config) when is_map(config) do
+    change(instance, config: config)
+  end
+
+  defp normalize_icon(changeset) do
+    case get_change(changeset, :icon) do
+      "" -> put_change(changeset, :icon, nil)
+      _icon -> changeset
+    end
   end
 end

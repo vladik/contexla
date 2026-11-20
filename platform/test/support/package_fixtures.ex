@@ -8,6 +8,7 @@ defmodule Contexla.TestApplication do
     %Definition{
       id: "com.contexla.test.application",
       name: "Test Application",
+      icon: "hero-beaker",
       version: "1.0.0",
       otp_application: :contexla,
       entry_module: __MODULE__,
@@ -15,11 +16,27 @@ defmodule Contexla.TestApplication do
       operations: [],
       surfaces: [
         %Surface{
+          id: :new,
+          path: "new",
+          module: Contexla.TestNewSurfaceLive,
+          role: :new,
+          label: "New test"
+        },
+        %Surface{
           id: :overview,
           path: "overview",
           module: Contexla.TestSurfaceLive,
           role: :instance,
+          default: true,
           label: "Test overview"
+        },
+        %Surface{
+          id: :settings,
+          path: "configuration",
+          module: Contexla.TestSettingsSurfaceLive,
+          role: :instance,
+          kind: :settings,
+          label: "Test settings"
         }
       ],
       required_adapter_contracts: ["contexla.test.source.v1"]
@@ -35,6 +52,38 @@ defmodule Contexla.TestApplication do
 
   @impl true
   def required_adapter_contracts, do: ["contexla.test.source.v1"]
+end
+
+defmodule Contexla.TestSettingsSurfaceLive do
+  use Phoenix.LiveView
+
+  @impl true
+  def mount(_params, %{"instance" => instance}, socket) do
+    {:ok, Phoenix.Component.assign(socket, :instance, instance)}
+  end
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <div id="test-settings-surface">{@instance["name"]}</div>
+    """
+  end
+end
+
+defmodule Contexla.TestNewSurfaceLive do
+  use Phoenix.LiveView
+
+  @impl true
+  def mount(_params, session, socket) do
+    {:ok, Phoenix.Component.assign(socket, :application_id, session["application_id"])}
+  end
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <div id="test-new-application-surface">{@application_id}</div>
+    """
+  end
 end
 
 defmodule Contexla.TestSurfaceLive do

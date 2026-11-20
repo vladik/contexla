@@ -58,7 +58,7 @@ mix test
 mix phx.server
 ```
 
-Open `http://localhost:4000`.
+Open `http://localhost:4100` when using the source-linked development launcher.
 
 Database setup includes platform and Oban tables only. An installed Application
 runs its own migrations into its owned PostgreSQL schema when the package is
@@ -75,15 +75,14 @@ repository root:
 Starting `mix phx.server` directly under `platform/` intentionally boots with
 zero concrete Applications installed.
 
-To avoid a local port conflict, set `PORT` before starting the source-linked
-platform:
+The source-linked development launcher defaults to port `4100` so it can run
+alongside another local Phoenix project on port `4000`. Override it when needed:
 
 ```powershell
-$env:PORT = "4100"
-.\scripts\dev-platform.ps1
+.\scripts\dev-platform.ps1 -Port 4200
 ```
 
-This changes only the Contexla listener for that process.
+This changes only the Contexla listener started by the script.
 
 ## Bootstrap the administrator
 

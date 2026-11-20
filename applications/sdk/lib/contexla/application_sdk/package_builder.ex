@@ -26,15 +26,53 @@ defmodule Contexla.ApplicationSDK.PackageBuilder do
   defp validate_manifest(%{
          "manifestVersion" => 1,
          "applicationId" => id,
+         "icon" => icon,
          "version" => version,
          "otpApplication" => application,
-         "entryModule" => entry_module
+         "entryModule" => entry_module,
+         "surfaces" => surfaces
        })
        when is_binary(id) and is_binary(version) and is_binary(application) and
-              is_binary(entry_module),
-       do: :ok
+              is_binary(entry_module) and is_binary(icon) and is_list(surfaces) do
+    valid_surfaces? = Enum.all?(surfaces, &valid_surface?/1)
+
+    default_instances =
+      Enum.count(surfaces, fn surface ->
+        is_map(surface) and surface["role"] == "instance" and surface["default"] == true
+      end)
+
+    new_surfaces = Enum.count(surfaces, &(is_map(&1) and &1["role"] == "new"))
+
+    settings_surfaces =
+      Enum.count(surfaces, fn surface ->
+        is_map(surface) and surface["role"] == "instance" and surface["kind"] == "settings"
+      end)
+
+    ids = Enum.map(surfaces, fn surface -> is_map(surface) && surface["id"] end)
+    paths = Enum.map(surfaces, fn surface -> is_map(surface) && surface["path"] end)
+
+    if icon =~ ~r/^hero-[a-z0-9-]+$/ and valid_surfaces? and default_instances == 1 and
+         new_surfaces == 1 and settings_surfaces == 1 and Enum.uniq(ids) == ids and
+         Enum.uniq(paths) == paths,
+       do: :ok,
+       else: {:error, :invalid_manifest}
+  end
 
   defp validate_manifest(_manifest), do: {:error, :invalid_manifest}
+
+  defp valid_surface?(surface) when is_map(surface) do
+    is_binary(surface["id"]) and surface["id"] != "" and
+      is_binary(surface["path"]) and surface["path"] != "" and
+      not String.contains?(surface["path"], ["/", "..", "\\"]) and
+      is_binary(surface["module"]) and surface["module"] != "" and
+      surface["role"] in ["new", "instance"] and
+      (not Map.has_key?(surface, "kind") or surface["kind"] in ["page", "settings"]) and
+      (not Map.has_key?(surface, "default") or is_boolean(surface["default"])) and
+      (surface["default"] != true or surface["role"] == "instance") and
+      (surface["default"] != true or surface["kind"] != "settings")
+  end
+
+  defp valid_surface?(_surface), do: false
 
   defp collect_app_files(app_path, manifest) do
     application = manifest["otpApplication"]

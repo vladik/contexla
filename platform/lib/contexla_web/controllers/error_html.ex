@@ -6,19 +6,35 @@ defmodule ContexlaWeb.ErrorHTML do
   """
   use ContexlaWeb, :html
 
-  # If you want to customize your error pages,
-  # uncomment the embed_templates/1 call below
-  # and add pages to the error directory:
-  #
-  #   * lib/contexla_web/controllers/error_html/404.html.heex
-  #   * lib/contexla_web/controllers/error_html/500.html.heex
-  #
-  # embed_templates "error_html/*"
+  embed_templates "error_html/*"
 
-  # The default is to render a plain text page based on
-  # the template name. For example, "404.html" becomes
-  # "Not Found".
-  def render(template, _assigns) do
-    Phoenix.Controller.status_message_from_template(template)
+  attr :status, :string, required: true
+  attr :title, :string, required: true
+  attr :message, :string, required: true
+  attr :icon, :string, required: true
+
+  def public_error(assigns) do
+    ~H"""
+    <main class="flex min-h-dvh items-center justify-center bg-bg px-5 py-12 text-text">
+      <div class="w-full max-w-lg text-center">
+        <Layouts.brand_mark class="mx-auto size-20" />
+        <section class="mt-12 overflow-hidden rounded-3xl border border-border bg-surface shadow-xl">
+          <div class="h-1.5 bg-gradient-to-r from-primary via-violet-500 to-accent"></div>
+          <div class="px-8 py-12">
+            <p class="font-semibold tracking-[0.2em] text-primary">{@status}</p>
+            <span class="mx-auto mt-5 grid size-14 place-items-center rounded-2xl bg-primary-subtle text-primary">
+              <.icon name={@icon} class="size-7" />
+            </span>
+            <h1 class="mt-6 text-2xl font-semibold">{@title}</h1>
+            <p class="mx-auto mt-3 max-w-sm text-sm leading-6 text-text-muted">{@message}</p>
+            <a href="/" class="btn btn-primary mt-7">Return home <span aria-hidden="true">→</span></a>
+          </div>
+        </section>
+        <p class="mt-6 text-xs text-text-muted">
+          Reliable content operations, backed by traceable evidence.
+        </p>
+      </div>
+    </main>
+    """
   end
 end

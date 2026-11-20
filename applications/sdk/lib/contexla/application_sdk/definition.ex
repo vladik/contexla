@@ -5,10 +5,11 @@ defmodule Contexla.ApplicationSDK.Definition do
 
   alias Contexla.ApplicationSDK.{Operation, Surface}
 
-  @enforce_keys [:id, :name, :version, :otp_application, :entry_module]
+  @enforce_keys [:id, :name, :icon, :version, :otp_application, :entry_module]
   defstruct [
     :id,
     :name,
+    :icon,
     :version,
     :otp_application,
     :entry_module,
@@ -23,6 +24,7 @@ defmodule Contexla.ApplicationSDK.Definition do
   @type t :: %__MODULE__{
           id: String.t(),
           name: String.t(),
+          icon: String.t(),
           version: String.t(),
           otp_application: atom(),
           entry_module: module(),
@@ -39,6 +41,7 @@ defmodule Contexla.ApplicationSDK.Definition do
     validators = [
       {:id, definition.id, &non_empty_string?/1},
       {:name, definition.name, &non_empty_string?/1},
+      {:icon, definition.icon, &icon?/1},
       {:version, definition.version, &non_empty_string?/1},
       {:otp_application, definition.otp_application, &is_atom/1},
       {:entry_module, definition.entry_module, &is_atom/1},
@@ -50,13 +53,36 @@ defmodule Contexla.ApplicationSDK.Definition do
       {:required_adapter_contracts, definition.required_adapter_contracts, &string_list?/1}
     ]
 
-    case Enum.find(validators, fn {_field, value, validator} -> not validator.(value) end) do
-      nil -> :ok
+    with nil <- Enum.find(validators, fn {_field, value, validator} -> not validator.(value) end),
+         :ok <- validate_surface_contract(definition.surfaces) do
+      :ok
+    else
       {field, value, _validator} -> {:error, {:invalid_field, field, value}}
+      {:error, _reason} = error -> error
+    end
+  end
+
+  defp validate_surface_contract(surfaces) do
+    ids = Enum.map(surfaces, & &1.id)
+    paths = Enum.map(surfaces, & &1.path)
+    new_surfaces = Enum.filter(surfaces, &(&1.role == :new))
+    default_surfaces = Enum.filter(surfaces, &(&1.role == :instance and &1.default))
+    settings_surfaces = Enum.filter(surfaces, &(&1.role == :instance and &1.kind == :settings))
+
+    cond do
+      length(Enum.uniq(ids)) != length(ids) -> {:error, :duplicate_surface_id}
+      length(Enum.uniq(paths)) != length(paths) -> {:error, :duplicate_surface_path}
+      length(new_surfaces) != 1 -> {:error, :one_new_surface_required}
+      length(default_surfaces) != 1 -> {:error, :one_default_instance_surface_required}
+      length(settings_surfaces) != 1 -> {:error, :one_instance_settings_surface_required}
+      true -> :ok
     end
   end
 
   defp non_empty_string?(value), do: is_binary(value) and String.trim(value) != ""
+
+  defp icon?(value),
+    do: non_empty_string?(value) and value =~ ~r/^hero-[a-z0-9-]+$/
 
   defp operations?(value),
     do:

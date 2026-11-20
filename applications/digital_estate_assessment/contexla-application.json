@@ -2,6 +2,7 @@
   "manifestVersion": 1,
   "applicationId": "com.contexla.application.digital-estate-assessment",
   "name": "Digital Estate Assessment",
+  "icon": "hero-clipboard-document-check",
   "version": "0.1.0",
   "otpApplication": "contexla_estate",
   "entryModule": "Contexla.Estate",
@@ -9,8 +10,9 @@
   "databaseSchema": "contexla_estate",
   "surfaces": [
     {"id": "new", "path": "new", "module": "Contexla.EstateWeb.NewLive", "role": "new"},
-    {"id": "overview", "path": "overview", "module": "Contexla.EstateWeb.OverviewLive", "role": "instance"},
-    {"id": "report", "path": "report", "module": "Contexla.EstateWeb.ReportLive", "role": "instance"}
+    {"id": "overview", "path": "overview", "module": "Contexla.EstateWeb.OverviewLive", "role": "instance", "default": true},
+    {"id": "report", "path": "report", "module": "Contexla.EstateWeb.ReportLive", "role": "instance"},
+    {"id": "settings", "path": "configuration", "module": "Contexla.EstateWeb.SettingsLive", "role": "instance", "kind": "settings"}
   ],
   "operations": ["assessment.run", "assessment.report"]
 }

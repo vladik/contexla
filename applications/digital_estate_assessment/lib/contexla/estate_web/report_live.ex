@@ -1,6 +1,5 @@
 defmodule Contexla.EstateWeb.ReportLive do
-  use Phoenix.LiveView
-  import Phoenix.Component
+  use ContexlaUI, :live_view
 
   alias Contexla.ApplicationSDK.Instance
   alias Contexla.Estate.Assessments
@@ -11,42 +10,48 @@ defmodule Contexla.EstateWeb.ReportLive do
         %{"instance" => data, "surface_params" => %{"run_id" => run_id}},
         socket
       ) do
-    instance = struct!(Instance, atomize(data))
+    instance = Instance.from_session!(data)
     {:ok, assign(socket, instance: instance, report: Assessments.report(instance, run_id))}
   end
 
   def mount(_params, %{"instance" => data}, socket) do
-    instance = struct!(Instance, atomize(data))
+    instance = Instance.from_session!(data)
 
     {:ok,
      socket
      |> put_flash(:error, "Choose a completed Run before opening its report.")
-     |> redirect(to: "/applications/#{instance.id}/overview")}
+     |> redirect(to: "/applications/#{instance.id}")}
   end
-
-  defp atomize(data),
-    do: Map.new(data, fn {key, value} -> {String.to_existing_atom(key), value} end)
 
   @impl true
   def render(assigns) do
     ~H"""
-    <main class="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <nav class="flex flex-wrap items-center justify-between gap-3">
-        <a href={"/applications/#{@instance.id}/overview"} class="text-sm font-medium text-indigo-600">← Assessment</a>
-        <a href={"/application-operations/#{@instance.id}/assessment.report?run_id=#{@report["run"]["id"]}&download=1"} class="inline-flex rounded-lg border border-base-300 px-4 py-2 text-sm font-semibold">Download machine-readable report</a>
-      </nav>
+    <.surface flash={assigns[:flash]}>
+      <:header>
+        <.header id="assessment-report-page-header" icon="hero-document-chart-bar">
+          {@report["assessment"]["name"]}
+          <:subtitle>{@report["assessment"]["decision"]}</:subtitle>
+          <:actions>
+            <.button href={"/application-operations/#{@instance.id}/assessment.report?run_id=#{@report["run"]["id"]}&download=1"} size="sm">Download report</.button>
+            <a
+              href={"/applications/#{@instance.id}/settings"}
+              class="grid size-8 place-items-center text-text-muted transition-colors hover:text-text"
+              aria-label="Instance settings"
+            >
+              <.icon name="hero-cog-6-tooth" class="size-4" />
+            </a>
+          </:actions>
+        </.header>
+      </:header>
 
-      <header class="mt-8 border-b border-base-300 pb-8">
-        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-600">Contexla Digital Estate Assessment</p>
-        <h1 class="mt-2 text-4xl font-semibold tracking-tight">{@report["assessment"]["name"]}</h1>
-        <p class="mt-3 max-w-4xl text-lg text-base-content/70">{@report["assessment"]["decision"]}</p>
-        <div class="mt-5 flex flex-wrap gap-x-8 gap-y-2 text-sm text-base-content/60">
+      <.panel title="Run provenance" icon="hero-finger-print">
+        <div class="flex flex-wrap gap-x-8 gap-y-2 text-sm text-text-muted">
           <span><strong class="text-base-content">Run:</strong> {@report["run"]["status"]}</span>
           <span><strong class="text-base-content">Collected:</strong> {format_datetime(@report["snapshot"] && @report["snapshot"]["collected_at"])}</span>
           <span><strong class="text-base-content">Completed:</strong> {format_datetime(@report["run"]["completed_at"])}</span>
           <span><strong class="text-base-content">Rule set:</strong> {@report["run"]["rule_set_version"]}</span>
         </div>
-      </header>
+      </.panel>
 
       <section class="mt-10" aria-labelledby="decision-scope-heading">
         <h2 id="decision-scope-heading" class="text-2xl font-semibold">Decision and scope</h2>
@@ -192,7 +197,7 @@ defmodule Contexla.EstateWeb.ReportLive do
           <p class="mt-1 break-all font-mono text-base-content/60">SHA-256 {evidence["sha256"]} · {evidence["byte_size"]} bytes · {evidence["media_type"]}</p>
         </div>
       </section>
-    </main>
+    </.surface>
     """
   end
 

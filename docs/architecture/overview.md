@@ -19,6 +19,8 @@ and require it to be changed; they must not ship a universal default password.
 
 ```text
 platform/                 Phoenix host, package registry, services, and runtime
+ui/
+  contexla_ui/            route-independent shared components and visual contract
 applications/
   sdk/                    Application package contracts
   digital_estate_assessment/
@@ -50,8 +52,11 @@ Keep the platform core small:
 - artifact/evidence storage;
 - notifications and basic observability;
 - platform navigation and operational health.
+- authenticated shell, global theme, and shared browser asset delivery.
 
 Application-specific entities and findings belong to the Application.
+Application-specific surfaces use the independent `contexla_ui` contract and
+render inside the platform-owned shell; they never depend on `ContexlaWeb`.
 
 ## Runtime
 
@@ -93,10 +98,20 @@ Installed Application: Digital Estate Assessment
   Instance: Legacy Sitecore estate
 ```
 
-The platform owns stable routes such as
-`/applications/:instance_id/:surface`. It resolves the surface module from the
-runtime registry and mounts the Application LiveView dynamically. No concrete
-Application route or LiveView is compiled into the platform.
+The platform owns the canonical `/applications/:instance_id` route and named
+routes such as `/applications/:instance_id/:surface`. It resolves the
+Application's one declared default Instance surface or requested named surface
+from the runtime registry and mounts the LiveView dynamically. No concrete
+Application route or LiveView is compiled into the platform. Generic sidebar
+navigation lists configured Instances by name and Application icon; a
+platform-owned chooser delegates setup to the selected package's one declared
+new-Instance surface.
+
+Installation is initially a vendor-controlled distribution and deployment
+concern, not a buyer-facing marketplace workflow. Early customer releases
+contain a small supported set of packages selected for the purchased solution.
+The package and registry boundaries preserve future installation options without
+making self-service installation a current commercial dependency.
 
 Each Application owns one PostgreSQL schema and migration history. Instances
 hold configuration and rows identified by `application_instance_id`; they are

@@ -1,13 +1,12 @@
 defmodule Contexla.EstateWeb.OverviewLive do
-  use Phoenix.LiveView
-  import Phoenix.Component
+  use ContexlaUI, :live_view
 
   alias Contexla.ApplicationSDK.{Instance, Runtime}
   alias Contexla.Estate.Assessments
 
   @impl true
   def mount(_params, %{"instance" => data}, socket) do
-    instance = instance_from_session(data)
+    instance = Instance.from_session!(data)
 
     {:ok,
      socket
@@ -125,103 +124,95 @@ defmodule Contexla.EstateWeb.OverviewLive do
     )
   end
 
-  defp instance_from_session(data) do
-    %Instance{
-      id: data["id"],
-      application_id: data["application_id"],
-      application_version: data["application_version"],
-      name: data["name"],
-      status: data["status"],
-      config: data["config"],
-      actor_id: data["actor_id"]
-    }
-  end
-
   @impl true
   def render(assigns) do
     ~H"""
-    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <a href="/" class="text-sm font-medium text-indigo-600">← Applications</a>
-      <header class="mt-5 border-b border-base-300 pb-7">
-        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-600">Digital Estate Assessment</p>
-        <h1 class="mt-2 text-3xl font-semibold tracking-tight">{@instance.name}</h1>
-        <p class="mt-2 text-base-content/60">{@instance.config["decision"]}</p>
-      </header>
+    <.surface flash={assigns[:flash]}>
+      <:header>
+        <.header id="assessment-overview-page-header" icon="hero-clipboard-document-check">
+          {@instance.name}
+          <:subtitle>{@instance.config["decision"]}</:subtitle>
+          <:actions>
+            <a
+              href={"/applications/#{@instance.id}/settings"}
+              class="grid size-8 place-items-center text-text-muted transition-colors hover:text-text"
+              aria-label="Instance settings"
+            >
+              <.icon name="hero-cog-6-tooth" class="size-4" />
+            </a>
+          </:actions>
+        </.header>
+      </:header>
 
-      <div class="mt-8 grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-        <section class="rounded-2xl border border-base-300 p-6">
-          <h2 class="text-lg font-semibold">Import evidence</h2>
+      <div class="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+        <.panel title="Import evidence" description="Upload an approved Drupal snapshot package." icon="hero-arrow-up-tray">
           <form id="snapshot-upload" phx-submit="upload" class="mt-5 space-y-4">
-            <.live_file_input upload={@uploads.snapshot} class="block w-full rounded-xl border border-base-300 p-3" />
-            <button class="w-full rounded-xl bg-indigo-600 px-4 py-3 font-semibold text-white">Validate and retain snapshot</button>
+            <.live_file_input upload={@uploads.snapshot} class="input-field block w-full p-3" />
+            <.button type="submit" variant="primary" class="w-full">Validate and retain snapshot</.button>
           </form>
           <div class="mt-6 space-y-3">
-            <article :for={artifact <- @artifacts} class="rounded-xl bg-base-200 p-4">
+            <article :for={artifact <- @artifacts} class="rounded-xl border border-border bg-surface-raised p-4">
               <p class="truncate text-sm font-medium">{artifact.filename}</p>
-              <button phx-click="start-run" phx-value-artifact-id={artifact.id} class="mt-3 rounded-lg bg-base-100 px-3 py-2 text-sm font-semibold">Start Run</button>
+              <.button phx-click="start-run" phx-value-artifact-id={artifact.id} class="mt-3 btn-outline btn-sm">Start Run</.button>
             </article>
-            <p :if={@artifacts == []} class="text-sm text-base-content/50">No evidence uploaded.</p>
+            <p :if={@artifacts == []} class="text-sm text-text-muted">No evidence uploaded.</p>
           </div>
-        </section>
+        </.panel>
 
         <div class="space-y-6">
-          <section class="rounded-2xl border border-base-300 p-6">
-            <h2 class="text-lg font-semibold">Runs</h2>
+          <.panel title="Runs" description="Durable assessment executions and their current status." icon="hero-play-circle">
             <div class="mt-4 space-y-2">
-              <div :for={run <- @runs} class="flex items-center justify-between rounded-xl bg-base-200 px-4 py-3 text-sm">
-                <span>{run.inserted_at}</span><span class="font-semibold">{run.status}</span>
+              <div :for={run <- @runs} class="flex items-center justify-between rounded-xl border border-border bg-surface-raised px-4 py-3 text-sm">
+                <span class="text-text-muted">{run.inserted_at}</span><span class="badge badge-success">{run.status}</span>
               </div>
-              <p :if={@runs == []} class="text-sm text-base-content/50">No Runs yet.</p>
+              <p :if={@runs == []} class="text-sm text-text-muted">No Runs yet.</p>
             </div>
-          </section>
+          </.panel>
 
-          <section :if={@results} class="rounded-2xl border border-base-300 p-6">
-            <div class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold">Latest result</h2>
-              <a href={"/applications/#{@instance.id}/report?run_id=#{@results.run.id}"} class="text-sm font-semibold text-indigo-600">View report →</a>
-            </div>
+          <.panel :if={@results} title="Latest result" icon="hero-chart-bar-square">
+            <:actions><a href={"/applications/#{@instance.id}/report?run_id=#{@results.run.id}"} class="text-sm font-semibold text-primary">View report →</a></:actions>
             <div class="mt-5 grid grid-cols-3 gap-3">
-              <div class="rounded-xl bg-base-200 p-4"><strong class="text-2xl">{length(@results.inventory_items)}</strong><span class="mt-1 block text-xs uppercase">Inventory</span></div>
-              <div class="rounded-xl bg-base-200 p-4"><strong class="text-2xl">{length(@results.findings)}</strong><span class="mt-1 block text-xs uppercase">Findings</span></div>
-              <div class="rounded-xl bg-base-200 p-4"><strong class="text-2xl">{length(@results.evidence_items)}</strong><span class="mt-1 block text-xs uppercase">Evidence</span></div>
+              <.stat label="Inventory" value={length(@results.inventory_items)} />
+              <.stat label="Findings" value={length(@results.findings)} />
+              <.stat label="Evidence" value={length(@results.evidence_items)} />
             </div>
 
-            <details class="mt-6 rounded-xl border border-dashed border-base-300 p-4">
-              <summary class="cursor-pointer text-sm font-semibold text-indigo-600">Add expert finding</summary>
+            <details class="mt-6 rounded-xl border border-dashed border-border-strong p-4">
+              <summary class="cursor-pointer text-sm font-semibold text-primary">Add expert finding</summary>
               <.form for={@expert_form} id="expert-finding" phx-submit="add-expert-finding" class="mt-4 grid gap-3 sm:grid-cols-2">
-                <input name={@expert_form[:summary].name} required placeholder="Summary" class="rounded-lg border border-base-300 bg-base-100 px-3 py-2" />
-                <input name={@expert_form[:category].name} value={@expert_form[:category].value} required placeholder="Category" class="rounded-lg border border-base-300 bg-base-100 px-3 py-2" />
-                <select name={@expert_form[:severity].name} class="rounded-lg border border-base-300 bg-base-100 px-3 py-2">
+                <input name={@expert_form[:summary].name} required placeholder="Summary" class="input-field" />
+                <input name={@expert_form[:category].name} value={@expert_form[:category].value} required placeholder="Category" class="input-field" />
+                <select name={@expert_form[:severity].name} class="input-field">
                   <option :for={value <- ~w(info low medium high critical)} value={value} selected={value == "medium"}>{value}</option>
                 </select>
-                <select name={@expert_form[:confidence].name} class="rounded-lg border border-base-300 bg-base-100 px-3 py-2">
+                <select name={@expert_form[:confidence].name} class="input-field">
                   <option :for={value <- ~w(low medium high)} value={value} selected={value == "medium"}>{value}</option>
                 </select>
-                <textarea name={@expert_form[:explanation].name} required placeholder="Explanation" class="min-h-24 rounded-lg border border-base-300 bg-base-100 px-3 py-2 sm:col-span-2"></textarea>
-                <textarea name={@expert_form[:recommendation].name} required placeholder="Recommendation" class="min-h-24 rounded-lg border border-base-300 bg-base-100 px-3 py-2 sm:col-span-2"></textarea>
-                <button class="rounded-lg bg-indigo-600 px-4 py-2 font-semibold text-white sm:col-span-2">Add attributed finding</button>
+                <textarea name={@expert_form[:explanation].name} required placeholder="Explanation" class="input-field min-h-24 sm:col-span-2"></textarea>
+                <textarea name={@expert_form[:recommendation].name} required placeholder="Recommendation" class="input-field min-h-24 sm:col-span-2"></textarea>
+                <.button variant="primary" class="sm:col-span-2">Add attributed finding</.button>
               </.form>
             </details>
 
             <div class="mt-6 space-y-3">
-              <article :for={finding <- @results.findings} class="rounded-xl border border-base-300 p-4">
-                <p class="text-xs uppercase text-base-content/50">{finding.origin} · {finding.severity} · {finding.status}</p>
+              <article :for={finding <- @results.findings} class="rounded-xl border border-border p-4">
+                <p class="text-xs uppercase text-text-muted">{finding.origin} · {finding.severity} · {finding.status}</p>
                 <h3 class="mt-1 font-semibold">{finding.summary}</h3>
-                <p class="mt-2 text-sm text-base-content/65">{finding.explanation}</p>
-                <form id={"review-#{finding.id}"} phx-submit="review-finding" class="mt-4 grid gap-2 border-t border-base-200 pt-4 sm:grid-cols-[0.6fr_1.4fr_auto]">
+                <p class="mt-2 text-sm text-text-muted">{finding.explanation}</p>
+                <form id={"review-#{finding.id}"} phx-submit="review-finding" class="mt-4 grid gap-2 border-t border-border pt-4 sm:grid-cols-[0.6fr_1.4fr_auto]">
                   <input type="hidden" name="finding-id" value={finding.id} />
-                  <select name="review[status]" class="rounded-lg border border-base-300 bg-base-100 px-3 py-2">
+                  <select name="review[status]" class="input-field">
                     <option :for={value <- ~w(accepted suppressed resolved open)} value={value}>{value}</option>
                   </select>
-                  <input name="review[rationale]" required minlength="3" placeholder="Review rationale" class="rounded-lg border border-base-300 bg-base-100 px-3 py-2" />
-                  <button class="rounded-lg border border-base-300 px-4 py-2 font-semibold">Record</button>
+                  <input name="review[rationale]" required minlength="3" placeholder="Review rationale" class="input-field" />
+                  <.button class="btn-outline">Record</.button>
                 </form>
               </article>
             </div>
-          </section>
+          </.panel>
         </div>
       </div>
-    </main>
+    </.surface>
     """
   end
 end

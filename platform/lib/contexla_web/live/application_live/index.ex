@@ -9,7 +9,7 @@ defmodule ContexlaWeb.ApplicationLive.Index do
 
     {:ok,
      socket
-     |> assign(:page_title, "Applications")
+     |> assign(:page_title, "Apps")
      |> assign(:applications, Applications.list_installed_applications(scope))
      |> assign(:instances, Applications.list_instances(scope))}
   end
@@ -18,48 +18,80 @@ defmodule ContexlaWeb.ApplicationLive.Index do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <main class="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-        <header class="border-b border-base-300 pb-8">
-          <p class="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Contexla</p>
-          <h1 class="mt-2 text-3xl font-semibold tracking-tight">Applications</h1>
-          <p class="mt-3 max-w-2xl text-base-content/65">
-            Installed packages contribute their own workflows and interfaces.
-          </p>
-        </header>
+      <.surface>
+        <:header>
+          <.header id="applications-page-header" icon="hero-squares-2x2">
+            Apps
+            <:subtitle>Installed solutions and their configured instances</:subtitle>
+            <:actions>
+              <UIButton.button href="/applications/new" variant="primary" size="sm">
+                <.icon name="hero-plus" class="size-4" /> New instance
+              </UIButton.button>
+            </:actions>
+          </.header>
+        </:header>
 
-        <section class="mt-8 grid gap-5 md:grid-cols-2">
-          <article :for={application <- @applications} class="rounded-2xl border border-base-300 p-6">
-            <h2 class="text-xl font-semibold">{application.name}</h2>
-            <p class="mt-2 text-sm text-base-content/60">{application.description}</p>
-            <a
-              :for={surface <- Enum.filter(application.surfaces, &(&1.role == :new))}
-              href={"/applications/new/#{URI.encode_www_form(application.id)}/#{surface.path}"}
-              class="mt-5 inline-flex rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
-            >Create instance</a>
-          </article>
-          <div
-            :if={@applications == []}
-            class="rounded-2xl border border-dashed border-base-300 p-8 text-base-content/55"
-          >
-            No Application packages are installed. The platform is running independently.
-          </div>
-        </section>
+        <div class="space-y-4">
+          <section class="overflow-hidden rounded-2xl border border-border bg-surface">
+            <div class="border-b border-border px-4 py-3 sm:px-5">
+              <h2 class="text-sm font-semibold text-text">Installed Applications</h2>
+              <p class="mt-0.5 text-xs text-text-muted">Solutions available on this installation</p>
+            </div>
+            <div class="divide-y divide-border">
+              <div
+                :for={application <- @applications}
+                class="flex items-center justify-between gap-4 px-4 py-3 sm:px-5"
+              >
+                <div class="flex min-w-0 items-center gap-3">
+                  <span class="grid size-9 shrink-0 place-items-center rounded-lg bg-primary-subtle text-primary">
+                    <.icon name={application.icon} class="size-4" />
+                  </span>
+                  <div class="min-w-0">
+                    <h3 class="truncate text-sm font-semibold text-text">{application.name}</h3>
+                    <p class="mt-0.5 text-xs text-text-muted">
+                      {application.description} · Version {application.version}
+                    </p>
+                  </div>
+                </div>
+                <UIButton.button
+                  :for={surface <- Enum.filter(application.surfaces, &(&1.role == :new))}
+                  href={"/applications/new/#{URI.encode_www_form(application.id)}/#{surface.path}"}
+                  variant="primary"
+                  size="sm"
+                >Create instance</UIButton.button>
+              </div>
+              <div :if={@applications == []} class="py-10 text-center text-sm text-text-muted">
+                No Applications installed.
+              </div>
+            </div>
+          </section>
 
-        <section class="mt-10">
-          <h2 class="text-xl font-semibold">Application instances</h2>
-          <div class="mt-4 space-y-3">
-            <a
-              :for={instance <- @instances}
-              href={"/applications/#{instance.id}/overview"}
-              class="block rounded-xl border border-base-300 p-5 transition hover:border-indigo-500"
-            >
-              <span class="font-semibold">{instance.name}</span>
-              <span class="ml-2 text-sm text-base-content/50">{instance.application_id}</span>
-            </a>
-            <p :if={@instances == []} class="text-sm text-base-content/55">No instances yet.</p>
-          </div>
-        </section>
-      </main>
+          <section class="overflow-hidden rounded-2xl border border-border bg-surface">
+            <div class="border-b border-border px-4 py-3 sm:px-5">
+              <h2 class="text-sm font-semibold text-text">Application instances</h2>
+              <p class="mt-0.5 text-xs text-text-muted">
+                Configured uses of the installed Applications
+              </p>
+            </div>
+            <div class="divide-y divide-border">
+              <a
+                :for={instance <- @instances}
+                href={"/applications/#{instance.id}"}
+                class="flex items-center justify-between gap-4 px-4 py-3 transition hover:bg-surface-raised sm:px-5"
+              >
+                <span class="min-w-0">
+                  <span class="block truncate text-sm font-semibold text-text">{instance.name}</span>
+                  <span class="mt-0.5 block truncate text-xs text-text-muted">{instance.application_id}</span>
+                </span>
+                <.icon name="hero-chevron-right" class="size-4 shrink-0 text-text-muted" />
+              </a>
+              <div :if={@instances == []} class="py-10 text-center text-sm text-text-muted">
+                No instances yet.
+              </div>
+            </div>
+          </section>
+        </div>
+      </.surface>
     </Layouts.app>
     """
   end

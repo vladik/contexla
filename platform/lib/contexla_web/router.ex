@@ -11,6 +11,25 @@ defmodule ContexlaWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_scope_for_user
+    plug :assign_root_shell
+  end
+
+  defp assign_root_shell(conn, _opts) do
+    mode = if conn.request_path == "/users/log-in", do: :public, else: :platform
+
+    instances =
+      case conn.assigns[:current_scope] do
+        %Contexla.Accounts.Scope{user: %Contexla.Accounts.User{}} = scope ->
+          Contexla.Applications.list_navigation_instances(scope)
+
+        _other ->
+          []
+      end
+
+    conn
+    |> Plug.Conn.assign(:root_shell, mode)
+    |> Plug.Conn.assign(:current_path, conn.request_path)
+    |> Plug.Conn.assign(:navigation_instances, instances)
   end
 
   pipeline :api do
@@ -56,7 +75,6 @@ defmodule ContexlaWeb.Router do
     pipe_through [:browser, :require_authenticated_user, :require_password_change_completed]
 
     get "/applications/new/:application_id/:surface", ApplicationSurfaceController, :new
-    get "/applications/:instance_id/:surface", ApplicationSurfaceController, :show
 
     get "/application-operations/:instance_id/:operation_id",
         ApplicationOperationController,
@@ -65,7 +83,14 @@ defmodule ContexlaWeb.Router do
     live_session :platform,
       on_mount: [{ContexlaWeb.UserAuth, :require_authenticated}] do
       live "/", ApplicationLive.Index, :index
+      live "/applications", ApplicationLive.Index, :index
+      live "/applications/new", ApplicationLive.New, :new
+      live "/applications/:instance_id/settings", ApplicationInstanceSettingsLive, :edit
+      live "/settings", PlatformSettingsLive, :index
     end
+
+    get "/applications/:instance_id", ApplicationSurfaceController, :show_default
+    get "/applications/:instance_id/:surface", ApplicationSurfaceController, :show
   end
 
   scope "/", ContexlaWeb do

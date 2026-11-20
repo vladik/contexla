@@ -84,3 +84,23 @@ Begin with the lowest-risk collection mode that supports a real assessment:
 This keeps onboarding feasible for enterprise environments and prevents the
 first release from being blocked by plugin approval or deep CMS support.
 
+## Initial operating model
+
+Present Digital Estate Assessment as a fixed-scope professional solution powered
+by Contexla. The buyer purchases a decision-supporting outcome, not a generic
+platform installation.
+
+Use a customer-run snapshot and an agreed secure agency-operated environment as
+the lowest-friction default when policy permits. Offer customer-hosted Contexla
+when evidence cannot leave the organization, and retain the deployment only
+when ongoing monitoring or assurance has demonstrated value.
+
+The assessment should create responsible follow-on opportunities in
+modernization planning, remediation, migration, verification, and recurring
+assurance. It must remain useful even when the customer selects another vendor
+for that work.
+
+Do not fork the product per customer. Package differences as configuration,
+Application Instances, Connections, Bindings, or versioned extensions that can
+be evaluated for later reuse.
+

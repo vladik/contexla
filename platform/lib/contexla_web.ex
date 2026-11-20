@@ -85,11 +85,16 @@ defmodule ContexlaWeb do
       # HTML escaping functionality
       import Phoenix.HTML
       # Core UI components
-      import ContexlaWeb.CoreComponents
+      import ContexlaWeb.CoreComponents, except: [header: 1]
+      import ContexlaUI.Components
+      import ContexlaUI.Components.UI.Header
+      import ContexlaUI.Components.UI.IconPicker
+      import ContexlaUI.Components.UI.Tabs
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS
       alias ContexlaWeb.Layouts
+      alias ContexlaUI.Components.UI.Button, as: UIButton
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())

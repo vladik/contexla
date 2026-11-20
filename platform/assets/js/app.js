@@ -23,40 +23,192 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/contexla"
-import topbar from "../vendor/topbar"
 
 const systemTheme = () => matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
 
 const setTheme = theme => {
+  const selected = theme === "system" ? systemTheme() : theme
+  document.documentElement.classList.toggle("dark", selected === "dark")
+  document.documentElement.dataset.themeSource = theme === "system" ? "system" : "user"
+
   if (theme === "system") {
     localStorage.removeItem("phx:theme")
-    document.documentElement.setAttribute("data-theme", systemTheme())
-    document.documentElement.setAttribute("data-theme-source", "system")
   } else {
     localStorage.setItem("phx:theme", theme)
-    document.documentElement.setAttribute("data-theme", theme)
-    document.documentElement.setAttribute("data-theme-source", "user")
   }
+
+  document.querySelectorAll("[data-theme-choice]").forEach(button => {
+    button.setAttribute("aria-pressed", String(button.dataset.themeChoice === selected))
+  })
 }
 
 setTheme(localStorage.getItem("phx:theme") || "system")
 window.addEventListener("storage", event => event.key === "phx:theme" && setTheme(event.newValue || "system"))
 window.addEventListener("phx:set-theme", event => setTheme(event.target.dataset.phxTheme))
-matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-  if (document.documentElement.getAttribute("data-theme-source") === "system") setTheme("system")
+document.addEventListener("click", event => {
+  const choice = event.target.closest("[data-theme-choice]")
+  if (choice) {
+    setTheme(choice.dataset.themeChoice)
+    choice.closest("[data-theme-menu]")?.removeAttribute("open")
+  }
 })
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  if (document.documentElement.dataset.themeSource === "system") setTheme("system")
+})
+
+const installGlobalTooltips = () => {
+  const tooltip = document.createElement("div")
+  tooltip.id = "app-global-tooltip"
+  tooltip.className = "app-global-tooltip"
+  tooltip.setAttribute("role", "tooltip")
+  tooltip.hidden = true
+  document.body.appendChild(tooltip)
+  let activeTrigger = null
+
+  const hide = () => {
+    activeTrigger?.removeAttribute("aria-describedby")
+    activeTrigger = null
+    tooltip.hidden = true
+  }
+
+  const show = trigger => {
+    const text = trigger?.dataset.tooltip
+    if (!text) return
+    activeTrigger = trigger
+    tooltip.textContent = text
+    tooltip.hidden = false
+    trigger.setAttribute("aria-describedby", tooltip.id)
+    const triggerRect = trigger.getBoundingClientRect()
+    const tooltipRect = tooltip.getBoundingClientRect()
+    const gap = 8
+    const edge = 8
+    let left = triggerRect.left + (triggerRect.width - tooltipRect.width) / 2
+    let top = triggerRect.top - tooltipRect.height - gap
+
+    if (trigger.dataset.tooltipPosition === "side") {
+      const sidebarRect = trigger.closest(".shell-sidebar")?.getBoundingClientRect() || triggerRect
+      left = sidebarRect.right + gap
+      top = triggerRect.top + (triggerRect.height - tooltipRect.height) / 2
+    }
+
+    tooltip.style.left = `${Math.min(Math.max(left, edge), window.innerWidth - tooltipRect.width - edge)}px`
+    tooltip.style.top = `${Math.min(Math.max(top, edge), window.innerHeight - tooltipRect.height - edge)}px`
+  }
+
+  document.addEventListener("pointerover", event => {
+    const trigger = event.target instanceof Element ? event.target.closest("[data-tooltip]") : null
+    if (trigger && !trigger.contains(event.relatedTarget)) show(trigger)
+  })
+  document.addEventListener("pointerout", event => {
+    if (activeTrigger && !activeTrigger.contains(event.relatedTarget)) hide()
+  })
+  document.addEventListener("focusin", event => {
+    const trigger = event.target instanceof Element ? event.target.closest("[data-tooltip]") : null
+    if (trigger) show(trigger)
+  })
+  document.addEventListener("focusout", hide)
+  document.addEventListener("keydown", event => event.key === "Escape" && hide())
+  document.addEventListener("scroll", hide, true)
+  window.addEventListener("resize", hide)
+}
+
+const installSidebarCollapse = () => {
+  const sidebar = document.querySelector("[data-sidebar-root]")
+  const trigger = sidebar?.querySelector("[data-sidebar-collapse]")
+  if (!sidebar || !trigger) return
+
+  let collapsed = localStorage.getItem("sidebar-collapsed") === "true"
+  const render = () => {
+    document.documentElement.classList.toggle("sidebar-collapsed", collapsed)
+    sidebar.classList.toggle("is-collapsed", collapsed)
+    trigger.setAttribute("aria-expanded", String(!collapsed))
+    const label = collapsed ? "Expand navigation" : "Collapse navigation"
+    trigger.setAttribute("aria-label", label)
+    trigger.dataset.tooltip = label
+  }
+
+  trigger.addEventListener("click", () => {
+    collapsed = !collapsed
+    localStorage.setItem("sidebar-collapsed", String(collapsed))
+    render()
+  })
+  render()
+}
+
+const installMobileSidebar = () => {
+  const sidebar = document.querySelector("[data-sidebar-root]")
+  const backdrop = document.querySelector("#app-sidebar-backdrop")
+  const trigger = document.querySelector("[data-mobile-sidebar-open]")
+  const closeTriggers = document.querySelectorAll("[data-mobile-sidebar-close]")
+  if (!sidebar || !backdrop || !trigger) return
+
+  const close = () => {
+    sidebar.classList.remove("is-mobile-open")
+    backdrop.classList.add("hidden")
+    trigger.setAttribute("aria-expanded", "false")
+    document.documentElement.classList.remove("overflow-hidden")
+  }
+
+  const open = () => {
+    sidebar.classList.add("is-mobile-open")
+    backdrop.classList.remove("hidden")
+    trigger.setAttribute("aria-expanded", "true")
+    document.documentElement.classList.add("overflow-hidden")
+  }
+
+  trigger.addEventListener("click", open)
+  closeTriggers.forEach(closeTrigger => closeTrigger.addEventListener("click", close))
+  sidebar.addEventListener("click", event => {
+    if (event.target.closest("a[href]")) close()
+  })
+  document.addEventListener("keydown", event => event.key === "Escape" && close())
+}
+
+const installIconPickers = () => {
+  document.addEventListener("change", event => {
+    const picker = event.target.closest?.("[data-icon-picker]")
+    if (picker && event.target.matches("input[type='radio']")) picker.removeAttribute("open")
+  })
+
+  document.addEventListener("click", event => {
+    document.querySelectorAll("[data-icon-picker][open]").forEach(picker => {
+      if (!picker.contains(event.target)) picker.removeAttribute("open")
+    })
+  })
+}
+
+installGlobalTooltips()
+installSidebarCollapse()
+installMobileSidebar()
+installIconPickers()
+
+const Hooks = {
+  ToastDismiss: {
+    mounted() {
+      this.dismiss = () => {
+        this.el.classList.add("toast-animate-out")
+        this.el.addEventListener("animationend", () => this.el.remove(), {once: true})
+      }
+      this.timeout = setTimeout(this.dismiss, 5000)
+      this.el.addEventListener("click", event => {
+        if (event.target.closest("[data-toast-dismiss]")) this.dismiss()
+      })
+    },
+    destroyed() {
+      if (this.timeout) clearTimeout(this.timeout)
+    },
+  },
+}
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks},
+  hooks: {...Hooks, ...colocatedHooks},
 })
 
-// Show progress bar on live navigation and form submits
-topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
-window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
-window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
+window.addEventListener("phx:page-loading-start", () => document.documentElement.classList.add("page-loading"))
+window.addEventListener("phx:page-loading-stop", () => document.documentElement.classList.remove("page-loading"))
 
 // connect if there are any LiveViews on the page
 liveSocket.connect()

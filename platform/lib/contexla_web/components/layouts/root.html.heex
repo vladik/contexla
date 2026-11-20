@@ -5,11 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
     <.live_title default="Contexla" suffix=" · Contexla" phx-no-format>{assigns[:page_title]}</.live_title>
+    <script phx-no-curly-interpolation>
+      (() => {
+        try {
+          if (localStorage.getItem("sidebar-collapsed") === "true") {
+            document.documentElement.classList.add("sidebar-collapsed")
+          }
+        } catch (_) {
+          // Storage may be unavailable in hardened browser contexts.
+        }
+      })()
+    </script>
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
     </script>
   </head>
-  <body>
-    {@inner_content}
+  <body class="bg-bg text-text">
+    <div id="global-loading-bar" role="progressbar" aria-label="Loading" aria-hidden="true" />
+    <.platform_shell
+      :if={assigns[:current_scope] && assigns[:root_shell] != :public}
+      current_scope={assigns[:current_scope]}
+      current_path={assigns[:current_path] || "/"}
+      instances={assigns[:navigation_instances] || []}
+    >
+      {@inner_content}
+    </.platform_shell>
+    <div
+      :if={!assigns[:current_scope] || assigns[:root_shell] == :public}
+      class="min-h-dvh bg-bg text-text"
+    >
+      {@inner_content}
+    </div>
   </body>
 </html>

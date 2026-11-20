@@ -3,7 +3,7 @@ defmodule Contexla.ApplicationSDKTest do
 
   alias Contexla.ApplicationSDK
   alias Contexla.ApplicationSDK.Definition
-  alias Contexla.ApplicationSDK.Operation
+  alias Contexla.ApplicationSDK.{Operation, Surface}
 
   defmodule ValidApplication do
     @behaviour Contexla.ApplicationSDK.Application
@@ -15,10 +15,28 @@ defmodule Contexla.ApplicationSDKTest do
       %Definition{
         id: "com.contexla.test.example",
         name: "Example",
+        icon: "hero-beaker",
         version: "1.0.0",
         otp_application: :example,
         entry_module: __MODULE__,
         operations: available_operations(),
+        surfaces: [
+          %Surface{id: :new, path: "new", module: __MODULE__, role: :new},
+          %Surface{
+            id: :home,
+            path: "home",
+            module: __MODULE__,
+            role: :instance,
+            default: true
+          },
+          %Surface{
+            id: :settings,
+            path: "settings",
+            module: __MODULE__,
+            role: :instance,
+            kind: :settings
+          }
+        ],
         required_adapter_contracts: required_adapter_contracts()
       }
     end
@@ -44,5 +62,13 @@ defmodule Contexla.ApplicationSDKTest do
              ApplicationSDK.validate_module(__MODULE__)
 
     assert {:definition, 0} in missing
+  end
+
+  test "requires one default Instance surface" do
+    definition = ValidApplication.definition()
+    surfaces = Enum.map(definition.surfaces, &%{&1 | default: false})
+
+    assert {:error, :one_default_instance_surface_required} =
+             Definition.validate(%{definition | surfaces: surfaces})
   end
 end

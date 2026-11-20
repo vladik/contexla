@@ -1,6 +1,5 @@
 defmodule Contexla.EstateWeb.NewLive do
-  use Phoenix.LiveView
-  import Phoenix.Component
+  use ContexlaUI, :live_view
 
   alias Contexla.ApplicationSDK.Runtime
 
@@ -10,14 +9,25 @@ defmodule Contexla.EstateWeb.NewLive do
      socket
      |> assign(:actor_id, actor_id)
      |> assign(:application_id, application_id)
-     |> assign(:form, to_form(%{"name" => "", "decision" => ""}, as: :assessment))}
+     |> assign(
+       :form,
+       to_form(%{"icon" => "", "name" => "", "description" => "", "decision" => ""},
+         as: :assessment
+       )
+     )}
   end
 
   @impl true
+  def handle_event("validate", %{"assessment" => params}, socket) do
+    {:noreply, assign(socket, :form, to_form(params, as: :assessment))}
+  end
+
   def handle_event("create", %{"assessment" => params}, socket) do
     attrs = %{
       "application_id" => socket.assigns.application_id,
+      "icon" => params["icon"],
       "name" => params["name"],
+      "description" => params["description"],
       "config" => %{
         "decision" => params["decision"],
         "scope" => %{"cms" => "drupal"}
@@ -26,7 +36,7 @@ defmodule Contexla.EstateWeb.NewLive do
 
     case Runtime.call(:platform, :create_instance, [socket.assigns.actor_id, attrs]) do
       {:ok, instance} ->
-        {:noreply, push_navigate(socket, to: "/applications/#{instance.id}/overview")}
+        {:noreply, redirect(socket, to: "/applications/#{instance.id}")}
 
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, "Could not create assessment: #{inspect(reason)}")}
@@ -36,24 +46,42 @@ defmodule Contexla.EstateWeb.NewLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <main class="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <a href="/" class="text-sm font-medium text-indigo-600">← Applications</a>
-      <p class="mt-8 text-sm font-semibold uppercase tracking-[0.18em] text-indigo-600">Digital Estate Assessment</p>
-      <h1 class="mt-2 text-3xl font-semibold tracking-tight">Create an assessment</h1>
-      <p class="mt-3 text-base-content/60">Define the estate and decision this evidence must support.</p>
+    <.surface flash={assigns[:flash]}>
+      <:header>
+        <.header id="new-assessment-page-header" icon="hero-clipboard-document-check">
+          Create an assessment
+          <:subtitle>Define the estate and decision this evidence must support.</:subtitle>
+          <:actions><.button href="/" size="sm">Back</.button></:actions>
+        </.header>
+      </:header>
 
-      <.form for={@form} id="new-assessment" phx-submit="create" class="mt-8 space-y-5 rounded-2xl border border-base-300 p-6">
-        <label class="block">
-          <span class="text-sm font-medium">Assessment name</span>
-          <input name={@form[:name].name} value={@form[:name].value} required class="mt-2 w-full rounded-xl border border-base-300 bg-base-100 px-4 py-3" />
-        </label>
-        <label class="block">
-          <span class="text-sm font-medium">Decision to support</span>
-          <textarea name={@form[:decision].name} required class="mt-2 min-h-28 w-full rounded-xl border border-base-300 bg-base-100 px-4 py-3">{@form[:decision].value}</textarea>
-        </label>
-        <button class="rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-500">Create assessment</button>
-      </.form>
-    </main>
+      <.panel title="Assessment details" description="Name the estate and record the decision the assessment must inform." icon="hero-document-text">
+        <.form
+          for={@form}
+          id="new-assessment"
+          phx-change="validate"
+          phx-submit="create"
+          class="space-y-5"
+        >
+          <.icon_picker
+            id="assessment-icon"
+            name={@form[:icon].name}
+            value={@form[:icon].value}
+            default_icon="hero-clipboard-document-check"
+          />
+          <.input field={@form[:name]} label="Assessment name" required placeholder="e.g., College Drupal Estate" />
+          <.input
+            field={@form[:description]}
+            type="textarea"
+            label="Description"
+            placeholder="A short description of this assessment Instance"
+            rows="2"
+          />
+          <.input field={@form[:decision]} type="textarea" label="Decision to support" required placeholder="What decision should this evidence support?" rows="4" />
+          <div class="flex justify-end pt-1"><.button type="submit" variant="primary">Create assessment</.button></div>
+        </.form>
+      </.panel>
+    </.surface>
     """
   end
 end

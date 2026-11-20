@@ -33,6 +33,10 @@ Date: YYYY-MM-DD
 
 - [0011 — Independent Application packages](0011-independent-application-packages.md)
 
+- [0012: Shared platform shell and independent UI package](0012-shared-ui-shell-and-components.md)
+- [0013: Instance-first navigation and canonical default surfaces](0013-instance-navigation-and-default-surfaces.md)
+- [0014: Platform Instance settings and Application configuration](0014-instance-settings-and-application-configuration.md)
+
 Create additional ADRs when implementation makes choices concrete, for
 example:
 

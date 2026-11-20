@@ -7,6 +7,10 @@ defmodule Contexla.ApplicationServices do
 
   def create_instance(actor_id, attrs), do: Applications.create_instance(scope!(actor_id), attrs)
   def get_instance(actor_id, id), do: Applications.fetch_instance(scope!(actor_id), id)
+
+  def update_instance_config(actor_id, id, config),
+    do: Applications.update_instance_config(scope!(actor_id), id, config)
+
   def get_artifact(actor_id, id), do: Artifacts.fetch(scope!(actor_id), id)
 
   def list_artifacts(actor_id, instance_id),

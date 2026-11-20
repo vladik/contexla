@@ -36,6 +36,7 @@ defmodule Contexla.Estate do
     %Definition{
       id: "com.contexla.application.digital-estate-assessment",
       name: "Digital Estate Assessment",
+      icon: "hero-clipboard-document-check",
       version: "0.1.0",
       otp_application: :contexla_estate,
       entry_module: __MODULE__,
@@ -59,6 +60,7 @@ defmodule Contexla.Estate do
           path: "overview",
           module: Contexla.EstateWeb.OverviewLive,
           role: :instance,
+          default: true,
           label: "Assessment overview"
         },
         %Surface{
@@ -67,6 +69,14 @@ defmodule Contexla.Estate do
           module: Contexla.EstateWeb.ReportLive,
           role: :instance,
           label: "Assessment report"
+        },
+        %Surface{
+          id: :settings,
+          path: "configuration",
+          module: Contexla.EstateWeb.SettingsLive,
+          role: :instance,
+          kind: :settings,
+          label: "Application settings"
         }
       ],
       required_adapter_contracts: required_adapter_contracts()

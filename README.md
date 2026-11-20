@@ -49,6 +49,15 @@ The first version should produce a useful, evidence-backed assessment from a
 controlled snapshot or a narrowly scoped Drupal integration. It should not try
 to become a universal scanner before proving customer demand.
 
+The initial business model is solution-led, platform-backed, and
+service-assisted. Customers buy a defined assessment, modernization,
+verification, or assurance outcome. Contexla is the reusable product foundation
+that makes delivery repeatable and extensible; it is not initially sold as a
+generic Application marketplace. Early deployments are curated for the agreed
+solution without creating customer-specific code forks.
+
+See the [solution-led commercial model](docs/product/solution-led-commercial-model.md).
+
 ## Architecture vocabulary
 
 - **Application** — an independently useful business solution with its own
@@ -86,6 +95,9 @@ The platform now compiles and boots without concrete Applications. Digital
 Estate Assessment and Drupal compile independently and are loaded through the
 SDK registry; the Application owns its PostgreSQL schema, migrations, execution,
 reports, and UI surfaces behind generic platform routes.
+The platform owns the shared authenticated shell and visual system, while the
+independent `contexla_ui` package gives Applications route-free components and
+semantic styling without coupling them to platform web code.
 The repository contains an executable first Digital Estate Assessment vertical
 slice. An authenticated user can create an Assessment Instance, upload and
 validate a Drupal snapshot, retain it as immutable evidence, queue an Oban Run,

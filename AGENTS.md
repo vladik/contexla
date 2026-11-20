@@ -15,6 +15,12 @@ boundaries below when planning or changing it.
 - Contexla is a digital-content integration and automation platform, not a CMS.
 - Build a portfolio of focused Applications, not one universal workflow product.
 - Optimize first for a small agency that must ship and sell incrementally.
+- Use a solution-led, platform-backed, service-assisted commercial model. Sell a
+  defined customer outcome first; explain Contexla as the delivery foundation
+  second.
+- Treat consulting, implementation, managed assurance, support, and future
+  licensing as complementary revenue paths. Do not optimize only for license
+  sales.
 - The initial deployment model is one organization per installation. Do not add
   organizations, tenants, or workspaces without an explicit product decision.
 - Applications are installed once and may have many Application Instances.
@@ -28,6 +34,13 @@ boundaries below when planning or changing it.
 - Do not add a generic visual workflow builder in the initial product.
 - Do not create empty future Applications or abstractions without demonstrated
   reuse.
+- Early customer distributions are curated supported package combinations, not
+  a marketplace. Never create customer forks; represent differences through
+  Instances, configuration, Connections, Bindings, and bounded extensions.
+- Do not require on-premise installation for a bounded snapshot engagement when
+  an approved evidence package and agreed secure processing environment satisfy
+  the customer. Keep customer-hosted execution available when policy requires
+  it.
 
 ## Architectural placement rule
 
@@ -53,8 +66,17 @@ translations.
 
 - Applications own their domain and database tables.
 - Applications also own their services, migrations, workers, execution, reports,
-  UI surfaces, and browser assets. The platform exposes only generic routes and
-  bounded SDK runtime services.
+  domain UI surfaces, and optional namespaced browser assets. The platform owns
+  the authenticated shell, global theme/assets, navigation, and generic routes.
+  Shared route-independent components belong in `contexla_ui`; Applications
+  must never depend on `ContexlaWeb`.
+- Reuse and extend the established `contexla_ui` primitives and shell patterns.
+  Do not create parallel Application-local buttons, inputs, modals, tables,
+  themes, or full-page layouts unless the shared contract genuinely cannot
+  express a validated requirement.
+- Preserve the shared hierarchy: platform shell, contextual surface header,
+  then content canvas. Public authentication and error pages never render inside
+  the authenticated shell; flash messages are viewport-level toasts.
 - Shared platform code owns only cross-Application concerns.
 - Use Oban for durable jobs and OTP supervision for runtime processes.
 - Store secrets encrypted and never include them in logs, artifacts, prompts, or
@@ -97,6 +119,9 @@ translations.
 5. Prove reuse through a second paid or strongly validated Application.
 
 Do not implement later roadmap phases unless the current proof requires them.
+Before adding platform infrastructure, identify the paid or strongly validated
+solution that requires it now. See
+`docs/product/solution-led-commercial-model.md` for the commercial build gate.
 
 ## Current implementation state
 
@@ -104,6 +129,13 @@ Do not implement later roadmap phases unless the current proof requires them.
   the runtime registry; it is not a platform dependency.
 - The platform owns stable generic Application routes and dynamically mounts
   package-declared LiveView surfaces.
+- Application packages declare a shared icon, one new-Instance surface, and one
+  default Instance surface. The sidebar is Instance-first and canonical
+  `/applications/:instance_id` URLs resolve through that default declaration.
+- Every Instance has platform-owned General settings for its name and optional
+  icon override. Every Application declares one settings surface for its own
+  mutable domain configuration; configuration updates remain Application-
+  validated through the SDK boundary.
 - The Application owns the `contexla_estate` PostgreSQL schema and migration
   lifecycle. Instances share its tables through `application_instance_id`.
 - The fixture-backed Digital Estate Assessment vertical slice is implemented:

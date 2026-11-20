@@ -4,6 +4,11 @@ Applications are commercial solutions, not menu labels for individual
 operations. Each should answer a recognizable question and may own its own
 domain, tables, workers, UI, APIs, policies, schedules, reports, and Adapters.
 
+Application is primarily an architectural and product-boundary term. Initial
+buyers are offered a focused outcome through a curated solution distribution,
+not asked to assemble Applications from a marketplace. See the
+[solution-led commercial model](solution-led-commercial-model.md).
+
 ## Near-term portfolio
 
 ### Digital Estate Assessment

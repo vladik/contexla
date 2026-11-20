@@ -5,7 +5,7 @@ and leaves behind something usable.
 
 ## Current implementation status
 
-As of 2026-11-19, the repository proves:
+As of 2026-11-20, the repository proves:
 
 - the Phoenix/PostgreSQL platform boots against a repository-local database;
 - the platform compiles, boots, and is tested with no concrete Application or
@@ -57,6 +57,9 @@ acceptance.
 - test it against recent Canadian Sitecore/Drupal opportunities;
 - obtain a paid pilot or strong design partner commitment;
 - manually perform work where software does not yet exist.
+- test whether the assessment creates a credible path to planning,
+  implementation, verification, support, or recurring assurance without making
+  the initial deliverable dependent on follow-on sales.
 
 **Exit evidence:** a real engagement shape and outputs that affect a customer's
 decision.
@@ -139,4 +142,10 @@ Connections, artifacts, Capabilities, and UI conventions.
 Only after the above proofs should the platform expand toward Content Transport,
 publishing gates, broader CMS migration, syndication, and deeper autonomous
 planning.
+
+Runtime package marketplaces, arbitrary customer package combinations, and
+self-service platform licensing are not roadmap goals until repeated customer
+demand makes them necessary. Early distributions should contain a small,
+supported set of packages for a purchased solution and must not become customer
+forks.
 

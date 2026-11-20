@@ -18,9 +18,27 @@ defmodule Contexla.ApplicationSDK.PackageBuilderTest do
       Jason.encode!(%{
         "manifestVersion" => 1,
         "applicationId" => "com.example.application",
+        "icon" => "hero-beaker",
         "version" => "1.0.0",
         "otpApplication" => "example",
-        "entryModule" => "Example.Application"
+        "entryModule" => "Example.Application",
+        "surfaces" => [
+          %{"id" => "new", "path" => "new", "module" => "Example.NewLive", "role" => "new"},
+          %{
+            "id" => "home",
+            "path" => "home",
+            "module" => "Example.HomeLive",
+            "role" => "instance",
+            "default" => true
+          },
+          %{
+            "id" => "settings",
+            "path" => "settings",
+            "module" => "Example.SettingsLive",
+            "role" => "instance",
+            "kind" => "settings"
+          }
+        ]
       })
     )
 

@@ -23,6 +23,7 @@ defmodule Contexla.Estate.MixProject do
   defp deps do
     [
       {:contexla_application_sdk, path: "../sdk"},
+      {:contexla_ui, path: "../../ui/contexla_ui"},
       {:ecto_sql, "~> 3.13"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_live_view, "~> 1.2"},

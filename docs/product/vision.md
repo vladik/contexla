@@ -7,8 +7,11 @@ It hosts independently useful Applications for integration, assessment,
 validation, migration, monitoring, governance, transport, and archival work.
 
 The product is both a commercial platform and a growing portfolio of solutions.
-It can support consulting engagements, but it must not exist only as an internal
-agency framework.
+Its initial commercial motion is solution-led, platform-backed, and
+service-assisted: customers buy defined outcomes delivered through consulting,
+implementation, or managed assurance, while Contexla supplies the reusable
+product foundation. It must not degrade into unrelated internal agency scripts,
+but success does not require license-only sales.
 
 ## Why now
 
@@ -58,14 +61,19 @@ The long-term portfolio answers five families of questions:
 
 The likely initial motion is consulting-led productization:
 
-1. use an Application to sell and deliver a clearly scoped assessment or
-   automation engagement;
-2. turn repeated delivery work into reusable product functionality;
-3. offer on-premise software where customer control, privacy, or network access
-   matters;
-4. develop repeatable licenses or subscriptions only after buyers demonstrate
-   willingness to pay.
+1. sell a clearly scoped customer outcome rather than a generic platform;
+2. use an Application to deliver that outcome with evidence and repeatability;
+3. turn repeated paid delivery work into reusable product functionality;
+4. use the lowest-friction approved delivery mode, from bounded snapshot service
+   to customer-hosted execution;
+5. expand successful assessments into planning, implementation, verification,
+   managed assurance, and support;
+6. develop repeatable licenses or subscriptions only when they strengthen a
+   validated buying motion.
 
 This is a hypothesis to validate. Product scope must be driven by paid needs,
 not feature volume.
+
+See [the solution-led commercial model](solution-led-commercial-model.md) for
+distribution, customization, and build gates.
 

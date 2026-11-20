@@ -9,6 +9,13 @@ migrations, Oban workers, LiveViews, reports, assets, and supervised runtime cod
 It accesses shared platform facilities through `Contexla.ApplicationSDK.Runtime`
 instead of depending on platform modules.
 
+Each definition must declare a shared icon, exactly one `new` surface, exactly
+one default `instance` surface, and exactly one Instance surface with
+`kind: :settings`. The default surface is mounted for the canonical
+`/applications/:instance_id` URL; it does not need to be named `index`. The
+platform chooses the package, while the `new` surface owns setup and the
+settings surface owns mutable Application-domain configuration.
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed

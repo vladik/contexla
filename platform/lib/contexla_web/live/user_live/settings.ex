@@ -9,62 +9,88 @@ defmodule ContexlaWeb.UserLive.Settings do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="text-center">
-        <.header>
-          Account Settings
-          <:subtitle>Manage your account email address and password settings</:subtitle>
-        </.header>
-      </div>
+      <.surface>
+        <:header>
+          <.header id="account-settings-header" icon="hero-user-circle">
+            Account settings
+            <:subtitle>Manage the administrator email address and password</:subtitle>
+            <:actions>
+              <span class="hidden items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 sm:inline-flex">
+                <.icon name="hero-lock-closed" class="size-3.5" /> Re-authenticated
+              </span>
+            </:actions>
+          </.header>
+        </:header>
 
-      <.form for={@email_form} id="email_form" phx-submit="update_email" phx-change="validate_email">
-        <.input
-          field={@email_form[:email]}
-          type="email"
-          label="Email"
-          autocomplete="username"
-          spellcheck="false"
-          required
-        />
-        <.button variant="primary" phx-disable-with="Changing...">Change Email</.button>
-      </.form>
+        <div class="grid gap-6 lg:grid-cols-2">
+          <.panel
+            title="Email address"
+            description="Used to identify the installation administrator."
+            icon="hero-envelope"
+          >
+            <.form
+              for={@email_form}
+              id="email_form"
+              phx-submit="update_email"
+              phx-change="validate_email"
+            >
+              <.input
+                field={@email_form[:email]}
+                type="email"
+                label="Email"
+                autocomplete="username"
+                spellcheck="false"
+                required
+              />
+              <div class="flex justify-end">
+                <.button variant="primary" phx-disable-with="Changing...">Change Email</.button>
+              </div>
+            </.form>
+          </.panel>
 
-      <div class="divider" />
-
-      <.form
-        for={@password_form}
-        id="password_form"
-        action={~p"/users/update-password"}
-        method="post"
-        phx-change="validate_password"
-        phx-submit="update_password"
-        phx-trigger-action={@trigger_submit}
-      >
-        <input
-          name={@password_form[:email].name}
-          type="hidden"
-          id="hidden_user_email"
-          spellcheck="false"
-          value={@current_email}
-        />
-        <.input
-          field={@password_form[:password]}
-          type="password"
-          label="New password"
-          autocomplete="new-password"
-          spellcheck="false"
-          required
-        />
-        <.input
-          field={@password_form[:password_confirmation]}
-          type="password"
-          label="Confirm new password"
-          autocomplete="new-password"
-          spellcheck="false"
-        />
-        <.button variant="primary" phx-disable-with="Saving...">
-          Save Password
-        </.button>
-      </.form>
+          <.panel
+            title="Password"
+            description="Choose a strong password for this administrator account."
+            icon="hero-lock-closed"
+          >
+            <.form
+              for={@password_form}
+              id="password_form"
+              action={~p"/users/update-password"}
+              method="post"
+              phx-change="validate_password"
+              phx-submit="update_password"
+              phx-trigger-action={@trigger_submit}
+            >
+              <input
+                name={@password_form[:email].name}
+                type="hidden"
+                id="hidden_user_email"
+                spellcheck="false"
+                value={@current_email}
+              />
+              <.input
+                field={@password_form[:password]}
+                type="password"
+                label="New password"
+                autocomplete="new-password"
+                spellcheck="false"
+                required
+              />
+              <.input
+                field={@password_form[:password_confirmation]}
+                type="password"
+                label="Confirm new password"
+                autocomplete="new-password"
+                spellcheck="false"
+              />
+              <div class="flex justify-end">
+                <.button variant="primary" phx-disable-with="Saving...">Save Password</.button>
+              </div>
+            </.form>
+          </.panel>
+        </div>
+      </.surface>
     </Layouts.app>
     """
   end
