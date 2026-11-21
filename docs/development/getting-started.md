@@ -151,6 +151,11 @@ browser assets; the Digital Estate Assessment job builds its trusted
 boundaries: the platform must pass without adding a concrete Application or
 Integration dependency.
 
+After those jobs pass, CI builds a production platform release with zero
+concrete packages, migrates an empty PostgreSQL database, bootstraps an initial
+administrator, runs release diagnostics, starts the release, and verifies both
+health endpoints.
+
 ## Local Drupal collector proof
 
 The read-only collector spike lives under `connectors/drupal_snapshot/`. Its

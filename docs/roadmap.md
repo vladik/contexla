@@ -25,6 +25,9 @@ As of 2026-11-21, the repository proves:
 - current Instance and source-import lifecycle changes produce append-only,
   actor-attributed Audit Events, while Invocation data applies schema-based
   redaction and stores bounded failure codes;
+- the platform builds as a package-neutral BEAM release with explicit release
+  migration/bootstrap/diagnostic commands, public liveness/readiness probes,
+  and documented coordinated backup/restore procedures;
 - Digital Estate Assessment owns its services, executor, workers, UI surfaces,
   reports, PostgreSQL schema, and migrations;
 - an administrator can be bootstrapped without public registration or a shared

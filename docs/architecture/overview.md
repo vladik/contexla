@@ -6,6 +6,11 @@ The initial product is an on-premise-first modular monolith distributed as a
 BEAM release. A customer may run it on a server, VM, container platform, or a
 service such as Fly.io with PostgreSQL and suitable artifact storage.
 
+Production release commands explicitly apply platform and registered
+Application migrations, bootstrap the initial administrator, and run bounded
+diagnostics. The serving process performs none of those mutations implicitly.
+PostgreSQL and Artifact storage are one coordinated backup/restore boundary.
+
 One installation serves one organization. It may contain multiple users and
 many Application Instances, but it does not initially implement cross-
 organization membership or tenant isolation. Customers that need isolation run

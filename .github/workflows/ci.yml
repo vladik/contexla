@@ -92,3 +92,64 @@ jobs:
       - run: mix test
       - run: mix assets.setup
       - run: mix assets.deploy
+
+  release:
+    name: Package-neutral release smoke test
+    needs: [packages, platform]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: contexla
+          POSTGRES_PASSWORD: contexla_dev
+          POSTGRES_DB: contexla_release
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U contexla -d contexla_release"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      MIX_ENV: prod
+      DATABASE_URL: ecto://contexla:contexla_dev@localhost:5432/contexla_release
+      SECRET_KEY_BASE: ci-only-secret-key-base-ci-only-secret-key-base-ci-only-secret-key-base
+      CONTEXLA_ARTIFACTS_PATH: ${{ github.workspace }}/.tmp/release-artifacts
+      PHX_HOST: localhost
+      PORT: "4100"
+      CONTEXLA_ADMIN_EMAIL: admin@ci.invalid
+      CONTEXLA_ADMIN_PASSWORD: CI-only-temporary-password-123!
+    defaults:
+      run:
+        working-directory: platform
+    steps:
+      - uses: actions/checkout@v7
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "28.0"
+          elixir-version: "1.20.2"
+      - run: mix deps.get --only prod
+      - run: mix assets.setup
+      - run: mix assets.deploy
+      - run: mix release contexla --overwrite
+      - name: Migrate empty installation
+        run: _build/prod/rel/contexla/bin/contexla eval "Contexla.Release.migrate_all()"
+      - name: Bootstrap initial administrator
+        run: _build/prod/rel/contexla/bin/contexla eval "Contexla.Release.bootstrap_admin()"
+      - name: Run release diagnostics
+        run: _build/prod/rel/contexla/bin/contexla eval "Contexla.Release.diagnostics()"
+      - name: Start release and verify health
+        run: |
+          PHX_SERVER=true _build/prod/rel/contexla/bin/contexla daemon
+          for attempt in {1..30}; do
+            if curl --fail --silent http://localhost:4100/health/live >/dev/null; then
+              curl --fail --silent --show-error http://localhost:4100/health/ready
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+      - name: Stop release
+        if: always()
+        run: _build/prod/rel/contexla/bin/contexla stop || true

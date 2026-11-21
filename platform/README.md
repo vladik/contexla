@@ -21,3 +21,7 @@ mix contexla.packages.migrate
 
 Package discovery and platform startup never run Application-owned migrations
 implicitly.
+
+For production release construction, release-safe migration/bootstrap commands,
+health probes, and backup/restore order, see
+[`docs/operations/README.md`](../docs/operations/README.md).

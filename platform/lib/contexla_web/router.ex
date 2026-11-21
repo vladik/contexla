@@ -36,6 +36,13 @@ defmodule ContexlaWeb.Router do
     plug :accepts, ["json"]
   end
 
+  scope "/health", ContexlaWeb do
+    pipe_through :api
+
+    get "/live", HealthController, :live
+    get "/ready", HealthController, :ready
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", ContexlaWeb do
   #   pipe_through :api

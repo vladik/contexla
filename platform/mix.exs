@@ -8,6 +8,7 @@ defmodule Contexla.MixProject do
       elixir: "~> 1.17",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
+      releases: releases(),
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
@@ -76,6 +77,15 @@ defmodule Contexla.MixProject do
     ]
   end
 
+  defp releases do
+    [
+      contexla: [
+        include_executables_for: [:unix, :windows],
+        applications: [runtime_tools: :permanent]
+      ]
+    ]
+  end
+
   # Aliases are shortcuts or tasks specific to the current project.
   # For example, to install project dependencies and perform other setup tasks, run:
   #
@@ -91,6 +101,7 @@ defmodule Contexla.MixProject do
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["compile", "tailwind contexla", "esbuild contexla"],
       "assets.deploy": [
+        "compile",
         "tailwind contexla --minify",
         "esbuild contexla --minify",
         "phx.digest"

@@ -35,6 +35,12 @@ The documentation is organized by the kind of decision it supports.
 - [Getting started](development/getting-started.md)
 - [Application UI guide](development/application-ui.md)
 
+## Operations
+
+- [Operating Contexla](operations/README.md)
+- [Installation and upgrades](operations/installation.md)
+- [Backup and restore](operations/backup-and-restore.md)
+
 ## Market validation
 
 - [Proof 0 validation package](validation/README.md)

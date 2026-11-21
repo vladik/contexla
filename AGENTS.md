@@ -163,6 +163,10 @@ solution that requires it now. See
 - GitHub CI independently format-checks, compiles, and tests every Mix project;
   its PostgreSQL-backed platform job also builds assets, while the Assessment
   job builds the trusted Application archive.
+- The package-neutral platform builds as a BEAM release. Release-safe commands
+  explicitly migrate platform and Application schemas, bootstrap the initial
+  administrator, and run bounded diagnostics; server startup never performs
+  those mutations. PostgreSQL and Artifact storage are one backup boundary.
 - Application packages declare a shared icon, one new-Instance surface, and one
   default Instance surface. The sidebar is Instance-first and canonical
   `/applications/:instance_id` URLs resolve through that default declaration.
