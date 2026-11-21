@@ -1,0 +1,16 @@
+# <%= name %>
+
+An independent Contexla Application generated from the Application SDK starter.
+
+The starter demonstrates the required setup, default, and settings surfaces,
+plus an optional collection surface. Replace instructional content with a real
+business use case; do not turn the package into a generic workflow container.
+
+```powershell
+mix deps.get
+mix test
+mix contexla.application.package
+```
+
+This project depends on the Application SDK and `contexla_ui`, never on the
+Contexla platform or another concrete Application.

@@ -87,6 +87,8 @@ defmodule ContexlaWeb do
       # Core UI components
       import ContexlaWeb.CoreComponents, except: [header: 1]
       import ContexlaUI.Components
+      import ContexlaUI.Components.ApplicationFrame
+      import ContexlaUI.Components.Layout.Patterns
       import ContexlaUI.Components.UI.Header
       import ContexlaUI.Components.UI.IconPicker
       import ContexlaUI.Components.UI.Tabs

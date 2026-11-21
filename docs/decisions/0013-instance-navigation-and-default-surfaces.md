@@ -7,7 +7,7 @@ Date: 2026-11-20
 ## Context
 
 Application Instances are the configured solutions users operate day to day.
-The platform previously listed Instances only on the Apps page and required
+The platform previously listed Instances only on the Applications page and required
 callers to know an Application-specific surface path such as `overview`. This
 made navigation depend on package internals and left the canonical
 `/applications/:instance_id` URL unresolved.
@@ -18,7 +18,7 @@ universal Instance-configuration form without learning Application domains.
 ## Decision
 
 The authenticated sidebar is Instance-first. It exposes a platform-owned New
-Instance action, the configured Instances, and separate Apps and Settings
+Instance action, the configured Instances, and separate Applications and Settings
 navigation. Instance links use only `/applications/:instance_id`; collapsed
 navigation identifies each Instance through its Application icon and an
 Instance-name tooltip.
@@ -43,5 +43,5 @@ creates the Instance through the SDK runtime.
 - Packages without one setup surface and one default Instance surface are
   rejected by the SDK contract.
 - The platform sidebar remains independent of concrete Application code.
-- A future package installer belongs on the Apps screen, but is not implied by
+- A future package installer belongs on the Applications screen, but is not implied by
   the current source-linked package list.

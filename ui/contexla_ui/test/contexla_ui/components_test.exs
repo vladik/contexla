@@ -42,6 +42,26 @@ defmodule ContexlaUI.ComponentsTest do
     assert html =~ ~s(name="instance[icon]")
   end
 
+  test "Application frame keeps header, navigation, and content in the shared hierarchy" do
+    html = render_component(&application_frame_showcase/1, %{})
+
+    assert html =~ ~s(id="reference-application-header")
+    assert html =~ "application-surface"
+    assert html =~ "Section navigation"
+    assert html =~ "Reference content"
+    assert html =~ "border-b border-border bg-surface px-4 py-2"
+  end
+
+  test "surface patterns provide sectioned forms and responsive list detail" do
+    html = render_component(&pattern_showcase/1, %{})
+
+    assert html =~ "Identity"
+    assert html =~ "border-t border-border pt-5"
+    assert html =~ "lg:grid-cols-[minmax(16rem,0.8fr)_minmax(0,1.4fr)]"
+    assert html =~ ~s(aria-label="Records")
+    assert html =~ ~s(aria-label="Record details")
+  end
+
   defp showcase(assigns) do
     ~H"""
     <.button variant="primary" size="sm">Run assessment</.button>
@@ -63,6 +83,43 @@ defmodule ContexlaUI.ComponentsTest do
     <.modal id="details">
       <p>Details</p>
     </.modal>
+    """
+  end
+
+  defp application_frame_showcase(assigns) do
+    ~H"""
+    <.application_frame
+      id="reference-application-header"
+      icon="hero-beaker"
+      title="Reference Application"
+      subtitle="Configured Instance"
+    >
+      <:navigation>
+        <.tabs id="reference-navigation">
+          <:tab label="Overview" icon="hero-home" navigate="/" selected />
+        </.tabs>
+      </:navigation>
+      <p>Reference content</p>
+    </.application_frame>
+    """
+  end
+
+  defp pattern_showcase(assigns) do
+    ~H"""
+    <.form_layout>
+      <.form_section title="Identity">
+        <p>Fields</p>
+      </.form_section>
+      <:actions><.button>Save</.button></:actions>
+    </.form_layout>
+    <.list_detail list_label="Records" detail_label="Record details">
+      <:list>
+        <p>List</p>
+      </:list>
+      <:detail>
+        <p>Detail</p>
+      </:detail>
+    </.list_detail>
     """
   end
 end

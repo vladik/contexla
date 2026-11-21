@@ -1,0 +1,17 @@
+{
+  "manifestVersion": 1,
+  "applicationId": "<%= id %>",
+  "name": "<%= name %>",
+  "icon": "hero-squares-2x2",
+  "version": "0.1.0",
+  "otpApplication": "<%= project %>",
+  "entryModule": "<%= module %>",
+  "sdkRequirement": "~> 0.1",
+  "surfaces": [
+    {"id": "new", "path": "new", "module": "<%= web_module %>.NewLive", "role": "new"},
+    {"id": "overview", "path": "overview", "module": "<%= web_module %>.OverviewLive", "role": "instance", "default": true},
+    {"id": "collection", "path": "collection", "module": "<%= web_module %>.CollectionLive", "role": "instance"},
+    {"id": "settings", "path": "configuration", "module": "<%= web_module %>.SettingsLive", "role": "instance", "kind": "settings"}
+  ],
+  "operations": []
+}

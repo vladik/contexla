@@ -21,6 +21,9 @@ defmodule ContexlaWeb.ApplicationSurfaceControllerTest do
     assert html_response(conn, 200) =~ "Dynamically mounted test"
     assert html_response(conn, 200) =~ ~s(id="contexla-platform-shell")
     assert html_response(conn, 200) =~ ~s(data-tooltip="Dynamically mounted test")
+    assert html_response(conn, 200) =~ ~s(id="agent-workspace")
+    assert html_response(conn, 200) =~ "Application Instance"
+    assert html_response(conn, 200) =~ "Application overview"
   end
 
   test "passes route query values through the dynamic surface session", %{conn: conn} do

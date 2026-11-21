@@ -9,12 +9,37 @@ migrations, Oban workers, LiveViews, reports, assets, and supervised runtime cod
 It accesses shared platform facilities through `Contexla.ApplicationSDK.Runtime`
 instead of depending on platform modules.
 
+An Application Operation is a domain command exposed to the platform UI, API,
+agents, and approved triggers. It may coordinate Application state and multiple
+Capabilities; it is not a small reusable Capability and does not imply a generic
+workflow graph. Invocations that require durability or auditability produce
+Runs owned by the Application or shared runtime conventions.
+
 Each definition must declare a shared icon, exactly one `new` surface, exactly
 one default `instance` surface, and exactly one Instance surface with
 `kind: :settings`. The default surface is mounted for the canonical
 `/applications/:instance_id` URL; it does not need to be named `index`. The
 platform chooses the package, while the `new` surface owns setup and the
 settings surface owns mutable Application-domain configuration.
+
+## Create an Application
+
+The starter creates a separate Mix project that depends on this SDK and the
+route-free `contexla_ui` package. It does not register the generated package or
+make it a platform dependency.
+
+```powershell
+mix contexla.application.new ..\my_application `
+  --module Acme.MyApplication `
+  --id com.acme.application.my-application `
+  --name "My Application"
+```
+
+The generated surfaces demonstrate the required setup, canonical overview,
+collection/list-detail, and Application settings patterns. Replace the starter
+content with a focused business use case and keep domain behavior inside the
+Application. See `docs/development/application-ui.md` in the repository for the
+UI contract.
 
 ## Installation
 

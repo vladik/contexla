@@ -177,10 +177,73 @@ const installIconPickers = () => {
   })
 }
 
+const installAgentWorkspace = () => {
+  const workspace = document.querySelector("[data-agent-workspace]")
+  const backdrop = document.querySelector("#agent-workspace-backdrop")
+  const toggles = document.querySelectorAll("[data-agent-workspace-toggle]")
+  const closeTriggers = document.querySelectorAll("[data-agent-workspace-close]")
+  if (!workspace || !backdrop || toggles.length === 0) return
+
+  let open = localStorage.getItem("agent-workspace-open") === "true"
+  let returnFocus = null
+
+  const render = () => {
+    document.documentElement.classList.toggle("agent-workspace-open", open)
+    workspace.setAttribute("aria-hidden", String(!open))
+    workspace.inert = !open
+    toggles.forEach(toggle => toggle.setAttribute("aria-expanded", String(open)))
+    backdrop.classList.toggle("hidden", !open)
+  }
+
+  const setOpen = (nextOpen, trigger = null) => {
+    open = nextOpen
+    localStorage.setItem("agent-workspace-open", String(open))
+
+    if (open) {
+      returnFocus = trigger || document.activeElement
+    }
+
+    render()
+
+    if (open && trigger) {
+      workspace.querySelector("[data-agent-workspace-close]")?.focus()
+    } else if (!open && returnFocus instanceof HTMLElement) {
+      returnFocus.focus()
+      returnFocus = null
+    }
+  }
+
+  toggles.forEach(toggle => toggle.addEventListener("click", () => setOpen(!open, toggle)))
+  closeTriggers.forEach(trigger => trigger.addEventListener("click", () => setOpen(false)))
+
+  workspace.querySelectorAll("[data-agent-tab]").forEach(tab => {
+    tab.addEventListener("click", () => {
+      const selected = tab.dataset.agentTab
+
+      workspace.querySelectorAll("[data-agent-tab]").forEach(candidate => {
+        const active = candidate.dataset.agentTab === selected
+        candidate.classList.toggle("is-active", active)
+        candidate.setAttribute("aria-selected", String(active))
+      })
+
+      workspace.querySelectorAll("[data-agent-view]").forEach(view => {
+        view.hidden = view.dataset.agentView !== selected
+      })
+    })
+  })
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && open) setOpen(false)
+  })
+
+  render()
+}
+
 installGlobalTooltips()
 installSidebarCollapse()
 installMobileSidebar()
 installIconPickers()
+installAgentWorkspace()
 
 const Hooks = {
   ToastDismiss: {

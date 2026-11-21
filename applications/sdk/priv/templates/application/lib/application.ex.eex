@@ -1,0 +1,41 @@
+defmodule <%= module %> do
+  @moduledoc "<%= name %> Application package."
+  @behaviour Contexla.ApplicationSDK.Application
+
+  alias Contexla.ApplicationSDK.{Definition, Surface}
+
+  @impl true
+  def definition do
+    %Definition{
+      id: "<%= id %>",
+      name: "<%= name %>",
+      icon: "hero-squares-2x2",
+      version: "0.1.0",
+      otp_application: :<%= project %>,
+      entry_module: __MODULE__,
+      description: "Replace with the independently useful business outcome.",
+      config_schema: %{"purpose" => %{type: :string, required: true}},
+      operations: available_operations(),
+      surfaces: [
+        %Surface{id: :new, path: "new", module: <%= web_module %>.NewLive, role: :new, label: "New Instance"},
+        %Surface{id: :overview, path: "overview", module: <%= web_module %>.OverviewLive, role: :instance, default: true, label: "Overview"},
+        %Surface{id: :collection, path: "collection", module: <%= web_module %>.CollectionLive, role: :instance, label: "Records"},
+        %Surface{id: :settings, path: "configuration", module: <%= web_module %>.SettingsLive, role: :instance, kind: :settings, label: "Application settings"}
+      ],
+      required_adapter_contracts: required_adapter_contracts()
+    }
+  end
+
+  @impl true
+  def validate_instance_config(%{"purpose" => purpose} = config)
+      when is_binary(purpose) and purpose != "",
+      do: {:ok, config}
+
+  def validate_instance_config(_config), do: {:error, {:invalid_config, "purpose is required"}}
+
+  @impl true
+  def available_operations, do: []
+
+  @impl true
+  def required_adapter_contracts, do: []
+end

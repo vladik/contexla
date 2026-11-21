@@ -2,6 +2,11 @@
 
 AI agents play two distinct roles: they operate Contexla and extend Contexla.
 
+The interaction model is Agent-first but not chat-only. Users express intent in
+a persistent, context-aware Agent workspace while structured Application UI
+remains authoritative for configuration, Runs, evidence, Findings, approvals,
+and reports.
+
 ## Operate the platform
 
 An operating agent can:
@@ -12,7 +17,7 @@ An operating agent can:
 3. determine whether the request is currently supported;
 4. ask for missing configuration or explain how to acquire access;
 5. propose a plan and configuration;
-6. start authorized Runs;
+6. invoke authorized Application Operations and start their Runs;
 7. inspect structured results and evidence;
 8. summarize findings and suggest next actions.
 
@@ -80,6 +85,44 @@ Agents are not the source of truth.
 - Generated output must be traceable to model/provider, prompt/configuration,
   inputs, Capability contract, Processor version, and Binding when relevant.
 - High-impact actions require explicit authorization or a pre-approved policy.
+
+## Agent workspace and context
+
+The authenticated platform shell owns a persistent right-side Agent workspace.
+It is available on platform and dynamically mounted Application surfaces and
+shows its context explicitly:
+
+```text
+Platform
+  -> Application Instance
+  -> current Application surface
+  -> optional Run, Finding, Resource, or Evidence item
+```
+
+The platform may derive platform, route, Application, and Instance context from
+generic contracts. An Application may later contribute selected domain context
+through a bounded SDK contract; the platform must not inspect an Application's
+tables to construct prompts.
+
+The workspace separates conversational interaction from activity monitoring:
+
+- **Chat** accepts intent, questions, steering, and approvals;
+- **Activity** presents plans, Operation calls, linked Runs, tool calls,
+  approvals, failures, and completion state.
+
+Closing the workspace must not cancel a durable Run. Agent Sessions and Runs
+remain separate:
+
+```text
+Agent Session
+  conversation, plan, investigation, approvals
+       -> Application Operation
+       -> Run (authoritative execution)
+       -> Capability Invocation
+```
+
+The initial workspace shell intentionally displays AI as unconfigured. It does
+not create fake messages, activity, approval counts, or execution records.
 
 ## No-AI mode
 

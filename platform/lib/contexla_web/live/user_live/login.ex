@@ -120,7 +120,7 @@ defmodule ContexlaWeb.UserLive.Login do
                 </p>
                 <ul class="mt-8 grid gap-5">
                   <.benefit icon="hero-squares-2x2" title="Focused Applications">
-                    Use purpose-built solutions without creating disconnected tools.
+                    Use purpose-built Applications without creating disconnected tools.
                   </.benefit>
                   <.benefit icon="hero-link" title="Traceable evidence">
                     Keep findings, sources, Runs, and decisions connected.

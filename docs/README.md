@@ -33,6 +33,7 @@ The documentation is organized by the kind of decision it supports.
 ## Development
 
 - [Getting started](development/getting-started.md)
+- [Application UI guide](development/application-ui.md)
 
 ## Market validation
 

@@ -24,6 +24,10 @@ boundaries below when planning or changing it.
 - The initial deployment model is one organization per installation. Do not add
   organizations, tenants, or workspaces without an explicit product decision.
 - Applications are installed once and may have many Application Instances.
+- Use **Application**, not "App", in Contexla product UI, documentation, and
+  public contracts. Framework-standard names such as OTP app or `app.js` may
+  remain. **Solution** is a commercial offer that may combine Applications,
+  Integrations, and services; it is not a platform entity.
 - The platform depends only on Application/Integration SDKs and must compile and
   boot with zero concrete packages. Never add a concrete Application or
   Integration as a platform dependency.
@@ -77,6 +81,11 @@ translations.
 - Preserve the shared hierarchy: platform shell, contextual surface header,
   then content canvas. Public authentication and error pages never render inside
   the authenticated shell; flash messages are viewport-level toasts.
+- Build Instance surfaces with the shared Application frame and use the
+  documented overview, collection, list/detail, sectioned form, Run, comparison,
+  report, and settings patterns. Start new packages with the Application SDK
+  generator; generated packages must remain independent of the platform and
+  concrete Applications.
 - Shared platform code owns only cross-Application concerns.
 - Use Oban for durable jobs and OTP supervision for runtime processes.
 - Store secrets encrypted and never include them in logs, artifacts, prompts, or
@@ -136,6 +145,14 @@ solution that requires it now. See
   icon override. Every Application declares one settings surface for its own
   mutable domain configuration; configuration updates remain Application-
   validated through the SDK boundary.
+- The platform shell includes a context-aware Contexla Agent workspace with
+  Chat and Activity views. It currently exposes only an honest unconfigured
+  state; no AI provider, Agent Session persistence, tool execution, or approval
+  runtime is implemented. Agent Sessions must remain separate from authoritative
+  Application Runs and Capability Invocations.
+- `contexla_ui` provides the shared Application frame and demonstrated layout
+  patterns. The SDK starter generates an independently compiled package using
+  those contracts; it is scaffolding, not a bundled product Application.
 - The Application owns the `contexla_estate` PostgreSQL schema and migration
   lifecycle. Instances share its tables through `application_instance_id`.
 - The fixture-backed Digital Estate Assessment vertical slice is implemented:

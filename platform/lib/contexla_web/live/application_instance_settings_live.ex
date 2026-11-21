@@ -54,15 +54,13 @@ defmodule ContexlaWeb.ApplicationInstanceSettingsLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <.surface>
-        <:header>
-          <.header id="instance-settings-header" icon="hero-cog-6-tooth">
-            Instance settings
-            <:subtitle>{@instance.name}</:subtitle>
-          </.header>
-        </:header>
-
-        <div class="space-y-4">
+      <.application_frame
+        id="instance-settings-header"
+        icon="hero-cog-6-tooth"
+        title="Instance settings"
+        subtitle={@instance.name}
+      >
+        <:navigation>
           <.tabs id="instance-settings-tabs" label="Instance settings sections">
             <:tab
               label="General"
@@ -76,40 +74,47 @@ defmodule ContexlaWeb.ApplicationInstanceSettingsLive do
               navigate={"/applications/#{@instance.id}/#{@application_settings_path}"}
             />
           </.tabs>
+        </:navigation>
 
-          <.panel
-            title="General"
-            description="Control how this Instance appears in platform navigation."
-            icon="hero-identification"
+        <.panel
+          title="General"
+          description="Control how this Instance appears in platform navigation."
+          icon="hero-identification"
+        >
+          <.form
+            for={@form}
+            id="instance-settings-form"
+            phx-change="validate"
+            phx-submit="save"
+            class="block"
           >
-            <.form
-              for={@form}
-              id="instance-settings-form"
-              phx-change="validate"
-              phx-submit="save"
-              class="space-y-4"
-            >
-              <.icon_picker
-                id="instance-icon"
-                name={@form[:icon].name}
-                value={@form[:icon].value}
-                default_icon={@definition.icon}
-              />
-              <.input field={@form[:name]} label="Instance name" required />
-              <.input
-                field={@form[:description]}
-                type="textarea"
-                label="Description"
-                placeholder="A short description of this Application Instance"
-                rows="2"
-              />
-              <div class="flex justify-end pt-2">
+            <.form_layout>
+              <.form_section
+                title="Instance identity"
+                description="Choose the icon, name, and description used throughout Contexla."
+              >
+                <.icon_picker
+                  id="instance-icon"
+                  name={@form[:icon].name}
+                  value={@form[:icon].value}
+                  default_icon={@definition.icon}
+                />
+                <.input field={@form[:name]} label="Instance name" required />
+                <.input
+                  field={@form[:description]}
+                  type="textarea"
+                  label="Description"
+                  placeholder="A short description of this Application Instance"
+                  rows="2"
+                />
+              </.form_section>
+              <:actions>
                 <UIButton.button type="submit" variant="primary">Save settings</UIButton.button>
-              </div>
-            </.form>
-          </.panel>
-        </div>
-      </.surface>
+              </:actions>
+            </.form_layout>
+          </.form>
+        </.panel>
+      </.application_frame>
     </Layouts.app>
     """
   end

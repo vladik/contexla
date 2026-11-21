@@ -80,13 +80,13 @@ defmodule ContexlaWeb.Layouts do
           <a
             href="/applications/new"
             data-sidebar-row
-            data-tooltip="New instance"
+            data-tooltip="New Application Instance"
             data-tooltip-position="side"
             aria-current={if String.starts_with?(@current_path, "/applications/new"), do: "page"}
             class={nav_item_class(String.starts_with?(@current_path, "/applications/new"))}
           >
             <.icon name="hero-plus" class="size-4 shrink-0" />
-            <span data-sidebar-expanded class="min-w-0 flex-1 truncate">New instance</span>
+            <span data-sidebar-expanded class="min-w-0 flex-1 truncate">New Instance</span>
           </a>
 
           <p
@@ -122,13 +122,13 @@ defmodule ContexlaWeb.Layouts do
           <a
             href="/applications"
             data-sidebar-row
-            data-tooltip="Apps"
+            data-tooltip="Applications"
             data-tooltip-position="side"
             aria-current={if applications_active?(@current_path), do: "page"}
             class={nav_item_class(applications_active?(@current_path))}
           >
             <.icon name="hero-squares-2x2" class="size-4 shrink-0" />
-            <span data-sidebar-expanded class="min-w-0 flex-1 truncate">Apps</span>
+            <span data-sidebar-expanded class="min-w-0 flex-1 truncate">Applications</span>
           </a>
 
           <a
@@ -244,13 +244,180 @@ defmodule ContexlaWeb.Layouts do
               </span>
             <% end %>
           </nav>
+          <div class="min-w-0 flex-1 md:hidden" />
+          <button
+            type="button"
+            data-agent-workspace-toggle
+            class="grid size-9 shrink-0 place-items-center rounded-xl text-text-muted transition-colors hover:bg-surface-raised hover:text-primary"
+            aria-label="Open Contexla Agent"
+            aria-controls="agent-workspace"
+            aria-expanded="false"
+          >
+            <.icon name="hero-sparkles" class="size-5" />
+          </button>
         </header>
 
         <div class="flex-1 overflow-y-auto">
           {render_slot(@inner_block)}
         </div>
       </main>
+      <.agent_workspace current_path={@current_path} instances={@instances} />
+      <button
+        id="agent-workspace-backdrop"
+        type="button"
+        data-agent-workspace-close
+        class="fixed inset-0 z-40 hidden bg-[#0F1330]/45 backdrop-blur-[2px] lg:hidden"
+        aria-label="Close Contexla Agent"
+      />
     </div>
+    """
+  end
+
+  @doc "Renders the platform-owned Agent workspace shell."
+  attr :current_path, :string, required: true
+  attr :instances, :list, required: true
+
+  def agent_workspace(assigns) do
+    assigns = assign(assigns, :context, agent_context(assigns.current_path, assigns.instances))
+
+    ~H"""
+    <aside
+      id="agent-workspace"
+      data-agent-workspace
+      class="agent-workspace"
+      aria-label="Contexla Agent"
+      aria-hidden="true"
+      inert
+    >
+      <div class="agent-workspace-inner">
+        <header class="flex h-14 shrink-0 items-center gap-3 border-b border-border px-4">
+          <span class="grid size-8 shrink-0 place-items-center rounded-xl bg-primary-subtle text-primary">
+            <.icon name="hero-sparkles" class="size-4" />
+          </span>
+          <div class="min-w-0 flex-1">
+            <h2 class="truncate text-sm font-semibold text-text">Contexla Agent</h2>
+            <p class="truncate text-[11px] text-text-muted">AI workspace</p>
+          </div>
+          <button
+            type="button"
+            data-agent-workspace-close
+            class="grid size-8 shrink-0 place-items-center rounded-lg text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+            aria-label="Close Contexla Agent"
+          >
+            <.icon name="hero-x-mark" class="size-4" />
+          </button>
+        </header>
+
+        <div class="border-b border-border px-3 pt-2">
+          <div class="flex gap-1" role="tablist" aria-label="Agent workspace views">
+            <button
+              id="agent-chat-tab"
+              type="button"
+              role="tab"
+              data-agent-tab="chat"
+              aria-controls="agent-chat-view"
+              aria-selected="true"
+              class="agent-workspace-tab is-active"
+            >
+              <.icon name="hero-chat-bubble-left-right" class="size-3.5" /> Chat
+            </button>
+            <button
+              id="agent-activity-tab"
+              type="button"
+              role="tab"
+              data-agent-tab="activity"
+              aria-controls="agent-activity-view"
+              aria-selected="false"
+              class="agent-workspace-tab"
+            >
+              <.icon name="hero-queue-list" class="size-3.5" /> Activity
+            </button>
+          </div>
+        </div>
+
+        <div class="border-b border-border bg-surface-raised/60 px-4 py-3">
+          <div class="mb-1.5 flex items-center justify-between gap-2">
+            <span class="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted">
+              Current context
+            </span>
+            <span class="rounded-full bg-surface px-2 py-0.5 text-[10px] font-medium text-text-muted">
+              {@context.level}
+            </span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <span class="grid size-8 shrink-0 place-items-center rounded-lg border border-border bg-surface text-primary">
+              <.icon name={@context.icon} class="size-4" />
+            </span>
+            <div class="min-w-0">
+              <p class="truncate text-xs font-semibold text-text">{@context.title}</p>
+              <p class="truncate text-[11px] text-text-muted">{@context.area}</p>
+            </div>
+          </div>
+        </div>
+
+        <section
+          id="agent-chat-view"
+          role="tabpanel"
+          aria-labelledby="agent-chat-tab"
+          data-agent-view="chat"
+          class="flex min-h-0 flex-1 flex-col"
+        >
+          <div class="flex flex-1 items-center justify-center overflow-y-auto p-6 text-center">
+            <div class="max-w-64">
+              <span class="mx-auto grid size-11 place-items-center rounded-2xl border border-border bg-surface-raised text-text-muted">
+                <.icon name="hero-cpu-chip" class="size-5" />
+              </span>
+              <h3 class="mt-3 text-sm font-semibold text-text">AI is not configured</h3>
+              <p class="mt-1.5 text-xs leading-5 text-text-muted">
+                Contexla Applications and manual Operations remain available. When an approved AI provider is configured, this workspace will help operate the current context.
+              </p>
+            </div>
+          </div>
+          <div class="shrink-0 border-t border-border p-3">
+            <label for="agent-prompt" class="sr-only">Ask Contexla Agent</label>
+            <div class="rounded-xl border border-border bg-surface-raised p-2">
+              <textarea
+                id="agent-prompt"
+                rows="3"
+                disabled
+                placeholder="Ask about this context or delegate a task..."
+                class="block w-full resize-none border-0 bg-transparent px-1.5 py-1 text-sm text-text outline-none placeholder:text-text-muted disabled:cursor-not-allowed disabled:opacity-70"
+              />
+              <div class="mt-1 flex items-center justify-between gap-2">
+                <span class="px-1 text-[10px] text-text-muted">Provider required</span>
+                <button
+                  type="button"
+                  disabled
+                  class="grid size-8 place-items-center rounded-lg bg-primary text-white opacity-45"
+                  aria-label="Send message"
+                >
+                  <.icon name="hero-arrow-up" class="size-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="agent-activity-view"
+          role="tabpanel"
+          aria-labelledby="agent-activity-tab"
+          data-agent-view="activity"
+          class="flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-6 text-center"
+          hidden
+        >
+          <div class="max-w-64">
+            <span class="mx-auto grid size-11 place-items-center rounded-2xl border border-border bg-surface-raised text-text-muted">
+              <.icon name="hero-queue-list" class="size-5" />
+            </span>
+            <h3 class="mt-3 text-sm font-semibold text-text">No Agent activity</h3>
+            <p class="mt-1.5 text-xs leading-5 text-text-muted">
+              Plans, approvals, linked Runs, tool calls, and completion status will appear here when Agent execution is configured.
+            </p>
+          </div>
+        </section>
+      </div>
+    </aside>
     """
   end
 
@@ -326,11 +493,14 @@ defmodule ContexlaWeb.Layouts do
 
     cond do
       String.starts_with?(current_path, "/applications/new") ->
-        [%{label: "Apps", href: "/applications"}, %{label: "New instance", href: nil}]
+        [
+          %{label: "Applications", href: "/applications"},
+          %{label: "New Instance", href: nil}
+        ]
 
       instance && instance_settings_active?(current_path, instance) ->
         [
-          %{label: "Apps", href: "/applications"},
+          %{label: "Applications", href: "/applications"},
           %{label: instance.name, href: "/applications/#{instance.id}"},
           %{
             label:
@@ -343,7 +513,7 @@ defmodule ContexlaWeb.Layouts do
         ]
 
       instance ->
-        [%{label: "Apps", href: "/applications"}, %{label: instance.name, href: nil}]
+        [%{label: "Applications", href: "/applications"}, %{label: instance.name, href: nil}]
 
       current_path == "/settings" ->
         [%{label: "Settings", href: nil}]
@@ -352,12 +522,57 @@ defmodule ContexlaWeb.Layouts do
         [%{label: "Account settings", href: nil}]
 
       true ->
-        [%{label: "Apps", href: nil}]
+        [%{label: "Applications", href: nil}]
     end
   end
 
   defp instance_settings_active?(current_path, instance) do
     String.ends_with?(current_path, "/settings") or
       (instance.settings_path && String.ends_with?(current_path, "/#{instance.settings_path}"))
+  end
+
+  defp agent_context(current_path, instances) do
+    case Enum.find(instances, &instance_active?(current_path, &1.id)) do
+      nil ->
+        platform_agent_context(current_path)
+
+      instance ->
+        %{
+          level: "Application Instance",
+          title: instance.name,
+          area: instance_area(current_path, instance),
+          icon: instance.icon
+        }
+    end
+  end
+
+  defp platform_agent_context(current_path) do
+    {title, area, icon} =
+      cond do
+        String.starts_with?(current_path, "/applications/new") ->
+          {"New Application Instance", "Application setup", "hero-plus"}
+
+        current_path == "/settings" ->
+          {"Platform settings", "Installation configuration", "hero-cog-6-tooth"}
+
+        String.starts_with?(current_path, "/users/settings") ->
+          {"Account settings", "Administrator account", "hero-user-circle"}
+
+        true ->
+          {"Applications", "Platform overview", "hero-squares-2x2"}
+      end
+
+    %{level: "Platform", title: title, area: area, icon: icon}
+  end
+
+  defp instance_area(current_path, instance) do
+    suffix = String.replace_prefix(current_path, "/applications/#{instance.id}", "")
+
+    case suffix do
+      "" -> "Application overview"
+      "/" -> "Application overview"
+      "/settings" -> "General settings"
+      path -> path |> String.trim("/") |> String.replace(~r/[-_]/, " ") |> String.capitalize()
+    end
   end
 end

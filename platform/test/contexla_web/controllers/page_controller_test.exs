@@ -13,11 +13,18 @@ defmodule ContexlaWeb.PageControllerTest do
 
     conn = conn |> log_in_user(user) |> get(~p"/")
 
-    assert html_response(conn, 200) =~ "Apps"
-    assert html_response(conn, 200) =~ "New instance"
+    response = html_response(conn, 200)
+    assert response =~ "Applications"
+    assert response =~ "New Instance"
+    refute response =~ ">Apps<"
     assert html_response(conn, 200) =~ "data-mobile-sidebar-open"
     assert html_response(conn, 200) =~ ~s(aria-controls="app-sidebar")
     assert html_response(conn, 200) =~ ~s|localStorage.getItem("sidebar-collapsed")|
+    assert response =~ ~s(data-agent-workspace-toggle)
+    assert response =~ ~s(id="agent-workspace")
+    assert response =~ "AI is not configured"
+    assert response =~ "Applications and manual Operations remain available"
+    assert response =~ ~s|localStorage.getItem("agent-workspace-open")|
   end
 
   test "renders the platform-owned Application chooser", %{conn: conn} do

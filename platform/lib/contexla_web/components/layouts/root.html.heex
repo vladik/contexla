@@ -11,6 +11,9 @@
           if (localStorage.getItem("sidebar-collapsed") === "true") {
             document.documentElement.classList.add("sidebar-collapsed")
           }
+          if (localStorage.getItem("agent-workspace-open") === "true") {
+            document.documentElement.classList.add("agent-workspace-open")
+          }
         } catch (_) {
           // Storage may be unavailable in hardened browser contexts.
         }

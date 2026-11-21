@@ -28,6 +28,8 @@ defmodule ContexlaUI do
   defp html_helpers do
     quote do
       import ContexlaUI.Components
+      import ContexlaUI.Components.ApplicationFrame
+      import ContexlaUI.Components.Layout.Patterns
       import ContexlaUI.Components.UI.Button
       import ContexlaUI.Components.UI.Header
       import ContexlaUI.Components.UI.Icon

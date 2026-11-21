@@ -5,12 +5,19 @@ defmodule ContexlaUI.Components do
   attr(:class, :any, default: nil)
   attr(:flash, :map, default: nil)
   slot(:header)
+  slot(:navigation)
   slot(:inner_block, required: true)
 
   def surface(assigns) do
     ~H"""
     <div class={["application-surface flex h-full min-h-0 flex-col overflow-hidden bg-bg", @class]}>
       {render_slot(@header)}
+      <div
+        :if={@navigation != []}
+        class="shrink-0 border-b border-border bg-surface px-4 py-2 sm:px-6"
+      >
+        {render_slot(@navigation)}
+      </div>
       <div class="flex-1 overflow-y-auto p-4 sm:p-6">
         {render_slot(@inner_block)}
       </div>

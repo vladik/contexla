@@ -26,12 +26,15 @@ defmodule Contexla.EstateWeb.ReportLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.surface flash={assigns[:flash]}>
-      <:header>
-        <.header id="assessment-report-page-header" icon="hero-document-chart-bar">
-          {@report["assessment"]["name"]}
-          <:subtitle>{@report["assessment"]["decision"]}</:subtitle>
-          <:actions>
+    <.application_frame
+      id="assessment-report-page-header"
+      icon="hero-document-chart-bar"
+      title={@report["assessment"]["name"]}
+      subtitle={@report["assessment"]["decision"]}
+      flash={assigns[:flash]}
+    >
+      <:actions>
+            <.button href={"/applications/#{@instance.id}"} size="sm">Overview</.button>
             <.button href={"/application-operations/#{@instance.id}/assessment.report?run_id=#{@report["run"]["id"]}&download=1"} size="sm">Download report</.button>
             <a
               href={"/applications/#{@instance.id}/settings"}
@@ -40,9 +43,7 @@ defmodule Contexla.EstateWeb.ReportLive do
             >
               <.icon name="hero-cog-6-tooth" class="size-4" />
             </a>
-          </:actions>
-        </.header>
-      </:header>
+      </:actions>
 
       <.panel title="Run provenance" icon="hero-finger-print">
         <div class="flex flex-wrap gap-x-8 gap-y-2 text-sm text-text-muted">
@@ -197,7 +198,7 @@ defmodule Contexla.EstateWeb.ReportLive do
           <p class="mt-1 break-all font-mono text-base-content/60">SHA-256 {evidence["sha256"]} · {evidence["byte_size"]} bytes · {evidence["media_type"]}</p>
         </div>
       </section>
-    </.surface>
+    </.application_frame>
     """
   end
 

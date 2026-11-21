@@ -1,0 +1,27 @@
+defmodule <%= web_module %>.CollectionLive do
+  use ContexlaUI, :live_view
+
+  alias Contexla.ApplicationSDK.Instance
+
+  @impl true
+  def mount(_params, %{"instance" => data}, socket),
+    do: {:ok, assign(socket, :instance, Instance.from_session!(data))}
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <.application_frame id="application-collection" icon="hero-squares-2x2" title={@instance.name} subtitle="Records" flash={assigns[:flash]}>
+      <:navigation>
+        <.tabs id="application-navigation">
+          <:tab label="Overview" icon="hero-home" navigate={"/applications/#{@instance.id}"} />
+          <:tab label="Records" icon="hero-list-bullet" navigate={"/applications/#{@instance.id}/collection"} selected />
+        </.tabs>
+      </:navigation>
+      <.list_detail>
+        <:list><.empty_state title="No records yet" description="Render collection filters and rows here." /></:list>
+        <:detail><.empty_state title="Select a record" description="Render domain detail without losing collection context." icon="hero-cursor-arrow-rays" /></:detail>
+      </.list_detail>
+    </.application_frame>
+    """
+  end
+end

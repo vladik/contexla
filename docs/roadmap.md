@@ -5,7 +5,7 @@ and leaves behind something usable.
 
 ## Current implementation status
 
-As of 2026-11-20, the repository proves:
+As of 2026-11-21, the repository proves:
 
 - the Phoenix/PostgreSQL platform boots against a repository-local database;
 - the platform compiles, boots, and is tested with no concrete Application or
@@ -41,6 +41,9 @@ As of 2026-11-20, the repository proves:
   a disposable Drupal 11 site, and both completed the Artifact, native Composer
   Processor, Oban, persistence, comparison, Finding, and report path;
 - aggregate content and media counts are retained as evidence-backed inventory.
+- the authenticated shell exposes a persistent, context-aware Agent workspace
+  with explicit no-AI behavior; Agent execution and persistence are not yet
+  implemented.
 
 The Application boundary and technical vertical slice work against controlled
 fixtures and a synthetic Drupal installation. Source-linked development loading

@@ -21,7 +21,7 @@ defmodule ContexlaWeb.ApplicationLive.New do
       <.surface>
         <:header>
           <.header id="new-instance-page-header" icon="hero-plus">
-            New instance
+            New Application Instance
             <:subtitle>Choose an installed Application to configure.</:subtitle>
             <:actions>
               <UIButton.button href="/applications" size="sm">Back</UIButton.button>

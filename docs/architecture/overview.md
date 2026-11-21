@@ -45,6 +45,7 @@ Keep the platform core small:
 
 - installed Application registry and lifecycle;
 - Application Instance conventions;
+- Application Operation declaration and invocation conventions;
 - user authentication and authorization within one installation;
 - encrypted Connections and secrets;
 - Run and job execution conventions;
@@ -57,6 +58,11 @@ Keep the platform core small:
 Application-specific entities and findings belong to the Application.
 Application-specific surfaces use the independent `contexla_ui` contract and
 render inside the platform-owned shell; they never depend on `ContexlaWeb`.
+
+Applications may expose one-time, scheduled, event-driven, synchronous, or
+durable Operations without becoming generic workflows. Humans, agents, APIs,
+schedules, and events invoke the same declared Operation boundary; auditable
+execution is retained as a Run.
 
 ## Runtime
 

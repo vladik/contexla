@@ -19,6 +19,43 @@ separate assessment scope and history, or as one instance containing five
 targets when the user wants a single estate-level assessment. That is an
 Application domain decision, not a tenancy mechanism.
 
+## Application Operation
+
+An Application Operation is a named business command exposed by an Application
+to the UI, API, agents, and approved triggers. The Application SDK Definition
+declares Operations and the owning Application implements their behavior.
+
+Examples include `assessment.run`, `assessment.report`, `accessibility.check`,
+`gate.evaluate`, and `transport.deliver`. An Operation is broader and more
+domain-aware than a Capability: it may validate Application state, invoke
+multiple Capabilities, enqueue durable work, persist domain results, or return a
+synchronous decision.
+
+```text
+Application
+  -> Application Instance
+  -> Application Operation
+  -> Run
+  -> Capability Invocations
+  -> Evidence, Findings, state, or external effects
+```
+
+An Operation may be invoked manually, by an authorized agent, through an API,
+on a schedule, from a webhook/event, or by another authorized Application
+Operation. These are invocation modes, not different Application types.
+
+## Trigger and Automation
+
+A Trigger describes why or when an Application Operation starts: manual action,
+schedule, API request, webhook, external event, or authorized internal event.
+An Automation may eventually bind a configured Trigger to an Operation. Neither
+term implies a generic user-editable workflow graph, and no generic Automation
+entity should be introduced until a real Application requires one.
+
+Applications may therefore support one-time assessments, recurring monitoring,
+synchronous gates, event-driven validation, durable transport, archives, or
+interactive investigations while sharing the same Operation and Run model.
+
 ## Connection
 
 A Connection is configured access to an external system or endpoint. It records

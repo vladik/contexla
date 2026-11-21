@@ -59,9 +59,9 @@ The global sidebar is Instance-first:
 
 ```text
 Brand and collapse control
-New instance
+New Application Instance
 Configured Application Instances
-Apps
+Applications
 Settings
 User, theme, and logout controls
 ```
@@ -95,10 +95,38 @@ drawer with an explicit opener, close control, backdrop, and Escape handling.
 Do not create a separate mobile navigation model that can drift from the
 desktop Instance list.
 
-The platform breadcrumb reflects generic platform context: Apps, New instance,
+The platform breadcrumb reflects generic platform context: Applications, New Instance,
 Settings, Account settings, or the active Instance name. It does not interpret
 Application-specific surface semantics; those belong in the contextual surface
 header and optional Application-owned tabs.
+
+## Agent workspace
+
+The global header exposes Contexla Agent through an icon action. The action opens
+a persistent right-side workspace rather than navigating away from the current
+surface. On desktop it shares the shell with the current content; on smaller
+screens it becomes a modal side panel with a backdrop and Escape handling.
+
+The workspace is platform-owned because agents may operate at platform,
+Application Instance, and Application-surface levels. It must remain generic and
+must not compile against a concrete Application. Visible context tells the user
+whether the agent is currently scoped to the platform or to a named Application
+Instance and surface.
+
+The workspace has two stable views:
+
+- Chat for intent, questions, steering, and future approvals;
+- Activity for future plans, Operation calls, linked Runs, tool calls, failures,
+  and completion.
+
+The open state persists across navigation and is applied before first paint to
+avoid layout jumping. The closed workspace is inert and inaccessible to keyboard
+navigation. When no approved AI provider is configured, the panel states that
+clearly and disables its composer; manual Application UI remains unaffected.
+
+The Agent workspace is an interaction shell, not evidence of Agent execution.
+Agent provider integration, Agent Session persistence, tool execution, and
+Application-specific context attachments remain later proofs.
 
 The contextual surface composition is a shared contract, not a suggestion:
 
@@ -108,6 +136,13 @@ Context header     surface background, bottom border, px-4/sm:px-6, py-4
 Content canvas     independently scrollable, p-4/sm:p-6
 Card               rounded-2xl, one-pixel border, p-5/sm:p-6
 ```
+
+Instance surfaces express this contract through the shared
+`application_frame/1` component. Its optional navigation slot is the one stable
+location for Application tabs. Shared `form_layout/1`, `form_section/1`, and
+`list_detail/1` helpers standardize common composition without encoding domain
+behavior. See the [Application UI guide](../development/application-ui.md) for
+the supported screen patterns and starter workflow.
 
 Use the shared `Header` directly inside the surface header slot. Titles,
 subtitles, and action controls belong to its defined regions. Do not create a
@@ -201,3 +236,7 @@ services and bounded SDK runtime services.
 Start a component in the narrowest correct owner. Promote it to `contexla_ui`
 only after reuse across unrelated surfaces is demonstrated. A consistent design
 system does not require turning domain presentation into generic components.
+
+New Applications should begin with the SDK starter rather than copying a
+concrete Application. The starter depends only on the SDK and shared UI package,
+compiles independently, and is never installed by the platform automatically.

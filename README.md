@@ -60,11 +60,13 @@ See the [solution-led commercial model](docs/product/solution-led-commercial-mod
 
 ## Architecture vocabulary
 
-- **Application** — an independently useful business solution with its own
+- **Application** — an independently useful business use case with its own
   domain, tables, jobs, UI, APIs, and reports.
 - **Application Instance** — a configured use of an installed Application, such
   as an assessment of one Drupal estate. One installation may have many
   instances of the same Application.
+- **Application Operation** - an Application-owned command exposed to the UI,
+  API, agents, or approved triggers. Invoking an Operation may create a Run.
 - **Connector** — an optional component installed in or near an external system
   when native access, events, or privileged data collection are needed.
 - **Client** — low-level communication with an external API, database, file
@@ -98,6 +100,13 @@ reports, and UI surfaces behind generic platform routes.
 The platform owns the shared authenticated shell and visual system, while the
 independent `contexla_ui` package gives Applications route-free components and
 semantic styling without coupling them to platform web code.
+Configured Instance surfaces now share a standard Application frame and proven
+form/list-detail composition patterns. The Application SDK can generate an
+independently compiled starter package that uses those contracts without
+depending on the platform or Digital Estate Assessment.
+The shell includes a context-aware Agent workspace with an honest unconfigured
+state. It is a UI foundation only: no Agent provider, session persistence, or
+tool execution is implemented yet.
 The repository contains an executable first Digital Estate Assessment vertical
 slice. An authenticated user can create an Assessment Instance, upload and
 validate a Drupal snapshot, retain it as immutable evidence, queue an Oban Run,

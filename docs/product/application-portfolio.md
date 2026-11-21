@@ -1,8 +1,9 @@
 # Application portfolio
 
-Applications are commercial solutions, not menu labels for individual
-operations. Each should answer a recognizable question and may own its own
-domain, tables, workers, UI, APIs, policies, schedules, reports, and Adapters.
+Applications are durable product modules that support commercial Solutions, not
+menu labels for individual operations. Each should answer a recognizable
+question and may own its own domain, tables, workers, UI, APIs, policies,
+schedules, reports, and Adapters.
 
 Application is primarily an architectural and product-boundary term. Initial
 buyers are offered a focused outcome through a curated solution distribution,

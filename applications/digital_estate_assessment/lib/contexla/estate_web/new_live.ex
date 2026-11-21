@@ -61,24 +61,38 @@ defmodule Contexla.EstateWeb.NewLive do
           id="new-assessment"
           phx-change="validate"
           phx-submit="create"
-          class="space-y-5"
+          class="block"
         >
-          <.icon_picker
-            id="assessment-icon"
-            name={@form[:icon].name}
-            value={@form[:icon].value}
-            default_icon="hero-clipboard-document-check"
-          />
-          <.input field={@form[:name]} label="Assessment name" required placeholder="e.g., College Drupal Estate" />
-          <.input
-            field={@form[:description]}
-            type="textarea"
-            label="Description"
-            placeholder="A short description of this assessment Instance"
-            rows="2"
-          />
-          <.input field={@form[:decision]} type="textarea" label="Decision to support" required placeholder="What decision should this evidence support?" rows="4" />
-          <div class="flex justify-end pt-1"><.button type="submit" variant="primary">Create assessment</.button></div>
+          <.form_layout>
+            <.form_section
+              title="Instance identity"
+              description="Choose how this assessment appears in Contexla navigation."
+            >
+              <.icon_picker
+                id="assessment-icon"
+                name={@form[:icon].name}
+                value={@form[:icon].value}
+                default_icon="hero-clipboard-document-check"
+              />
+              <.input field={@form[:name]} label="Assessment name" required placeholder="e.g., College Drupal Estate" />
+              <.input
+                field={@form[:description]}
+                type="textarea"
+                label="Description"
+                placeholder="A short description of this assessment Instance"
+                rows="2"
+              />
+            </.form_section>
+            <.form_section
+              title="Assessment purpose"
+              description="Record the business or modernization decision this evidence must support."
+            >
+              <.input field={@form[:decision]} type="textarea" label="Decision to support" required placeholder="What decision should this evidence support?" rows="4" />
+            </.form_section>
+            <:actions>
+              <.button type="submit" variant="primary">Create assessment</.button>
+            </:actions>
+          </.form_layout>
         </.form>
       </.panel>
     </.surface>

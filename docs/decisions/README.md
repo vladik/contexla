@@ -36,6 +36,8 @@ Date: YYYY-MM-DD
 - [0012: Shared platform shell and independent UI package](0012-shared-ui-shell-and-components.md)
 - [0013: Instance-first navigation and canonical default surfaces](0013-instance-navigation-and-default-surfaces.md)
 - [0014: Platform Instance settings and Application configuration](0014-instance-settings-and-application-configuration.md)
+- [0015: Agent workspace and Application Operation context](0015-agent-workspace-and-operation-context.md)
+- [0016: Shared Application frame and independent starter](0016-application-ui-frame-and-starter.md)
 
 Create additional ADRs when implementation makes choices concrete, for
 example:

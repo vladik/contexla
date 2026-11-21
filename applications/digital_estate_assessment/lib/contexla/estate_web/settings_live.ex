@@ -51,15 +51,15 @@ defmodule Contexla.EstateWeb.SettingsLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.surface flash={assigns[:flash]}>
-      <:header>
-        <.header id="assessment-settings-header" icon="hero-cog-6-tooth">
-          Application settings
-          <:subtitle>{@instance.name}</:subtitle>
-        </.header>
-      </:header>
+    <.application_frame
+      id="assessment-settings-header"
+      icon="hero-cog-6-tooth"
+      title="Application settings"
+      subtitle={@instance.name}
+      flash={assigns[:flash]}
+    >
 
-      <div class="space-y-4">
+      <:navigation>
         <.tabs id="assessment-settings-tabs" label="Instance settings sections">
           <:tab
             label="General"
@@ -73,8 +73,9 @@ defmodule Contexla.EstateWeb.SettingsLive do
             selected
           />
         </.tabs>
+      </:navigation>
 
-        <.panel
+      <.panel
           title="Assessment configuration"
           description="Update the decision and estate scope used by future Runs. Existing evidence and completed Runs remain unchanged."
           icon="hero-clipboard-document-check"
@@ -84,26 +85,35 @@ defmodule Contexla.EstateWeb.SettingsLive do
             id="assessment-settings-form"
             phx-change="validate"
             phx-submit="save"
-            class="space-y-4"
+            class="block"
           >
-            <.input
-              field={@form[:decision]}
-              type="textarea"
-              label="Decision to support"
-              required
-              rows="4"
-            />
-            <div class="grid gap-4 sm:grid-cols-2">
-              <.input field={@form[:cms]} label="CMS" required />
-              <.input field={@form[:environment]} label="Environment" />
-            </div>
-            <div class="flex justify-end pt-2">
-              <.button type="submit" variant="primary">Save settings</.button>
-            </div>
+            <.form_layout>
+              <.form_section
+                title="Assessment purpose"
+                description="Define the decision that future assessment Runs must support."
+              >
+                <.input
+                  field={@form[:decision]}
+                  type="textarea"
+                  label="Decision to support"
+                  required
+                  rows="4"
+                />
+              </.form_section>
+              <.form_section
+                title="Estate scope"
+                description="Identify the source platform and environment represented by imported evidence."
+              >
+                <.input field={@form[:cms]} label="CMS" required />
+                <.input field={@form[:environment]} label="Environment" />
+              </.form_section>
+              <:actions>
+                <.button type="submit" variant="primary">Save settings</.button>
+              </:actions>
+            </.form_layout>
           </.form>
-        </.panel>
-      </div>
-    </.surface>
+      </.panel>
+    </.application_frame>
     """
   end
 

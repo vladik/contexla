@@ -5,7 +5,7 @@ may use friendlier labels, but it must not silently change their meaning.
 
 ## Application
 
-A reusable, independently useful business solution installed in Contexla. An
+A reusable, independently useful business Application installed in Contexla. An
 Application owns its domain behavior and may own tables, workers, UI, APIs,
 reports, and Application-specific Adapters. Digital Estate Assessment is the
 first Application.
@@ -24,11 +24,38 @@ A configured use of an installed Application. `College Drupal Estate` is an
 Instance of the Digital Estate Assessment Application. Instances own settings,
 scope, bindings, and history; they do not duplicate Application code.
 
+## Application Operation
+
+A named command declared and implemented by an Application. An Operation is an
+Application-facing unit such as running an assessment, evaluating a gate,
+capturing a snapshot, or delivering a batch. It may orchestrate Capabilities and
+normally produces an auditable Run when execution or evidence must be retained.
+
+## Trigger
+
+The actor or condition that starts an Application Operation: human action, AI
+agent, schedule, API request, webhook, external event, or authorized internal
+event. Trigger does not imply a generic workflow builder.
+
+## Solution
+
+A commercial offering described on the website, in proposals, or during an
+engagement. A Solution may combine one or more Applications, Integrations, and
+professional services. Solution is not a Contexla package, registry, or database
+entity.
+
 ## Run
 
 One auditable execution of an operation for an Application Instance. A Run pins
 the relevant input, configuration, Application/Adapter/Capability versions,
 status, timestamps, results, and errors.
+
+## Agent Session
+
+An eventual auditable conversation or delegated task in which an agent plans,
+investigates, requests approvals, and operates Contexla. An Agent Session may
+inspect or start Application Runs but is not itself an authoritative Run and is
+not Evidence.
 
 ## Integration Package
 

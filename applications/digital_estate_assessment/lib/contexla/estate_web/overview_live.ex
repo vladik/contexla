@@ -127,12 +127,14 @@ defmodule Contexla.EstateWeb.OverviewLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.surface flash={assigns[:flash]}>
-      <:header>
-        <.header id="assessment-overview-page-header" icon="hero-clipboard-document-check">
-          {@instance.name}
-          <:subtitle>{@instance.config["decision"]}</:subtitle>
-          <:actions>
+    <.application_frame
+      id="assessment-overview-page-header"
+      icon="hero-clipboard-document-check"
+      title={@instance.name}
+      subtitle={@instance.config["decision"]}
+      flash={assigns[:flash]}
+    >
+      <:actions>
             <a
               href={"/applications/#{@instance.id}/settings"}
               class="grid size-8 place-items-center text-text-muted transition-colors hover:text-text"
@@ -140,9 +142,7 @@ defmodule Contexla.EstateWeb.OverviewLive do
             >
               <.icon name="hero-cog-6-tooth" class="size-4" />
             </a>
-          </:actions>
-        </.header>
-      </:header>
+      </:actions>
 
       <div class="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
         <.panel title="Import evidence" description="Upload an approved Drupal snapshot package." icon="hero-arrow-up-tray">
@@ -212,7 +212,7 @@ defmodule Contexla.EstateWeb.OverviewLive do
           </.panel>
         </div>
       </div>
-    </.surface>
+    </.application_frame>
     """
   end
 end

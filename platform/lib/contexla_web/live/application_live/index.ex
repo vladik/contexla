@@ -9,7 +9,7 @@ defmodule ContexlaWeb.ApplicationLive.Index do
 
     {:ok,
      socket
-     |> assign(:page_title, "Apps")
+     |> assign(:page_title, "Applications")
      |> assign(:applications, Applications.list_installed_applications(scope))
      |> assign(:instances, Applications.list_instances(scope))}
   end
@@ -21,11 +21,11 @@ defmodule ContexlaWeb.ApplicationLive.Index do
       <.surface>
         <:header>
           <.header id="applications-page-header" icon="hero-squares-2x2">
-            Apps
-            <:subtitle>Installed solutions and their configured instances</:subtitle>
+            Applications
+            <:subtitle>Installed Applications and their configured Instances</:subtitle>
             <:actions>
               <UIButton.button href="/applications/new" variant="primary" size="sm">
-                <.icon name="hero-plus" class="size-4" /> New instance
+                <.icon name="hero-plus" class="size-4" /> New Instance
               </UIButton.button>
             </:actions>
           </.header>
@@ -35,7 +35,9 @@ defmodule ContexlaWeb.ApplicationLive.Index do
           <section class="overflow-hidden rounded-2xl border border-border bg-surface">
             <div class="border-b border-border px-4 py-3 sm:px-5">
               <h2 class="text-sm font-semibold text-text">Installed Applications</h2>
-              <p class="mt-0.5 text-xs text-text-muted">Solutions available on this installation</p>
+              <p class="mt-0.5 text-xs text-text-muted">
+                Applications available on this installation
+              </p>
             </div>
             <div class="divide-y divide-border">
               <div
@@ -58,7 +60,7 @@ defmodule ContexlaWeb.ApplicationLive.Index do
                   href={"/applications/new/#{URI.encode_www_form(application.id)}/#{surface.path}"}
                   variant="primary"
                   size="sm"
-                >Create instance</UIButton.button>
+                >Create Instance</UIButton.button>
               </div>
               <div :if={@applications == []} class="py-10 text-center text-sm text-text-muted">
                 No Applications installed.
@@ -68,7 +70,7 @@ defmodule ContexlaWeb.ApplicationLive.Index do
 
           <section class="overflow-hidden rounded-2xl border border-border bg-surface">
             <div class="border-b border-border px-4 py-3 sm:px-5">
-              <h2 class="text-sm font-semibold text-text">Application instances</h2>
+              <h2 class="text-sm font-semibold text-text">Application Instances</h2>
               <p class="mt-0.5 text-xs text-text-muted">
                 Configured uses of the installed Applications
               </p>
@@ -86,7 +88,7 @@ defmodule ContexlaWeb.ApplicationLive.Index do
                 <.icon name="hero-chevron-right" class="size-4 shrink-0 text-text-muted" />
               </a>
               <div :if={@instances == []} class="py-10 text-center text-sm text-text-muted">
-                No instances yet.
+                No Application Instances yet.
               </div>
             </div>
           </section>
