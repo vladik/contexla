@@ -43,6 +43,7 @@ Date: YYYY-MM-DD
 - [0019: Typed Application runtime services](0019-typed-application-runtime-services.md)
 - [0020: Bound audit data and persisted failures](0020-bounded-audit-and-error-data.md)
 - [0021: Explicit release installation and operations](0021-explicit-release-operations.md)
+- [0022: Administrator operations visibility](0022-admin-operations-console.md)
 
 Create additional ADRs when implementation makes choices concrete, for
 example:

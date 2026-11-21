@@ -132,6 +132,19 @@ defmodule ContexlaWeb.Layouts do
           </a>
 
           <a
+            :if={@current_scope.user.role == :admin}
+            href="/operations"
+            data-sidebar-row
+            data-tooltip="Operations"
+            data-tooltip-position="side"
+            aria-current={if @current_path == "/operations", do: "page"}
+            class={nav_item_class(@current_path == "/operations")}
+          >
+            <.icon name="hero-command-line" class="size-4 shrink-0" />
+            <span data-sidebar-expanded class="min-w-0 flex-1 truncate">Operations</span>
+          </a>
+
+          <a
             href="/settings"
             data-sidebar-row
             data-tooltip="Settings"
@@ -518,6 +531,9 @@ defmodule ContexlaWeb.Layouts do
       current_path == "/settings" ->
         [%{label: "Settings", href: nil}]
 
+      current_path == "/operations" ->
+        [%{label: "Operations", href: nil}]
+
       String.starts_with?(current_path, "/users/settings") ->
         [%{label: "Account settings", href: nil}]
 
@@ -554,6 +570,9 @@ defmodule ContexlaWeb.Layouts do
 
         current_path == "/settings" ->
           {"Platform settings", "Installation configuration", "hero-cog-6-tooth"}
+
+        current_path == "/operations" ->
+          {"Operations", "Installation health and execution activity", "hero-command-line"}
 
         String.starts_with?(current_path, "/users/settings") ->
           {"Account settings", "Administrator account", "hero-user-circle"}

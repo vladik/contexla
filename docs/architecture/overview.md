@@ -61,6 +61,13 @@ Keep the platform core small:
 - platform navigation and operational health.
 - authenticated shell, global theme, and shared browser asset delivery.
 
+Installation administrators use a platform-owned Operations Console for
+bounded readiness, package state, shared-runtime Invocations, Oban job metadata,
+and lifecycle audit activity. The console links to Application Instances while
+Application-owned Runs and evidence remain inside the Application. It excludes
+payloads, secrets, Artifact contents, and exception text and does not replace
+external uptime, log, or alert infrastructure.
+
 Application-specific entities and findings belong to the Application.
 Application-specific surfaces use the independent `contexla_ui` contract and
 render inside the platform-owned shell; they never depend on `ContexlaWeb`.

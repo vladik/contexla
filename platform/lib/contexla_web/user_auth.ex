@@ -231,6 +231,23 @@ defmodule ContexlaWeb.UserAuth do
     end
   end
 
+  def on_mount(:require_admin, _params, session, socket) do
+    socket = mount_current_scope(socket, session)
+
+    case socket.assigns.current_scope do
+      %Scope{user: %Accounts.User{role: :admin}} ->
+        {:cont, socket}
+
+      _scope ->
+        socket =
+          socket
+          |> Phoenix.LiveView.put_flash(:error, "Administrator access is required.")
+          |> Phoenix.LiveView.redirect(to: ~p"/")
+
+        {:halt, socket}
+    end
+  end
+
   def on_mount(:require_sudo_mode, _params, session, socket) do
     socket = mount_current_scope(socket, session)
 
@@ -277,6 +294,20 @@ defmodule ContexlaWeb.UserAuth do
       |> maybe_store_return_to()
       |> redirect(to: ~p"/users/log-in")
       |> halt()
+    end
+  end
+
+  @doc "Restricts an HTTP route to the installation administrator."
+  def require_admin(conn, _opts) do
+    case conn.assigns.current_scope do
+      %Scope{user: %Accounts.User{role: :admin}} ->
+        conn
+
+      _scope ->
+        conn
+        |> put_flash(:error, "Administrator access is required.")
+        |> redirect(to: ~p"/")
+        |> halt()
     end
   end
 

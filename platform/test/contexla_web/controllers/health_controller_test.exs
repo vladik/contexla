@@ -21,6 +21,7 @@ defmodule ContexlaWeb.HealthControllerTest do
                "artifact_storage" => "ok",
                "capability_registry" => "ok",
                "database" => "ok",
+               "oban" => "ok",
                "package_registry" => "ok"
              }
            } = json_response(conn, 200)

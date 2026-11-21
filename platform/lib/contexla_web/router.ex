@@ -105,6 +105,20 @@ defmodule ContexlaWeb.Router do
   end
 
   scope "/", ContexlaWeb do
+    pipe_through [
+      :browser,
+      :require_authenticated_user,
+      :require_password_change_completed,
+      :require_admin
+    ]
+
+    live_session :installation_admin,
+      on_mount: [{ContexlaWeb.UserAuth, :require_admin}] do
+      live "/operations", OperationsLive, :index
+    end
+  end
+
+  scope "/", ContexlaWeb do
     pipe_through [:browser]
 
     live_session :current_user,

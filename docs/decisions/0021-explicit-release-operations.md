@@ -20,7 +20,8 @@ The platform exposes release-safe functions invoked through `bin/contexla eval`:
 - `Contexla.Release.bootstrap_admin/0` consumes explicit environment credentials
   and preserves the one-time bootstrap rule;
 - `Contexla.Release.diagnostics/0` starts the non-serving runtime, checks bounded
-  dependencies, emits JSON, and fails the command when readiness is incomplete.
+  dependencies including Oban, emits JSON, and fails the command when readiness
+  is incomplete.
 
 The serving process never migrates or bootstraps implicitly. Public liveness and
 readiness endpoints expose only bounded status. PostgreSQL and Artifact storage

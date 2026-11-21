@@ -114,6 +114,11 @@ depending on the platform or Digital Estate Assessment.
 The shell includes a context-aware Agent workspace with an honest unconfigured
 state. It is a UI foundation only: no Agent provider, session persistence, or
 tool execution is implemented yet.
+Installation administrators now have a read-only Operations Console for
+bounded readiness, registered package state, recent Application Operation and
+Capability Invocations, Oban jobs, and lifecycle audit activity. The console
+uses safe error/reference data and links to affected Application Instances
+without copying Application-owned Runs or exposing payloads and secrets.
 The repository contains an executable first Digital Estate Assessment vertical
 slice. An authenticated user can create an Assessment Instance, upload and
 validate a Drupal snapshot, retain it as immutable evidence, queue an Oban Run,

@@ -293,6 +293,34 @@ defmodule ContexlaWeb.UserAuthTest do
     end
   end
 
+  describe "on_mount :require_admin" do
+    test "allows an installation administrator", %{conn: conn} do
+      admin = admin_fixture()
+      token = Accounts.generate_user_session_token(admin)
+      session = conn |> put_session(:user_token, token) |> get_session()
+
+      assert {:cont, socket} =
+               UserAuth.on_mount(:require_admin, %{}, session, %LiveView.Socket{})
+
+      assert socket.assigns.current_scope.user.role == :admin
+    end
+
+    test "redirects a regular user", %{conn: conn, user: user} do
+      token = Accounts.generate_user_session_token(user)
+      session = conn |> put_session(:user_token, token) |> get_session()
+
+      socket = %LiveView.Socket{
+        endpoint: ContexlaWeb.Endpoint,
+        assigns: %{__changed__: %{}, flash: %{}}
+      }
+
+      assert {:halt, redirected_socket} =
+               UserAuth.on_mount(:require_admin, %{}, session, socket)
+
+      assert redirected_socket.redirected
+    end
+  end
+
   describe "on_mount :require_sudo_mode" do
     test "allows users that have authenticated in the last 10 minutes", %{conn: conn, user: user} do
       user_token = Accounts.generate_user_session_token(user)
@@ -374,6 +402,33 @@ defmodule ContexlaWeb.UserAuthTest do
 
       refute conn.halted
       refute conn.status
+    end
+  end
+
+  describe "require_admin/2" do
+    test "allows an administrator", %{conn: conn} do
+      admin = admin_fixture()
+
+      conn =
+        conn
+        |> assign(:current_scope, Scope.for_user(admin))
+        |> UserAuth.require_admin([])
+
+      refute conn.halted
+    end
+
+    test "redirects a regular user", %{conn: conn, user: user} do
+      conn =
+        conn
+        |> fetch_flash()
+        |> assign(:current_scope, Scope.for_user(user))
+        |> UserAuth.require_admin([])
+
+      assert conn.halted
+      assert redirected_to(conn) == ~p"/"
+
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) ==
+               "Administrator access is required."
     end
   end
 

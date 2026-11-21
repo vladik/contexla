@@ -192,6 +192,11 @@ solution that requires it now. See
   inventory, comparison, finding provenance, review history, and evidence.
 - Findings preserve deterministic versus expert origin, and status changes are
   recorded as append-only Review Decisions with reviewer and rationale.
+- Installation administrators have a read-only Operations Console with bounded
+  readiness, registered package state, recent Operation/Capability Invocations,
+  Oban job metadata, lifecycle audit events, and Application Instance links.
+  Payloads, job arguments, secrets, Artifact contents, and exception text are
+  intentionally excluded; external uptime checks and logs remain required.
 - Consecutive successful Snapshots for an Instance and target are compared by
   stable inventory identity, preserving added, changed, and removed values.
 - A read-only Drush collector spike under `connectors/drupal_snapshot/` has been

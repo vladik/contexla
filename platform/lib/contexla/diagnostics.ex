@@ -10,6 +10,7 @@ defmodule Contexla.Diagnostics do
     checks = %{
       database: database(),
       artifact_storage: artifact_storage(),
+      oban: oban(),
       package_registry: process(Contexla.Packages.Registry),
       capability_registry: process(Contexla.CapabilityRuntime.Registry)
     }
@@ -34,6 +35,15 @@ defmodule Contexla.Diagnostics do
     |> Application.fetch_env!(:artifact_storage_path)
     |> File.dir?()
     |> if(do: :ok, else: :error)
+  end
+
+  defp oban do
+    _config = Oban.config(Oban)
+    :ok
+  rescue
+    _error -> :error
+  catch
+    :exit, _reason -> :error
   end
 
   defp process(name) do
