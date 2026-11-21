@@ -48,6 +48,9 @@ defmodule ContexlaWeb.OperationsLive do
               <UIButton.button phx-click="refresh" size="sm">
                 <.icon name="hero-arrow-path" class="size-4" /> Refresh
               </UIButton.button>
+              <UIButton.button href="/operations/support-bundle" variant="primary" size="sm">
+                <.icon name="hero-arrow-down-tray" class="size-4" /> Support bundle
+              </UIButton.button>
             </:actions>
           </.header>
         </:header>

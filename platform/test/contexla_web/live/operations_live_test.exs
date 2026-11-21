@@ -16,6 +16,7 @@ defmodule ContexlaWeb.OperationsLiveTest do
     assert html =~ "Capability Invocations"
     assert html =~ "Background Jobs"
     assert html =~ "Audit Activity"
+    assert has_element?(view, ~s(a[href="/operations/support-bundle"]), "Support bundle")
   end
 
   test "redirects a regular user", %{conn: conn} do

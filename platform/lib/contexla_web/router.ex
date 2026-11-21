@@ -116,6 +116,8 @@ defmodule ContexlaWeb.Router do
       on_mount: [{ContexlaWeb.UserAuth, :require_admin}] do
       live "/operations", OperationsLive, :index
     end
+
+    get "/operations/support-bundle", SupportBundleController, :download
   end
 
   scope "/", ContexlaWeb do

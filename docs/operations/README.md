@@ -31,6 +31,9 @@ sidebar. The console refreshes every 15 seconds and presents:
 - recent append-only audit activity;
 - Application Instance links and short support reference IDs.
 
+The header action downloads a sanitized support bundle for remote diagnosis.
+See [Support bundles](support-bundles.md) for its allow-list and exclusions.
+
 This is a diagnostic projection, not a second execution or logging system. It
 never exposes invocation inputs or outputs, job arguments, credentials,
 Artifact contents, or exception text. Application-owned Runs, evidence,
@@ -61,3 +64,7 @@ The console reports retained failure totals, not rolling-window alert metrics.
 External uptime checks, process supervision, log collection, and alerting are
 still required for production because an unavailable platform cannot report its
 own outage.
+
+Run the repository's [operational failure drill](failure-drill.md) after changes
+to execution persistence, operational projections, authorization, bundle
+contents, or job handling.

@@ -40,6 +40,8 @@ The documentation is organized by the kind of decision it supports.
 - [Operating Contexla](operations/README.md)
 - [Installation and upgrades](operations/installation.md)
 - [Backup and restore](operations/backup-and-restore.md)
+- [Operational failure drill](operations/failure-drill.md)
+- [Support bundles](operations/support-bundles.md)
 
 ## Market validation
 

@@ -119,6 +119,10 @@ bounded readiness, registered package state, recent Application Operation and
 Capability Invocations, Oban jobs, and lifecycle audit activity. The console
 uses safe error/reference data and links to affected Application Instances
 without copying Application-owned Runs or exposing payloads and secrets.
+Administrators can export the same bounded operational evidence as a checksummed
+support bundle. An isolated automated failure drill verifies that useful
+references survive while planted credentials, content, payloads, job arguments,
+error details, audit metadata, and user email addresses do not leak.
 The repository contains an executable first Digital Estate Assessment vertical
 slice. An authenticated user can create an Assessment Instance, upload and
 validate a Drupal snapshot, retain it as immutable evidence, queue an Oban Run,

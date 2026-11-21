@@ -197,6 +197,10 @@ solution that requires it now. See
   Oban job metadata, lifecycle audit events, and Application Instance links.
   Payloads, job arguments, secrets, Artifact contents, and exception text are
   intentionally excluded; external uptime checks and logs remain required.
+- Administrators can download an in-memory, checksummed support bundle from the
+  Operations Console. Its allow-list and exclusions are documented under
+  `docs/operations/`; the isolated operations failure drill must continue to
+  prove that private markers cannot enter any bundle entry.
 - Consecutive successful Snapshots for an Instance and target are compared by
   stable inventory identity, preserving added, changed, and removed values.
 - A read-only Drush collector spike under `connectors/drupal_snapshot/` has been

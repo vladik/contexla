@@ -31,6 +31,12 @@ external log system. Liveness/readiness probes and process supervision remain
 external monitoring inputs because the console cannot diagnose its own complete
 outage.
 
+An administrator may download the same bounded projection as an in-memory ZIP.
+Bundle contents use an explicit allow-list, contain per-entry checksums, record
+an audit event, and exclude user email addresses and audit metadata in addition
+to the console exclusions. The repository maintains an isolated failure drill
+that plants private markers and asserts that none enter the bundle.
+
 ## Consequences
 
 - support can correlate failures without direct database access;

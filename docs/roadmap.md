@@ -28,6 +28,8 @@ As of 2026-11-21, the repository proves:
 - the platform builds as a package-neutral BEAM release with explicit release
   migration/bootstrap/diagnostic commands, public liveness/readiness probes,
   and documented coordinated backup/restore procedures;
+- installation administrators have a bounded Operations Console and sanitized,
+  checksummed support-bundle export backed by an isolated disclosure drill;
 - Digital Estate Assessment owns its services, executor, workers, UI surfaces,
   reports, PostgreSQL schema, and migrations;
 - an administrator can be bootstrapped without public registration or a shared
