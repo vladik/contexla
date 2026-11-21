@@ -78,7 +78,11 @@ defmodule ContexlaWeb.Router do
 
     get "/application-operations/:instance_id/:operation_id",
         ApplicationOperationController,
-        :execute
+        :read
+
+    post "/application-operations/:instance_id/:operation_id",
+         ApplicationOperationController,
+         :execute
 
     live_session :platform,
       on_mount: [{ContexlaWeb.UserAuth, :require_authenticated}] do

@@ -12,8 +12,14 @@ defmodule Contexla.EstateTest do
     assert "contexla.estate.source.v1" in definition.required_adapter_contracts
 
     run = Enum.find(definition.operations, &(&1.id == "assessment.run"))
+    assert run.kind == :command
+    assert run.requires_approval
+    assert run.input_schema["required"] == ["artifact_id"]
     assert [requirement] = run.required_capabilities
     assert requirement.capability_id == "com.contexla.dependencies.parse-composer"
+
+    report = Enum.find(definition.operations, &(&1.id == "assessment.report"))
+    assert report.kind == :read
   end
 
   test "requires a decision and scope for an Instance" do

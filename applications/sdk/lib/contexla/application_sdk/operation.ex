@@ -10,6 +10,8 @@ defmodule Contexla.ApplicationSDK.Operation do
     :id,
     :name,
     description: "",
+    kind: :command,
+    input_schema: %{"type" => "object", "properties" => %{}},
     requires_approval: false,
     required_capabilities: []
   ]
@@ -18,6 +20,8 @@ defmodule Contexla.ApplicationSDK.Operation do
           id: String.t(),
           name: String.t(),
           description: String.t(),
+          kind: :command | :read,
+          input_schema: map(),
           requires_approval: boolean(),
           required_capabilities: [Requirement.t()]
         }
@@ -28,6 +32,8 @@ defmodule Contexla.ApplicationSDK.Operation do
       non_empty?(operation.id) and
         non_empty?(operation.name) and
         is_binary(operation.description) and
+        operation.kind in [:command, :read] and
+        is_map(operation.input_schema) and
         is_boolean(operation.requires_approval) and
         is_list(operation.required_capabilities) and
         Enum.all?(operation.required_capabilities, &(Requirement.validate(&1) == :ok))

@@ -44,10 +44,21 @@ defmodule Contexla.EstateWeb.OverviewLive do
   end
 
   def handle_event("start-run", %{"artifact-id" => artifact_id}, socket) do
-    case Assessments.start_run(socket.assigns.instance, artifact_id) do
-      {:ok, _run} ->
+    instance = socket.assigns.instance
+
+    case Runtime.call(:platform, :invoke_operation, [
+           instance.actor_id,
+           instance.id,
+           "assessment.run",
+           %{"artifact_id" => artifact_id},
+           [approved: true]
+         ]) do
+      {:ok, _result, _invocation} ->
         Process.send_after(self(), :refresh, 500)
         {:noreply, socket |> put_flash(:info, "Assessment queued.") |> load_state()}
+
+      {:error, reason, _invocation} ->
+        {:noreply, put_flash(socket, :error, "Run could not start: #{inspect(reason)}")}
 
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, "Run could not start: #{inspect(reason)}")}

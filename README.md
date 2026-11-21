@@ -101,6 +101,9 @@ External registered packages now start as real OTP Applications. Package builds
 validate manifest identity against compiled definitions, Application migrations
 run explicitly rather than during registry startup, and configured Instances
 refuse to execute against a different installed Application version.
+Application Operations now pass through a declared and auditable platform
+boundary that enforces structured input, command/read transport, required
+Capabilities, and authenticated approval before calling package code.
 The platform owns the shared authenticated shell and visual system, while the
 independent `contexla_ui` package gives Applications route-free components and
 semantic styling without coupling them to platform web code.

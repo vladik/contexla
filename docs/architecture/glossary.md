@@ -31,6 +31,13 @@ Application-facing unit such as running an assessment, evaluating a gate,
 capturing a snapshot, or delivering a batch. It may orchestrate Capabilities and
 normally produces an auditable Run when execution or evidence must be retained.
 
+## Operation Invocation
+
+One platform-owned audit record for calling a declared Application Operation.
+It captures package and Operation identity, actor and approver, bounded input,
+status, safe result/error metadata, and an optional link to an Application-owned
+Run. It is not the Run itself and does not own Application domain results.
+
 ## Trigger
 
 The actor or condition that starts an Application Operation: human action, AI

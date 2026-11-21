@@ -1,48 +1,96 @@
 defmodule ContexlaWeb.ApplicationOperationController do
   use ContexlaWeb, :controller
 
-  alias Contexla.ApplicationSDK.Instance, as: SDKInstance
-  alias Contexla.Applications
-  alias Contexla.Packages.Registry
+  alias Contexla.ApplicationOperations
+
+  @reserved ~w(instance_id operation_id approval _csrf_token)
 
   def execute(conn, %{"instance_id" => instance_id, "operation_id" => operation_id} = params) do
-    scope = conn.assigns.current_scope
+    invoke(conn, instance_id, operation_id, params,
+      transport: :command,
+      approved: params["approval"] == "approved"
+    )
+  end
 
-    with {:ok, instance} <- Applications.fetch_instance(scope, instance_id),
-         {:ok, {entry, _definition}} <- Registry.fetch_application_entry(instance.application_id),
-         true <- function_exported?(entry, :execute_operation, 3),
-         context <- instance_context(instance, scope.user.id),
-         {:ok, result} <-
-           entry.execute_operation(
-             operation_id,
-             context,
-             Map.drop(params, ["instance_id", "operation_id"])
-           ) do
-      json(conn, result)
-    else
-      {:download, contents, options} ->
-        send_download(conn, {:binary, contents}, options)
+  def read(conn, %{"instance_id" => instance_id, "operation_id" => operation_id} = params) do
+    invoke(conn, instance_id, operation_id, params, transport: :read)
+  end
 
-      {:error, :not_found} ->
-        send_resp(conn, :not_found, "Application operation not found")
+  defp invoke(conn, instance_id, operation_id, params, options) do
+    input = Map.drop(params, @reserved)
 
-      {:error, reason} ->
-        json(conn |> put_status(:unprocessable_entity), %{error: inspect(reason)})
+    conn.assigns.current_scope
+    |> ApplicationOperations.invoke(instance_id, operation_id, input, options)
+    |> respond(conn)
+  end
 
-      false ->
-        send_resp(conn, :not_implemented, "Application operation is not executable")
+  defp respond({:ok, result, invocation}, conn) do
+    json(conn, %{data: result, invocation_id: invocation.id})
+  end
+
+  defp respond({:download, contents, options, invocation}, conn) do
+    conn
+    |> put_resp_header("x-contexla-invocation-id", invocation.id)
+    |> send_download({:binary, contents}, options)
+  end
+
+  defp respond({:error, reason, invocation}, conn) do
+    error(conn, :unprocessable_entity, reason, invocation.id)
+  end
+
+  defp respond({:error, :operation_not_declared}, conn),
+    do: error(conn, :not_found, :operation_not_declared)
+
+  defp respond({:error, :instance_not_found}, conn),
+    do: error(conn, :not_found, :instance_not_found)
+
+  defp respond({:error, :operation_requires_post}, conn),
+    do: error(conn, :method_not_allowed, :operation_requires_post)
+
+  defp respond({:error, {:approval_required, _operation_id} = reason}, conn),
+    do: error(conn, :conflict, reason)
+
+  defp respond({:error, reason}, conn),
+    do: error(conn, :unprocessable_entity, reason)
+
+  defp error(conn, status, reason, invocation_id \\ nil) do
+    code = error_code(reason)
+
+    json(conn |> put_status(status), %{
+      error: %{
+        code: code,
+        message: error_message(code),
+        invocation_id: invocation_id
+      }
+    })
+  end
+
+  defp error_code(reason) when is_atom(reason), do: Atom.to_string(reason)
+
+  defp error_code(reason) when is_tuple(reason) and tuple_size(reason) > 0 do
+    case elem(reason, 0) do
+      code when is_atom(code) -> Atom.to_string(code)
+      _other -> "operation_failed"
     end
   end
 
-  defp instance_context(instance, actor_id) do
-    %SDKInstance{
-      id: instance.id,
-      application_id: instance.application_id,
-      application_version: instance.application_version,
-      name: instance.name,
-      status: instance.status,
-      config: instance.config,
-      actor_id: actor_id
-    }
-  end
+  defp error_code(_reason), do: "operation_failed"
+
+  defp error_message("operation_not_declared"),
+    do: "The Application does not declare this Operation."
+
+  defp error_message("instance_not_found"), do: "The Application Instance was not found."
+
+  defp error_message("operation_requires_post"),
+    do: "This Operation must be submitted as a command."
+
+  defp error_message("approval_required"), do: "This Operation requires explicit approval."
+
+  defp error_message("required_capability_unavailable"),
+    do: "A required Capability is unavailable."
+
+  defp error_message("application_version_mismatch"),
+    do: "The Application Instance version is unavailable."
+
+  defp error_message(_code), do: "The Operation could not be completed."
 end

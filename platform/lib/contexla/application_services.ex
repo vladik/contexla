@@ -2,7 +2,16 @@ defmodule Contexla.ApplicationServices do
   @moduledoc "Platform services exposed to trusted Applications through the SDK."
 
   alias Contexla.Accounts.{Scope, User}
-  alias Contexla.{Applications, Artifacts, Capabilities, Repo, SourceImports}
+
+  alias Contexla.{
+    ApplicationOperations,
+    Applications,
+    Artifacts,
+    Capabilities,
+    Repo,
+    SourceImports
+  }
+
   alias Contexla.Packages.Registry
 
   def create_instance(actor_id, attrs), do: Applications.create_instance(scope!(actor_id), attrs)
@@ -29,6 +38,16 @@ defmodule Contexla.ApplicationServices do
     with {:ok, instance} <- Applications.fetch_instance(scope, instance_id) do
       Capabilities.invoke(scope, instance, key, version, input)
     end
+  end
+
+  def invoke_operation(actor_id, instance_id, operation_id, input, options \\ []) do
+    ApplicationOperations.invoke(
+      scope!(actor_id),
+      instance_id,
+      operation_id,
+      input,
+      options
+    )
   end
 
   def enqueue(worker, args) when is_atom(worker) and is_map(args) do

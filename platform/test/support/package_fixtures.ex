@@ -1,7 +1,35 @@
 defmodule Contexla.TestApplication do
   @behaviour Contexla.ApplicationSDK.Application
 
-  alias Contexla.ApplicationSDK.{Definition, Surface}
+  alias Contexla.ApplicationSDK.{Definition, Operation, Surface}
+  alias Contexla.CapabilitySDK.Requirement
+
+  @operations [
+    %Operation{
+      id: "test.echo",
+      name: "Echo",
+      input_schema: %{
+        "type" => "object",
+        "required" => ["message"],
+        "additionalProperties" => false,
+        "properties" => %{"message" => %{"type" => "string"}}
+      }
+    },
+    %Operation{
+      id: "test.approved",
+      name: "Approved command",
+      requires_approval: true
+    },
+    %Operation{id: "test.download", name: "Download", kind: :read},
+    %Operation{id: "test.failure", name: "Failure"},
+    %Operation{
+      id: "test.missing-capability",
+      name: "Missing Capability",
+      required_capabilities: [
+        %Requirement{capability_id: "com.contexla.missing", contract_version: "1"}
+      ]
+    }
+  ]
 
   @impl true
   def definition do
@@ -13,7 +41,7 @@ defmodule Contexla.TestApplication do
       otp_application: :contexla,
       entry_module: __MODULE__,
       config_schema: %{},
-      operations: [],
+      operations: available_operations(),
       surfaces: [
         %Surface{
           id: :new,
@@ -48,10 +76,29 @@ defmodule Contexla.TestApplication do
   def validate_instance_config(_config), do: {:error, :invalid_config}
 
   @impl true
-  def available_operations, do: []
+  def available_operations, do: @operations
 
   @impl true
   def required_adapter_contracts, do: ["contexla.test.source.v1"]
+
+  @impl true
+  def execute_operation("test.echo", _instance, %{"message" => message}) do
+    {:ok, %{"echo" => message}}
+  end
+
+  def execute_operation("test.approved", _instance, _input) do
+    {:ok, %{"approved" => true}}
+  end
+
+  def execute_operation("test.download", _instance, _input) do
+    {:download, "downloaded", filename: "test.txt", content_type: "text/plain"}
+  end
+
+  def execute_operation("test.failure", _instance, _input), do: {:error, :expected_failure}
+
+  def execute_operation("test.missing-capability", _instance, _input) do
+    raise "unavailable Capability should prevent execution"
+  end
 end
 
 defmodule Contexla.TestSettingsSurfaceLive do

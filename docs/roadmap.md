@@ -17,6 +17,9 @@ As of 2026-11-21, the repository proves:
 - Application manifests are checked against compiled definitions, owned
   migrations run explicitly, and Instance access enforces the pinned package
   version;
+- Application Operations execute through a declared, schema-validated,
+  Capability-aware and approval-aware boundary with auditable Invocation and
+  optional Application Run linkage;
 - Digital Estate Assessment owns its services, executor, workers, UI surfaces,
   reports, PostgreSQL schema, and migrations;
 - an administrator can be bootstrapped without public registration or a shared

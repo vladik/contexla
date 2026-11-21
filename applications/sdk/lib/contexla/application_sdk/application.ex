@@ -18,7 +18,10 @@ defmodule Contexla.ApplicationSDK.Application do
   @callback migrate_install(module()) :: :ok | {:error, term()}
 
   @callback execute_operation(String.t(), Instance.t(), map()) ::
-              {:ok, term()} | {:error, term()} | {:download, binary(), keyword()}
+              {:ok, term()}
+              | {:ok, term(), keyword()}
+              | {:error, term()}
+              | {:download, binary(), keyword()}
 
   @optional_callbacks migrate_install: 1, execute_operation: 3
 end

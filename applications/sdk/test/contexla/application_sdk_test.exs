@@ -71,4 +71,12 @@ defmodule Contexla.ApplicationSDKTest do
     assert {:error, :one_default_instance_surface_required} =
              Definition.validate(%{definition | surfaces: surfaces})
   end
+
+  test "rejects duplicate Operation identities" do
+    definition = ValidApplication.definition()
+    operation = hd(definition.operations)
+
+    assert {:error, :duplicate_operation_id} =
+             Definition.validate(%{definition | operations: [operation, operation]})
+  end
 end

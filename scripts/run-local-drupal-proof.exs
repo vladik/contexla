@@ -4,7 +4,7 @@ alias Contexla.Accounts.{Scope, User}
 alias Contexla.ApplicationSDK.Instance, as: SDKInstance
 alias Contexla.Applications.ApplicationInstance
 alias Contexla.Estate.{AssessmentRun, Assessments}
-alias Contexla.{Applications, Repo, SourceImports}
+alias Contexla.{ApplicationOperations, Applications, Repo, SourceImports}
 
 application_id = "com.contexla.application.digital-estate-assessment"
 adapter_id = "drupal.assessment.snapshot.v1"
@@ -94,15 +94,26 @@ wait_for_run = fn wait_for_run, run_id, attempts ->
 end
 
 run_snapshot = fn artifact ->
-  {:ok, run} = Assessments.start_run(sdk_instance, artifact.id)
-  wait_for_run.(wait_for_run, run.id, 120)
+  {:ok, %{"run_id" => run_id}, invocation} =
+    ApplicationOperations.invoke(
+      scope,
+      instance.id,
+      "assessment.run",
+      %{"artifact_id" => artifact.id},
+      approved: true
+    )
+
+  unless invocation.run_id == run_id,
+    do: raise("Operation Invocation did not link to Assessment Run")
+
+  {wait_for_run.(wait_for_run, run_id, 120), invocation}
 end
 
 {:ok, baseline_artifact} = import_snapshot.(baseline_path)
-baseline_run = run_snapshot.(baseline_artifact)
+{baseline_run, baseline_invocation} = run_snapshot.(baseline_artifact)
 
 {:ok, seeded_artifact} = import_snapshot.(seeded_path)
-seeded_run = run_snapshot.(seeded_artifact)
+{seeded_run, seeded_invocation} = run_snapshot.(seeded_artifact)
 
 report = Assessments.report(sdk_instance, seeded_run.id)
 File.mkdir_p!(Path.dirname(report_path))
@@ -111,8 +122,10 @@ File.write!(report_path, Jason.encode!(report, pretty: true))
 IO.inspect(
   %{
     instance_id: instance.id,
+    baseline_operation_invocation_id: baseline_invocation.id,
     baseline_run_id: baseline_run.id,
     baseline_summary: baseline_run.summary,
+    seeded_operation_invocation_id: seeded_invocation.id,
     seeded_run_id: seeded_run.id,
     seeded_summary: seeded_run.summary,
     report_path: report_path

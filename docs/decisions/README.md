@@ -39,6 +39,7 @@ Date: YYYY-MM-DD
 - [0015: Agent workspace and Application Operation context](0015-agent-workspace-and-operation-context.md)
 - [0016: Shared Application frame and independent starter](0016-application-ui-frame-and-starter.md)
 - [0017: Explicit package lifecycle and exact Instance version pinning](0017-explicit-package-lifecycle-and-version-pinning.md)
+- [0018: Authoritative Application Operation boundary](0018-authoritative-application-operation-boundary.md)
 
 Create additional ADRs when implementation makes choices concrete, for
 example:

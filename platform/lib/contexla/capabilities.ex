@@ -8,6 +8,7 @@ defmodule Contexla.Capabilities do
   alias Contexla.Applications.ApplicationInstance
   alias Contexla.Capabilities.{Catalog, Contract, Invocation, Resolver}
   alias Contexla.CapabilityRuntime.{Registry, Schema}
+  alias Contexla.CapabilitySDK.Requirement
   alias Contexla.CapabilityRuntime.Runners.Native
   alias Contexla.Repo
 
@@ -36,6 +37,46 @@ defmodule Contexla.Capabilities do
     else
       nil -> {:error, :capability_not_found}
       {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc "Validates that required Capability contracts have executable bindings for an Instance."
+  def ensure_requirements(%ApplicationInstance{} = instance, requirements)
+      when is_list(requirements) do
+    with :ok <- Catalog.sync_bundled() do
+      Enum.reduce_while(requirements, :ok, fn %Requirement{} = requirement, :ok ->
+        case ensure_requirement(instance, requirement) do
+          :ok ->
+            {:cont, :ok}
+
+          {:error, _reason} when requirement.optional ->
+            {:cont, :ok}
+
+          {:error, reason} ->
+            {:halt,
+             {:error,
+              {:required_capability_unavailable, requirement.capability_id,
+               requirement.contract_version, reason}}}
+        end
+      end)
+    end
+  end
+
+  defp ensure_requirement(instance, requirement) do
+    case Repo.get_by(Contract,
+           key: requirement.capability_id,
+           contract_version: requirement.contract_version,
+           status: :active
+         ) do
+      nil -> {:error, :capability_not_found}
+      contract -> requirement_binding(contract, instance)
+    end
+  end
+
+  defp requirement_binding(contract, instance) do
+    with {:ok, _binding, processor} <- Resolver.resolve(contract, instance),
+         {:ok, _definition} <- Registry.fetch_processor(processor.key, processor.version) do
+      :ok
     end
   end
 

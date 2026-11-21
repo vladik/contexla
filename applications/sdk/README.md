@@ -15,6 +15,17 @@ Capabilities; it is not a small reusable Capability and does not imply a generic
 workflow graph. Invocations that require durability or auditability produce
 Runs owned by the Application or shared runtime conventions.
 
+Each Operation declares whether it is a state-changing `:command` or read-only
+`:read`, its structured input schema, approval requirement, and required
+Capabilities. Commands execute through POST or trusted runtime services; only
+declared read Operations are callable through GET. Inputs may mark properties
+with `"sensitive" => true` so invocation audit data stores a redacted value.
+
+An Operation callback may return `{:ok, result, run_id: id}` to link the
+platform-owned Operation Invocation to an Application-owned Run. Download
+options may provide the same internal `run_id`; it is recorded but removed
+before options reach the HTTP download response.
+
 Each definition must declare a shared icon, exactly one `new` surface, exactly
 one default `instance` surface, and exactly one Instance surface with
 `kind: :settings`. The default surface is mounted for the canonical

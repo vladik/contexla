@@ -86,6 +86,12 @@ UI, reports, schemas, and migrations. It accesses Artifacts, Adapters,
 Capabilities, jobs, and actor-scoped Instance services only through the bounded
 service modules supplied by `Contexla.ApplicationSDK.Runtime`.
 
+Application Operations cross a platform-owned invocation boundary before
+Application code executes. The boundary enforces declaration, pinned version,
+command/read transport, input schema, required Capability availability, and
+approval, then records a bounded Operation Invocation. An Application-owned Run
+may be linked to that invocation without becoming platform-owned domain state.
+
 Microservices and container-per-Processor sandboxing may become appropriate
 later, but are not required to prove the model.
 

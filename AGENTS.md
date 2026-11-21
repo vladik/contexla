@@ -103,6 +103,10 @@ translations.
 - Prefer deterministic validation for correctness; use AI for planning,
   interpretation, suggestions, and bounded generation.
 - Keep Runs auditable and retain evidence for important findings.
+- Execute Application Operations only through the platform Operation boundary.
+  Commands use POST or trusted runtime services; GET is reserved for declared
+  read Operations. Enforce input schemas, required Capabilities, approval, safe
+  audit projection, and Invocation history before calling Application code.
 - Keep package lifecycle stages explicit: validate/build, migrate/install, then
   discover/start. Registry startup must not run Application migrations, and an
   Instance must never execute against a different Application version than the
@@ -146,6 +150,9 @@ solution that requires it now. See
   Package manifests are checked against compiled definitions, Application
   migrations run through an explicit task, and Instance access enforces the
   exact registered version.
+- Application Operations have declared command/read and input contracts. The
+  platform records Operation Invocations and links Application-owned Runs when
+  supplied; Digital Estate Assessment starts Runs through this boundary.
 - Application packages declare a shared icon, one new-Instance surface, and one
   default Instance surface. The sidebar is Instance-first and canonical
   `/applications/:instance_id` URLs resolve through that default declaration.

@@ -14,6 +14,12 @@ defmodule Contexla.Estate do
       name: "Run assessment",
       description: "Analyze approved evidence and produce draft findings.",
       requires_approval: true,
+      input_schema: %{
+        "type" => "object",
+        "required" => ["artifact_id"],
+        "additionalProperties" => false,
+        "properties" => %{"artifact_id" => %{"type" => "string"}}
+      },
       required_capabilities: [
         %Requirement{
           capability_id: "com.contexla.dependencies.parse-composer",
@@ -25,6 +31,16 @@ defmodule Contexla.Estate do
       id: "assessment.report",
       name: "Generate report",
       description: "Render an evidence-linked assessment report.",
+      kind: :read,
+      input_schema: %{
+        "type" => "object",
+        "required" => ["run_id"],
+        "additionalProperties" => false,
+        "properties" => %{
+          "run_id" => %{"type" => "string"},
+          "download" => %{"type" => "string"}
+        }
+      },
       requires_approval: false
     }
   ]
@@ -125,7 +141,13 @@ defmodule Contexla.Estate do
 
   @impl true
   def execute_operation("assessment.run", %Instance{} = instance, %{"artifact_id" => artifact_id}) do
-    Contexla.Estate.Assessments.start_run(instance, artifact_id)
+    case Contexla.Estate.Assessments.start_run(instance, artifact_id) do
+      {:ok, run} ->
+        {:ok, %{"run_id" => run.id, "status" => to_string(run.status)}, run_id: run.id}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   def execute_operation(
@@ -136,7 +158,9 @@ defmodule Contexla.Estate do
     report = Contexla.Estate.Assessments.report(instance, run_id)
 
     {:download, Jason.encode!(report, pretty: true),
-     filename: "digital-estate-assessment-#{run_id}.json", content_type: "application/json"}
+     filename: "digital-estate-assessment-#{run_id}.json",
+     content_type: "application/json",
+     run_id: run_id}
   end
 
   def execute_operation("assessment.report", %Instance{} = instance, %{"run_id" => run_id}) do

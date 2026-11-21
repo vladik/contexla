@@ -44,6 +44,13 @@ An Operation may be invoked manually, by an authorized agent, through an API,
 on a schedule, from a webhook/event, or by another authorized Application
 Operation. These are invocation modes, not different Application types.
 
+Operations declare command versus read semantics, a structured input schema,
+required Capabilities, and whether explicit approval is required. The platform
+creates an auditable Operation Invocation only after declaration, version,
+transport, input, Capability, and approval checks pass. Application UI, APIs,
+schedules, and agents must use this boundary rather than calling an Operation
+callback directly.
+
 ## Trigger and Automation
 
 A Trigger describes why or when an Application Operation starts: manual action,

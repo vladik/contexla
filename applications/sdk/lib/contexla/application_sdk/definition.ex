@@ -54,12 +54,18 @@ defmodule Contexla.ApplicationSDK.Definition do
     ]
 
     with nil <- Enum.find(validators, fn {_field, value, validator} -> not validator.(value) end),
-         :ok <- validate_surface_contract(definition.surfaces) do
+         :ok <- validate_surface_contract(definition.surfaces),
+         :ok <- validate_operation_contract(definition.operations) do
       :ok
     else
       {field, value, _validator} -> {:error, {:invalid_field, field, value}}
       {:error, _reason} = error -> error
     end
+  end
+
+  defp validate_operation_contract(operations) do
+    ids = Enum.map(operations, & &1.id)
+    if Enum.uniq(ids) == ids, do: :ok, else: {:error, :duplicate_operation_id}
   end
 
   defp validate_surface_contract(surfaces) do
