@@ -20,6 +20,8 @@ As of 2026-11-21, the repository proves:
 - Application Operations execute through a declared, schema-validated,
   Capability-aware and approval-aware boundary with auditable Invocation and
   optional Application Run linkage;
+- independently compiled Applications access shared host facilities through
+  explicit typed SDK Runtime functions rather than dynamic platform calls;
 - Digital Estate Assessment owns its services, executor, workers, UI surfaces,
   reports, PostgreSQL schema, and migrations;
 - an administrator can be bootstrapped without public registration or a shared

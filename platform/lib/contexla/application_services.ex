@@ -1,6 +1,8 @@
 defmodule Contexla.ApplicationServices do
   @moduledoc "Platform services exposed to trusted Applications through the SDK."
 
+  @behaviour Contexla.ApplicationSDK.PlatformServices
+
   alias Contexla.Accounts.{Scope, User}
 
   alias Contexla.{

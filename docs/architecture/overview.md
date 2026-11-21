@@ -84,7 +84,10 @@ execution is retained as a Run.
 The Digital Estate Assessment package owns its worker, executor, domain services,
 UI, reports, schemas, and migrations. It accesses Artifacts, Adapters,
 Capabilities, jobs, and actor-scoped Instance services only through the bounded
-service modules supplied by `Contexla.ApplicationSDK.Runtime`.
+typed functions supplied by `Contexla.ApplicationSDK.Runtime`. The SDK declares
+the host service behaviour and the platform injects its implementation; an
+Application never dynamically names platform functions or depends on the
+platform implementation module.
 
 Application Operations cross a platform-owned invocation boundary before
 Application code executes. The boundary enforces declaration, pinned version,

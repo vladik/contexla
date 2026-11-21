@@ -22,10 +22,10 @@ defmodule Contexla.Estate.Assessments do
 
   def start_run(%Instance{} = instance, artifact_id) do
     with :ok <- ensure_assessment_instance(instance),
-         {:ok, artifact} <- platform(:get_artifact, [instance.actor_id, artifact_id]),
+         {:ok, artifact} <- Runtime.get_artifact(instance.actor_id, artifact_id),
          :ok <- ensure_artifact_belongs_to_instance(artifact, instance),
          adapter_id when is_binary(adapter_id) <- artifact.metadata["adapter_id"],
-         {:ok, {integration, adapter}} <- platform(:fetch_adapter, [adapter_id]),
+         {:ok, {integration, adapter}} <- Runtime.fetch_adapter(adapter_id),
          true <- function_exported?(adapter.module, :normalize_source, 2) do
       repo().transaction(fn ->
         run =
@@ -41,7 +41,7 @@ defmodule Contexla.Estate.Assessments do
           })
           |> repo().insert!()
 
-        {:ok, _job} = platform(:enqueue, [AssessmentWorker, %{"assessment_run_id" => run.id}])
+        {:ok, _job} = Runtime.enqueue(AssessmentWorker, %{"assessment_run_id" => run.id})
         run
       end)
     else
@@ -313,6 +313,5 @@ defmodule Contexla.Estate.Assessments do
   defp empty_to_nil(attrs, key),
     do: if(attrs[key] in [nil, ""], do: Map.put(attrs, key, nil), else: attrs)
 
-  defp repo, do: Runtime.service!(:repo)
-  defp platform(function, arguments), do: Runtime.call(:platform, function, arguments)
+  defp repo, do: Runtime.repo!()
 end

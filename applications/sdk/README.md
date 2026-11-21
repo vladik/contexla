@@ -9,6 +9,13 @@ migrations, Oban workers, LiveViews, reports, assets, and supervised runtime cod
 It accesses shared platform facilities through `Contexla.ApplicationSDK.Runtime`
 instead of depending on platform modules.
 
+`Runtime` exposes named functions for the supported host services: Instance
+management, Artifacts and source import, Adapter lookup, Capability and
+Operation invocation, durable job enqueueing, and the shared Ecto Repo used by
+Application-owned schemas. Applications must not dynamically invoke platform
+function names or depend on `Contexla.ApplicationServices`; adding or changing
+a host service is an SDK contract change.
+
 An Application Operation is a domain command exposed to the platform UI, API,
 agents, and approved triggers. It may coordinate Application state and multiple
 Capabilities; it is not a small reusable Capability and does not imply a generic

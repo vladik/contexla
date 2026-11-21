@@ -16,7 +16,7 @@ defmodule <%= web_module %>.SettingsLive do
   def handle_event("save", %{"settings" => params}, socket) do
     instance = socket.assigns.instance
 
-    case Runtime.call(:platform, :update_instance_config, [instance.actor_id, instance.id, params]) do
+    case Runtime.update_instance_config(instance.actor_id, instance.id, params) do
       {:ok, updated} ->
         updated_instance = %{instance | config: updated.config}
         {:noreply, socket |> assign(instance: updated_instance, form: to_form(updated.config, as: :settings)) |> put_flash(:info, "Settings saved.")}

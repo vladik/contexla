@@ -34,7 +34,7 @@ defmodule Contexla.EstateWeb.NewLive do
       }
     }
 
-    case Runtime.call(:platform, :create_instance, [socket.assigns.actor_id, attrs]) do
+    case Runtime.create_instance(socket.assigns.actor_id, attrs) do
       {:ok, instance} ->
         {:noreply, redirect(socket, to: "/applications/#{instance.id}")}
 

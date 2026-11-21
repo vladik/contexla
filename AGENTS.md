@@ -153,6 +153,9 @@ solution that requires it now. See
 - Application Operations have declared command/read and input contracts. The
   platform records Operation Invocations and links Application-owned Runs when
   supplied; Digital Estate Assessment starts Runs through this boundary.
+- Applications use explicit typed `Contexla.ApplicationSDK.Runtime` functions
+  for shared host services. Dynamic platform function dispatch is not part of
+  the SDK contract.
 - Application packages declare a shared icon, one new-Instance surface, and one
   default Instance surface. The sidebar is Instance-first and canonical
   `/applications/:instance_id` URLs resolve through that default declaration.

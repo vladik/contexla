@@ -30,6 +30,10 @@ defmodule Mix.Tasks.Contexla.Application.NewTest do
     refute definition =~ "ContexlaWeb"
     assert definition =~ "Contexla.ApplicationSDK"
 
+    new_surface = File.read!(Path.join(target, "lib/new_live.ex"))
+    assert new_surface =~ "Runtime.create_instance"
+    refute new_surface =~ "Runtime.call"
+
     manifest = target |> Path.join("contexla-application.json") |> File.read!() |> Jason.decode!()
     assert manifest["applicationId"] == "com.acme.application.starter"
     assert Enum.any?(manifest["surfaces"], &(&1["default"] == true))

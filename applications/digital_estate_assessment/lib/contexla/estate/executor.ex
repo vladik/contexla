@@ -34,10 +34,10 @@ defmodule Contexla.Estate.Executor do
 
   defp execute(run) do
     run = mark_running(run)
-    {:ok, artifact} = platform(:get_artifact, [run.initiated_by_user_id, run.source_artifact_id])
+    {:ok, artifact} = Runtime.get_artifact(run.initiated_by_user_id, run.source_artifact_id)
 
-    with {:ok, {_integration, adapter}} <- platform(:fetch_adapter, [run.adapter_id]),
-         path <- platform(:artifact_path, [artifact]),
+    with {:ok, {_integration, adapter}} <- Runtime.fetch_adapter(run.adapter_id),
+         path <- Runtime.artifact_path(artifact),
          {:ok, normalized} <- adapter.module.normalize_source(path, []),
          {:ok, normalized} <-
            add_composer_dependencies(
@@ -69,15 +69,12 @@ defmodule Contexla.Estate.Executor do
     composer_lock = document(normalized.documents, "composer.lock")
 
     if is_map(composer_json) and is_map(composer_lock) do
-      case platform(
-             :invoke_capability,
-             [
-               actor_id,
-               instance_id,
-               "com.contexla.dependencies.parse-composer",
-               "1",
-               %{"composer_json" => composer_json, "composer_lock" => composer_lock}
-             ]
+      case Runtime.invoke_capability(
+             actor_id,
+             instance_id,
+             "com.contexla.dependencies.parse-composer",
+             "1",
+             %{"composer_json" => composer_json, "composer_lock" => composer_lock}
            ) do
         {:ok, %{"dependencies" => dependencies}, _invocation} ->
           root = Enum.find(normalized.resources, &(&1.kind == "cms"))
@@ -342,6 +339,5 @@ defmodule Contexla.Estate.Executor do
   defp find_path(documents, basename),
     do: Enum.find(Map.keys(documents), &(Path.basename(&1) == basename))
 
-  defp repo, do: Runtime.service!(:repo)
-  defp platform(function, arguments), do: Runtime.call(:platform, function, arguments)
+  defp repo, do: Runtime.repo!()
 end

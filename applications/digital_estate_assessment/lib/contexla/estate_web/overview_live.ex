@@ -20,13 +20,13 @@ defmodule Contexla.EstateWeb.OverviewLive do
     imported =
       consume_uploaded_entries(socket, :snapshot, fn %{path: path}, entry ->
         result =
-          Runtime.call(:platform, :import_source, [
+          Runtime.import_source(
             socket.assigns.instance.actor_id,
             socket.assigns.instance.id,
             "drupal.assessment.snapshot.v1",
             path,
-            [filename: entry.client_name]
-          ])
+            filename: entry.client_name
+          )
 
         {:ok, result}
       end)
@@ -46,13 +46,13 @@ defmodule Contexla.EstateWeb.OverviewLive do
   def handle_event("start-run", %{"artifact-id" => artifact_id}, socket) do
     instance = socket.assigns.instance
 
-    case Runtime.call(:platform, :invoke_operation, [
+    case Runtime.invoke_operation(
            instance.actor_id,
            instance.id,
            "assessment.run",
            %{"artifact_id" => artifact_id},
-           [approved: true]
-         ]) do
+           approved: true
+         ) do
       {:ok, _result, _invocation} ->
         Process.send_after(self(), :refresh, 500)
         {:noreply, socket |> put_flash(:info, "Assessment queued.") |> load_state()}
@@ -112,10 +112,7 @@ defmodule Contexla.EstateWeb.OverviewLive do
     completed = Enum.find(runs, &(&1.status == :succeeded))
 
     socket
-    |> assign(
-      :artifacts,
-      Runtime.call(:platform, :list_artifacts, [instance.actor_id, instance.id])
-    )
+    |> assign(:artifacts, Runtime.list_artifacts(instance.actor_id, instance.id))
     |> assign(:runs, runs)
     |> assign(:results, completed && Assessments.results(instance, completed.id))
     |> assign(:expert_form, expert_form())

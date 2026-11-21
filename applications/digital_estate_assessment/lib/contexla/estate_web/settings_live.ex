@@ -32,11 +32,11 @@ defmodule Contexla.EstateWeb.SettingsLive do
       |> Map.put("decision", params["decision"])
       |> Map.put("scope", scope)
 
-    case Runtime.call(:platform, :update_instance_config, [
+    case Runtime.update_instance_config(
            socket.assigns.instance.actor_id,
            socket.assigns.instance.id,
            config
-         ]) do
+         ) do
       {:ok, _instance} ->
         {:noreply,
          socket
