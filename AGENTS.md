@@ -160,6 +160,9 @@ solution that requires it now. See
   Events. Capability/Operation audit projections redact schema-marked sensitive
   fields, and persisted or user-facing failures use bounded codes/messages
   rather than serialized internal terms.
+- GitHub CI independently format-checks, compiles, and tests every Mix project;
+  its PostgreSQL-backed platform job also builds assets, while the Assessment
+  job builds the trusted Application archive.
 - Application packages declare a shared icon, one new-Instance surface, and one
   default Instance surface. The sidebar is Instance-first and canonical
   `/applications/:instance_id` URLs resolve through that default declaration.

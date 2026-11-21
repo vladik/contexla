@@ -142,6 +142,15 @@ The platform's generated `mix test` alias provisions the test database before
 running ExUnit, so the complete platform suite intentionally requires the
 database service.
 
+## Continuous integration
+
+`.github/workflows/ci.yml` compiles, format-checks, and tests every independent
+Mix project. The platform job runs against PostgreSQL 17 and also builds the
+browser assets; the Digital Estate Assessment job builds its trusted
+`.contexla-app` archive. Keeping these as separate jobs protects the package
+boundaries: the platform must pass without adding a concrete Application or
+Integration dependency.
+
 ## Local Drupal collector proof
 
 The read-only collector spike lives under `connectors/drupal_snapshot/`. Its
