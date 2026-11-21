@@ -51,6 +51,7 @@ Keep the platform core small:
 - Run and job execution conventions;
 - Capability and Processor registry, scoped Bindings, and invocation runtime;
 - artifact/evidence storage;
+- append-only platform lifecycle audit events and safe error conventions;
 - notifications and basic observability;
 - platform navigation and operational health.
 - authenticated shell, global theme, and shared browser asset delivery.

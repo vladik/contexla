@@ -12,9 +12,9 @@ defmodule Contexla.Processors.Native do
     [
       %Processor{
         id: "com.contexla.processor.composer.native",
-        version: "0.1.0",
+        version: "0.2.0",
         capability_id: "com.contexla.dependencies.parse-composer",
-        capability_contract_version: "1",
+        capability_contract_version: "2",
         runtime: :native,
         entrypoint: Contexla.Processors.Native.ParseComposerDependencies,
         timeout_ms: 5_000,

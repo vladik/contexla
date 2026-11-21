@@ -22,6 +22,9 @@ As of 2026-11-21, the repository proves:
   optional Application Run linkage;
 - independently compiled Applications access shared host facilities through
   explicit typed SDK Runtime functions rather than dynamic platform calls;
+- current Instance and source-import lifecycle changes produce append-only,
+  actor-attributed Audit Events, while Invocation data applies schema-based
+  redaction and stores bounded failure codes;
 - Digital Estate Assessment owns its services, executor, workers, UI surfaces,
   reports, PostgreSQL schema, and migrations;
 - an administrator can be bootstrapped without public registration or a shared

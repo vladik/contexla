@@ -1,6 +1,7 @@
 defmodule ContexlaWeb.ApplicationOperationController do
   use ContexlaWeb, :controller
 
+  alias Contexla.ApplicationSDK.Error
   alias Contexla.ApplicationOperations
 
   @reserved ~w(instance_id operation_id approval _csrf_token)
@@ -54,7 +55,7 @@ defmodule ContexlaWeb.ApplicationOperationController do
     do: error(conn, :unprocessable_entity, reason)
 
   defp error(conn, status, reason, invocation_id \\ nil) do
-    code = error_code(reason)
+    code = Error.code(reason)
 
     json(conn |> put_status(status), %{
       error: %{
@@ -64,17 +65,6 @@ defmodule ContexlaWeb.ApplicationOperationController do
       }
     })
   end
-
-  defp error_code(reason) when is_atom(reason), do: Atom.to_string(reason)
-
-  defp error_code(reason) when is_tuple(reason) and tuple_size(reason) > 0 do
-    case elem(reason, 0) do
-      code when is_atom(code) -> Atom.to_string(code)
-      _other -> "operation_failed"
-    end
-  end
-
-  defp error_code(_reason), do: "operation_failed"
 
   defp error_message("operation_not_declared"),
     do: "The Application does not declare this Operation."

@@ -35,8 +35,9 @@ defmodule Contexla.EstateWeb.OverviewLive do
       [{:ok, _artifact}] ->
         {:noreply, socket |> put_flash(:info, "Snapshot retained.") |> load_state()}
 
-      [{:error, reason}] ->
-        {:noreply, put_flash(socket, :error, "Snapshot rejected: #{inspect(reason)}")}
+      [{:error, _reason}] ->
+        {:noreply,
+         put_flash(socket, :error, "Snapshot rejected. Verify the package and try again.")}
 
       _ ->
         {:noreply, put_flash(socket, :error, "Choose one Drupal snapshot ZIP.")}
@@ -57,11 +58,11 @@ defmodule Contexla.EstateWeb.OverviewLive do
         Process.send_after(self(), :refresh, 500)
         {:noreply, socket |> put_flash(:info, "Assessment queued.") |> load_state()}
 
-      {:error, reason, _invocation} ->
-        {:noreply, put_flash(socket, :error, "Run could not start: #{inspect(reason)}")}
+      {:error, _reason, _invocation} ->
+        {:noreply, put_flash(socket, :error, "The assessment Run could not start.")}
 
-      {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Run could not start: #{inspect(reason)}")}
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "The assessment Run could not start.")}
     end
   end
 

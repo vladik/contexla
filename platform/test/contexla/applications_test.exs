@@ -3,6 +3,7 @@ defmodule Contexla.ApplicationsTest do
 
   alias Contexla.Applications
   alias Contexla.Applications.ApplicationInstance
+  alias Contexla.AuditEvents
 
   import Contexla.AccountsFixtures
 
@@ -30,6 +31,12 @@ defmodule Contexla.ApplicationsTest do
     assert instance.status == :draft
     assert instance.created_by_user_id == scope.user.id
     assert [^instance] = Applications.list_instances(scope)
+
+    assert [event] = AuditEvents.list_for_instance(scope, instance.id)
+    assert event.action == "application_instance.created"
+    assert event.actor_user_id == scope.user.id
+    assert event.metadata["application_id"] == instance.application_id
+    refute Map.has_key?(event.metadata, "config")
   end
 
   test "rejects invalid Application configuration", %{scope: scope} do
@@ -95,6 +102,11 @@ defmodule Contexla.ApplicationsTest do
              }
            ] =
              Applications.list_navigation_instances(scope)
+
+    assert [settings_event, created_event] = AuditEvents.list_for_instance(scope, instance.id)
+    assert settings_event.action == "application_instance.settings_updated"
+    assert settings_event.metadata["changed_fields"] == ["description", "icon", "name"]
+    assert created_event.action == "application_instance.created"
   end
 
   test "validates Application-owned configuration before updating it", %{scope: scope} do
@@ -109,5 +121,9 @@ defmodule Contexla.ApplicationsTest do
              Applications.update_instance_config(scope, instance.id, %{"profile" => "updated"})
 
     assert updated.config == %{"profile" => "updated"}
+
+    assert [config_event, _created_event] = AuditEvents.list_for_instance(scope, instance.id)
+    assert config_event.action == "application_instance.configuration_updated"
+    assert config_event.metadata == %{"config_keys" => ["profile"]}
   end
 end

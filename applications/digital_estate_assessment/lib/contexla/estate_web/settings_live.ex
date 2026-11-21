@@ -43,8 +43,8 @@ defmodule Contexla.EstateWeb.SettingsLive do
          |> put_flash(:success, "Application settings updated.")
          |> redirect(to: "/applications/#{socket.assigns.instance.id}/configuration")}
 
-      {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Settings could not be updated: #{inspect(reason)}")}
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "Application settings could not be updated.")}
     end
   end
 

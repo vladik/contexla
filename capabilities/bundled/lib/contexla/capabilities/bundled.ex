@@ -12,15 +12,15 @@ defmodule Contexla.Capabilities.Bundled do
     [
       %Capability{
         id: "com.contexla.dependencies.parse-composer",
-        contract_version: "1",
+        contract_version: "2",
         name: "Parse Composer Dependencies",
         purpose: "Return normalized dependency facts from Composer manifests.",
         input_schema: %{
           "type" => "object",
           "required" => ["composer_json", "composer_lock"],
           "properties" => %{
-            "composer_json" => %{"type" => "object"},
-            "composer_lock" => %{"type" => "object"}
+            "composer_json" => %{"type" => "object", "sensitive" => true},
+            "composer_lock" => %{"type" => "object", "sensitive" => true}
           }
         },
         output_schema: %{
@@ -29,7 +29,18 @@ defmodule Contexla.Capabilities.Bundled do
           "properties" => %{
             "dependencies" => %{
               "type" => "array",
-              "items" => %{"type" => "object"}
+              "items" => %{
+                "type" => "object",
+                "required" => ["name", "version", "type", "development", "direct"],
+                "additionalProperties" => false,
+                "properties" => %{
+                  "name" => %{"type" => "string"},
+                  "version" => %{"type" => "string"},
+                  "type" => %{"type" => "string"},
+                  "development" => %{"type" => "boolean"},
+                  "direct" => %{"type" => "boolean"}
+                }
+              }
             }
           }
         },

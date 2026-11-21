@@ -79,7 +79,7 @@ does not replace Capability Invocation provenance.
 
 The first proof includes:
 
-- one bundled contract: `com.contexla.dependencies.parse-composer` version `1`;
+- one bundled contract: `com.contexla.dependencies.parse-composer` version `2`;
 - one native Processor: `com.contexla.processor.composer.native` version
   `0.1.0`;
 - a small JSON Schema subset for object, array, string, integer, number,

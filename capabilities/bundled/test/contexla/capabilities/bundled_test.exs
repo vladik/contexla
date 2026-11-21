@@ -6,7 +6,7 @@ defmodule Contexla.Capabilities.BundledTest do
              Contexla.CapabilitySDK.validate_capability_package(Contexla.Capabilities.Bundled)
 
     assert capability.id == "com.contexla.dependencies.parse-composer"
-    assert capability.contract_version == "1"
+    assert capability.contract_version == "2"
     assert capability.side_effects == :none
   end
 end

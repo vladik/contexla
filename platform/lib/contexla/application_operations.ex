@@ -10,6 +10,7 @@ defmodule Contexla.ApplicationOperations do
 
   alias Contexla.Accounts.Scope
   alias Contexla.ApplicationOperations.Invocation
+  alias Contexla.ApplicationSDK.Error
   alias Contexla.ApplicationSDK.Instance, as: SDKInstance
   alias Contexla.{Applications, Capabilities, Repo}
   alias Contexla.CapabilityRuntime.Schema
@@ -145,7 +146,7 @@ defmodule Contexla.ApplicationOperations do
   end
 
   defp fail!(invocation, reason) do
-    complete!(invocation, :failed, nil, %{"code" => error_code(reason)}, nil)
+    complete!(invocation, :failed, nil, Error.map(reason), nil)
   end
 
   defp complete!(invocation, status, output, error, run_id) do
@@ -159,17 +160,6 @@ defmodule Contexla.ApplicationOperations do
     })
     |> Repo.update!()
   end
-
-  defp error_code(reason) when is_atom(reason), do: Atom.to_string(reason)
-
-  defp error_code(reason) when is_tuple(reason) and tuple_size(reason) > 0 do
-    case elem(reason, 0) do
-      code when is_atom(code) -> Atom.to_string(code)
-      _other -> "operation_failed"
-    end
-  end
-
-  defp error_code(_reason), do: "operation_failed"
 
   defp instance_context(instance, actor_id) do
     %SDKInstance{

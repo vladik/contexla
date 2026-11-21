@@ -165,7 +165,9 @@ Processors upward only after reuse is demonstrated.
 
 A Capability Invocation is the auditable execution record. It pins the
 Capability contract, Processor version, resolved Binding, actor, Application
-Instance, input, output/error, status, and timestamps.
+Instance, audit-safe input/output or error code, status, and timestamps.
+Schema properties marked `sensitive` are redacted before persistence while the
+Processor still receives the validated in-memory value.
 
 The Runner is internal runtime infrastructure that executes the selected
 Processor type. It is not itself a Capability.
@@ -181,6 +183,19 @@ Authentication, Artifact storage, Oban retry behavior, trusted ZIP admission,
 and runtime supervision are platform infrastructure, not user-visible
 Capabilities. An Adapter may call Capabilities during normalization, but source
 admission remains an Adapter/platform trust boundary.
+
+## Audit Events and safe failures
+
+The platform records append-only Audit Events for current lifecycle actions
+that are not already fully represented by a Run or Invocation, beginning with
+Application Instance creation/configuration and source snapshot import. Events
+contain actor and subject identity plus bounded metadata; configuration values,
+credentials, exception messages, and arbitrary failure terms are excluded.
+
+When a failure crosses an audit, persistence, API, or UI boundary, Contexla
+retains a stable safe code derived from an internal atom or tagged tuple. Full
+internal terms may be used transiently for control flow but are not serialized
+with `inspect/1` into durable records or shown to users.
 
 ## Run, result, finding, and evidence
 

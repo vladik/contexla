@@ -38,8 +38,8 @@ defmodule Contexla.EstateWeb.NewLive do
       {:ok, instance} ->
         {:noreply, redirect(socket, to: "/applications/#{instance.id}")}
 
-      {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Could not create assessment: #{inspect(reason)}")}
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "Could not create the assessment.")}
     end
   end
 

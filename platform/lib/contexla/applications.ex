@@ -11,6 +11,7 @@ defmodule Contexla.Applications do
 
   alias Contexla.Accounts.Scope
   alias Contexla.Applications.ApplicationInstance
+  alias Contexla.AuditEvents
   alias Contexla.Packages.Registry
   alias Contexla.Repo
 
@@ -86,7 +87,7 @@ defmodule Contexla.Applications do
   Application package.
   """
   def create_instance(
-        %Scope{user: %Contexla.Accounts.User{} = user},
+        %Scope{user: %Contexla.Accounts.User{} = user} = scope,
         %{"application_id" => application_id} = attrs
       ) do
     with {:ok, definition} <- Registry.fetch_application(application_id),
@@ -94,9 +95,22 @@ defmodule Contexla.Applications do
          {:ok, normalized_config} <- definition.entry_module.validate_instance_config(config) do
       attrs = Map.put(attrs, "config", normalized_config)
 
-      %ApplicationInstance{}
-      |> ApplicationInstance.create_changeset(attrs, definition, user)
-      |> Repo.insert()
+      changeset =
+        %ApplicationInstance{}
+        |> ApplicationInstance.create_changeset(attrs, definition, user)
+
+      persist_with_audit(changeset, scope, :insert, fn instance ->
+        %{
+          action: "application_instance.created",
+          subject_type: "application_instance",
+          subject_id: instance.id,
+          application_instance_id: instance.id,
+          metadata: %{
+            "application_id" => instance.application_id,
+            "application_version" => instance.application_version
+          }
+        }
+      end)
     else
       {:error, :not_found} -> {:error, :application_not_installed}
       {:error, reason} -> {:error, {:invalid_instance_config, reason}}
@@ -116,9 +130,20 @@ defmodule Contexla.Applications do
 
   def update_instance_settings(%Scope{} = scope, id, attrs) do
     with {:ok, instance} <- fetch_instance(scope, id) do
-      instance
-      |> ApplicationInstance.settings_changeset(attrs)
-      |> Repo.update()
+      changeset = ApplicationInstance.settings_changeset(instance, attrs)
+
+      changed_fields =
+        changeset.changes |> Map.keys() |> Enum.map(&Atom.to_string/1) |> Enum.sort()
+
+      persist_with_audit(changeset, scope, :update, fn updated ->
+        %{
+          action: "application_instance.settings_updated",
+          subject_type: "application_instance",
+          subject_id: updated.id,
+          application_instance_id: updated.id,
+          metadata: %{"changed_fields" => changed_fields}
+        }
+      end)
     end
   end
 
@@ -126,10 +151,29 @@ defmodule Contexla.Applications do
     with {:ok, instance} <- fetch_instance(scope, id),
          {:ok, definition} <- Registry.fetch_application(instance.application_id),
          {:ok, normalized_config} <- definition.entry_module.validate_instance_config(config) do
-      instance
-      |> ApplicationInstance.config_changeset(normalized_config)
-      |> Repo.update()
+      changeset = ApplicationInstance.config_changeset(instance, normalized_config)
+
+      persist_with_audit(changeset, scope, :update, fn updated ->
+        %{
+          action: "application_instance.configuration_updated",
+          subject_type: "application_instance",
+          subject_id: updated.id,
+          application_instance_id: updated.id,
+          metadata: %{"config_keys" => normalized_config |> Map.keys() |> Enum.sort()}
+        }
+      end)
     end
+  end
+
+  defp persist_with_audit(changeset, scope, operation, event_attrs) do
+    Repo.transaction(fn ->
+      with {:ok, instance} <- apply(Repo, operation, [changeset]),
+           {:ok, _event} <- AuditEvents.record(scope, event_attrs.(instance)) do
+        instance
+      else
+        {:error, reason} -> Repo.rollback(reason)
+      end
+    end)
   end
 
   defp settings_path(application_id) do

@@ -8,6 +8,8 @@ defmodule Contexla.Processors.NativeTest do
              Contexla.CapabilitySDK.validate_processor_package(Contexla.Processors.Native)
 
     assert processor.capability_id == "com.contexla.dependencies.parse-composer"
+    assert processor.version == "0.2.0"
+    assert processor.capability_contract_version == "2"
     assert processor.runtime == :native
     assert processor.default
   end

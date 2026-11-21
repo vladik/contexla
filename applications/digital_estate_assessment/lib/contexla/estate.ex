@@ -23,7 +23,7 @@ defmodule Contexla.Estate do
       required_capabilities: [
         %Requirement{
           capability_id: "com.contexla.dependencies.parse-composer",
-          contract_version: "1"
+          contract_version: "2"
         }
       ]
     },
@@ -136,7 +136,7 @@ defmodule Contexla.Estate do
 
     :ok
   rescue
-    error -> {:error, {:migration_failed, Exception.message(error)}}
+    _error -> {:error, :migration_failed}
   end
 
   @impl true

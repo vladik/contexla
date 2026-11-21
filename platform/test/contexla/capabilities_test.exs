@@ -60,7 +60,7 @@ defmodule Contexla.CapabilitiesTest do
                scope,
                instance,
                "com.contexla.dependencies.parse-composer",
-               "1",
+               "2",
                input
              )
 
@@ -78,6 +78,13 @@ defmodule Contexla.CapabilitiesTest do
     assert invocation.capability_id
     assert invocation.processor_id
     assert invocation.binding_id
+
+    assert invocation.input == %{
+             "composer_json" => "[REDACTED]",
+             "composer_lock" => "[REDACTED]"
+           }
+
+    assert invocation.output == %{"dependencies" => [dependency]}
   end
 
   test "prefers an Instance Binding over the Platform default", %{instance: instance} do
@@ -111,7 +118,7 @@ defmodule Contexla.CapabilitiesTest do
                scope,
                instance,
                "com.contexla.dependencies.parse-composer",
-               "1",
+               "2",
                %{"composer_json" => %{}}
              )
 

@@ -86,7 +86,7 @@ defmodule Contexla.Artifacts.Storage do
 
     {:ok, digest}
   rescue
-    error -> {:error, Exception.message(error)}
+    _error -> {:error, :artifact_storage_failed}
   end
 
   defp storage_root do

@@ -21,8 +21,8 @@ defmodule <%= web_module %>.SettingsLive do
         updated_instance = %{instance | config: updated.config}
         {:noreply, socket |> assign(instance: updated_instance, form: to_form(updated.config, as: :settings)) |> put_flash(:info, "Settings saved.")}
 
-      {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Settings could not be saved: #{inspect(reason)}")}
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "Settings could not be saved.")}
     end
   end
 

@@ -38,6 +38,13 @@ It captures package and Operation identity, actor and approver, bounded input,
 status, safe result/error metadata, and an optional link to an Application-owned
 Run. It is not the Run itself and does not own Application domain results.
 
+## Audit Event
+
+One append-only platform record of a security or lifecycle-relevant action. It
+identifies the actor, action, subject, optional Application Instance, time, and
+bounded non-secret metadata. Audit Events complement domain Runs and
+Invocations; they do not duplicate their inputs, outputs, or evidence.
+
 ## Trigger
 
 The actor or condition that starts an Application Operation: human action, AI

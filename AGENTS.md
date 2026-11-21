@@ -156,6 +156,10 @@ solution that requires it now. See
 - Applications use explicit typed `Contexla.ApplicationSDK.Runtime` functions
   for shared host services. Dynamic platform function dispatch is not part of
   the SDK contract.
+- Current Instance and source-import lifecycle actions produce append-only Audit
+  Events. Capability/Operation audit projections redact schema-marked sensitive
+  fields, and persisted or user-facing failures use bounded codes/messages
+  rather than serialized internal terms.
 - Application packages declare a shared icon, one new-Instance surface, and one
   default Instance surface. The sidebar is Instance-first and canonical
   `/applications/:instance_id` URLs resolve through that default declaration.

@@ -17,6 +17,7 @@ defmodule Contexla.EstateTest do
     assert run.input_schema["required"] == ["artifact_id"]
     assert [requirement] = run.required_capabilities
     assert requirement.capability_id == "com.contexla.dependencies.parse-composer"
+    assert requirement.contract_version == "2"
 
     report = Enum.find(definition.operations, &(&1.id == "assessment.report"))
     assert report.kind == :read

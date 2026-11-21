@@ -5,6 +5,7 @@ defmodule Contexla.Capabilities do
   """
 
   alias Contexla.Accounts.{Scope, User}
+  alias Contexla.ApplicationSDK.Error
   alias Contexla.Applications.ApplicationInstance
   alias Contexla.Capabilities.{Catalog, Contract, Invocation, Resolver}
   alias Contexla.CapabilityRuntime.{Registry, Schema}
@@ -96,7 +97,7 @@ defmodule Contexla.Capabilities do
     case result do
       {:ok, output} ->
         case Schema.validate(output, contract.output_schema) do
-          :ok -> complete(invocation, :succeeded, output, nil)
+          :ok -> succeed(invocation, contract, output)
           {:error, error} -> fail(invocation, {:invalid_processor_output, error})
         end
 
@@ -117,7 +118,7 @@ defmodule Contexla.Capabilities do
       application_instance_id: instance.id,
       invoked_by_user_id: user.id,
       status: :running,
-      input: input,
+      input: Schema.audit_projection(input, contract.input_schema),
       started_at: DateTime.utc_now(:second)
     })
     |> Repo.insert()
@@ -139,10 +140,21 @@ defmodule Contexla.Capabilities do
     end
   end
 
+  defp succeed(invocation, contract, output) do
+    audit_output = Schema.audit_projection(output, contract.output_schema)
+
+    case complete(invocation, :succeeded, audit_output, nil) do
+      {:ok, _audit_output, completed} -> {:ok, output, completed}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
   defp fail(invocation, reason), do: finish_error(invocation, :failed, reason)
 
   defp finish_error(invocation, status, reason) do
-    error = %{"reason" => inspect(reason)}
-    complete(invocation, status, nil, error)
+    case complete(invocation, status, nil, Error.map(reason, "capability_failed")) do
+      {:error, _stored_error, completed} -> {:error, reason, completed}
+      {:error, persistence_error} -> {:error, persistence_error}
+    end
   end
 end

@@ -3,7 +3,7 @@ defmodule Contexla.Estate.Executor do
 
   import Ecto.Query, warn: false
 
-  alias Contexla.ApplicationSDK.Runtime
+  alias Contexla.ApplicationSDK.{Error, Runtime}
 
   alias Contexla.Estate.{
     AssessmentRun,
@@ -27,7 +27,7 @@ defmodule Contexla.Estate.Executor do
   defp execute_safely(run) do
     execute(run)
   rescue
-    error -> fail(run, {:exception, Exception.message(error)})
+    _error -> fail(run, :assessment_exception)
   catch
     kind, reason -> fail(run, {kind, reason})
   end
@@ -73,7 +73,7 @@ defmodule Contexla.Estate.Executor do
              actor_id,
              instance_id,
              "com.contexla.dependencies.parse-composer",
-             "1",
+             "2",
              %{"composer_json" => composer_json, "composer_lock" => composer_lock}
            ) do
         {:ok, %{"dependencies" => dependencies}, _invocation} ->
@@ -321,7 +321,7 @@ defmodule Contexla.Estate.Executor do
     run
     |> AssessmentRun.status_changeset(%{
       status: :failed,
-      error: %{"reason" => inspect(reason)},
+      error: Error.map(reason, "assessment_failed"),
       completed_at: DateTime.utc_now(:second)
     })
     |> repo().update()

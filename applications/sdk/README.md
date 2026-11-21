@@ -16,6 +16,11 @@ Application-owned schemas. Applications must not dynamically invoke platform
 function names or depend on `Contexla.ApplicationServices`; adding or changing
 a host service is an SDK contract change.
 
+Application-owned persistence and UI may use
+`Contexla.ApplicationSDK.Error.code/2` when an internal failure crosses an
+audit or user boundary. It retains stable atom/tag identity without copying
+exception messages, changesets, credentials, paths, or arbitrary nested terms.
+
 An Application Operation is a domain command exposed to the platform UI, API,
 agents, and approved triggers. It may coordinate Application state and multiple
 Capabilities; it is not a small reusable Capability and does not imply a generic

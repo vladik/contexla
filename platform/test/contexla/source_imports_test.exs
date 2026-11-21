@@ -1,7 +1,7 @@
 defmodule Contexla.SourceImportsTest do
   use Contexla.DataCase, async: true
 
-  alias Contexla.{Applications, Artifacts, Repo, SourceImports}
+  alias Contexla.{Applications, Artifacts, AuditEvents, Repo, SourceImports}
   alias Contexla.Artifacts.Artifact
 
   import Contexla.AccountsFixtures
@@ -37,6 +37,13 @@ defmodule Contexla.SourceImportsTest do
     assert artifact.application_instance_id == context.instance.id
     assert artifact.metadata["adapter_id"] == "test.snapshot.v1"
     assert File.exists?(Artifacts.local_path(artifact))
+
+    assert [import_event, _created_event] =
+             AuditEvents.list_for_instance(context.scope, context.instance.id)
+
+    assert import_event.action == "source_snapshot.imported"
+    assert import_event.subject_id == artifact.id
+    assert import_event.metadata["adapter_id"] == "test.snapshot.v1"
   end
 
   test "deduplicates immutable source evidence", context do

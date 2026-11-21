@@ -10,7 +10,9 @@ defmodule Contexla.SourceImports do
   alias Contexla.Accounts.Scope
   alias Contexla.Applications
   alias Contexla.Artifacts
+  alias Contexla.AuditEvents
   alias Contexla.Packages.Registry
+  alias Contexla.Repo
 
   @spec import(
           Scope.t(),
@@ -39,17 +41,39 @@ defmodule Contexla.SourceImports do
            "files" => validation.files
          },
          {:ok, artifact} <-
-           Artifacts.store_validated_source(scope, instance, source_path, validation, %{
-             kind: "source_snapshot",
-             filename: Keyword.get(opts, :filename, Path.basename(source_path)),
-             media_type: "application/zip",
-             metadata: metadata
-           }) do
+           store_with_audit(scope, instance, adapter, source_path, validation, metadata, opts) do
       {:ok, artifact}
     else
       {:error, :not_found} -> {:error, :adapter_not_installed}
       {:error, reason} -> {:error, reason}
     end
+  end
+
+  defp store_with_audit(scope, instance, adapter, source_path, validation, metadata, opts) do
+    Repo.transaction(fn ->
+      with {:ok, artifact} <-
+             Artifacts.store_validated_source(scope, instance, source_path, validation, %{
+               kind: "source_snapshot",
+               filename: Keyword.get(opts, :filename, Path.basename(source_path)),
+               media_type: "application/zip",
+               metadata: metadata
+             }),
+           {:ok, _event} <-
+             AuditEvents.record(scope, %{
+               action: "source_snapshot.imported",
+               subject_type: "artifact",
+               subject_id: artifact.id,
+               application_instance_id: instance.id,
+               metadata: %{
+                 "adapter_id" => adapter.id,
+                 "artifact_sha256" => artifact.sha256
+               }
+             }) do
+        artifact
+      else
+        {:error, reason} -> Repo.rollback(reason)
+      end
+    end)
   end
 
   defp ensure_contract(application, adapter) do
