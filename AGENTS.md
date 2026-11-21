@@ -103,6 +103,10 @@ translations.
 - Prefer deterministic validation for correctness; use AI for planning,
   interpretation, suggestions, and bounded generation.
 - Keep Runs auditable and retain evidence for important findings.
+- Keep package lifecycle stages explicit: validate/build, migrate/install, then
+  discover/start. Registry startup must not run Application migrations, and an
+  Instance must never execute against a different Application version than the
+  one it pins.
 - Start integrations with the least invasive acquisition method that can prove
   value, such as uploaded snapshots, APIs, or read-only collection.
 
@@ -138,6 +142,10 @@ solution that requires it now. See
   the runtime registry; it is not a platform dependency.
 - The platform owns stable generic Application routes and dynamically mounts
   package-declared LiveView surfaces.
+- External registered OTP Applications are started with their supervision trees.
+  Package manifests are checked against compiled definitions, Application
+  migrations run through an explicit task, and Instance access enforces the
+  exact registered version.
 - Application packages declare a shared icon, one new-Instance surface, and one
   default Instance surface. The sidebar is Instance-first and canonical
   `/applications/:instance_id` URLs resolve through that default declaration.

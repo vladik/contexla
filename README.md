@@ -97,6 +97,10 @@ The platform now compiles and boots without concrete Applications. Digital
 Estate Assessment and Drupal compile independently and are loaded through the
 SDK registry; the Application owns its PostgreSQL schema, migrations, execution,
 reports, and UI surfaces behind generic platform routes.
+External registered packages now start as real OTP Applications. Package builds
+validate manifest identity against compiled definitions, Application migrations
+run explicitly rather than during registry startup, and configured Instances
+refuse to execute against a different installed Application version.
 The platform owns the shared authenticated shell and visual system, while the
 independent `contexla_ui` package gives Applications route-free components and
 semantic styling without coupling them to platform web code.

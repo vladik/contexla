@@ -1,18 +1,23 @@
-# Contexla
+# Contexla platform
 
-To start your Phoenix server:
+The Phoenix host for Contexla authentication, generic Application routing,
+package/runtime services, Artifacts, Capability execution, and the shared
+authenticated shell.
 
-* Run `mix setup` to install and setup dependencies
-* Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+The platform depends on the Application and Integration SDKs. It must compile
+and boot without Digital Estate Assessment, Drupal, or any other concrete
+package.
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+For local setup and source-linked package registration, see
+[`docs/development/getting-started.md`](../docs/development/getting-started.md).
+The default local URL is <http://localhost:4100>.
 
-Ready to run in production? Please [check our deployment guides](https://phoenix.hexdocs.pm/deployment.html).
+Registered Application migrations are explicit:
 
-## Learn more
+```powershell
+mix ecto.migrate
+mix contexla.packages.migrate
+```
 
-* Official website: https://www.phoenixframework.org/
-* Guides: https://phoenix.hexdocs.pm/overview.html
-* Docs: https://phoenix.hexdocs.pm
-* Forum: https://elixirforum.com/c/phoenix-forum
-* Source: https://github.com/phoenixframework/phoenix
+Package discovery and platform startup never run Application-owned migrations
+implicitly.

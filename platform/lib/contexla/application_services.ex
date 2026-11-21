@@ -25,8 +25,10 @@ defmodule Contexla.ApplicationServices do
 
   def invoke_capability(actor_id, instance_id, key, version, input) do
     scope = scope!(actor_id)
-    instance = Applications.get_instance!(scope, instance_id)
-    Capabilities.invoke(scope, instance, key, version, input)
+
+    with {:ok, instance} <- Applications.fetch_instance(scope, instance_id) do
+      Capabilities.invoke(scope, instance, key, version, input)
+    end
   end
 
   def enqueue(worker, args) when is_atom(worker) and is_map(args) do

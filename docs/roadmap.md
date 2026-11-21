@@ -12,6 +12,11 @@ As of 2026-11-21, the repository proves:
   Integration dependency;
 - independently compiled Application and Integration BEAM paths are discovered
   and contract-validated through the runtime registry;
+- registered external packages start as OTP Applications with their supervision
+  trees, while package discovery remains free of migration side effects;
+- Application manifests are checked against compiled definitions, owned
+  migrations run explicitly, and Instance access enforces the pinned package
+  version;
 - Digital Estate Assessment owns its services, executor, workers, UI surfaces,
   reports, PostgreSQL schema, and migrations;
 - an administrator can be bootstrapped without public registration or a shared

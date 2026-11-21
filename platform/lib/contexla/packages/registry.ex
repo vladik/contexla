@@ -20,6 +20,9 @@ defmodule Contexla.Packages.Registry do
   @spec applications() :: [ApplicationSDK.Definition.t()]
   def applications, do: GenServer.call(__MODULE__, :applications)
 
+  @spec application_entries() :: [{module(), ApplicationSDK.Definition.t()}]
+  def application_entries, do: GenServer.call(__MODULE__, :application_entries)
+
   @spec integrations() :: [IntegrationSDK.Definition.t()]
   def integrations, do: GenServer.call(__MODULE__, :integrations)
 
@@ -63,6 +66,15 @@ defmodule Contexla.Packages.Registry do
   @impl true
   def handle_call(:applications, _from, state) do
     {:reply, definitions(state.applications), state}
+  end
+
+  def handle_call(:application_entries, _from, state) do
+    entries =
+      state.applications
+      |> Map.values()
+      |> Enum.sort_by(fn {_module, definition} -> definition.id end)
+
+    {:reply, entries, state}
   end
 
   def handle_call(:integrations, _from, state) do
@@ -175,7 +187,12 @@ defmodule Contexla.Packages.Registry do
     end)
   end
 
-  defp load_application(module) when is_atom(module), do: ApplicationSDK.validate_module(module)
+  defp load_application(module) when is_atom(module) do
+    with {:ok, definition} <- ApplicationSDK.validate_module(module),
+         :ok <- maybe_start_registered_application(definition.otp_application) do
+      {:ok, definition}
+    end
+  end
 
   defp load_application(%{ebin: ebin, entry_module: entry_module}) do
     module = Module.concat([entry_module])
@@ -184,7 +201,7 @@ defmodule Contexla.Packages.Registry do
          true <- Code.ensure_loaded?(module),
          {:ok, definition} <- ApplicationSDK.validate_module(module),
          :ok <- load_otp_application(definition.otp_application),
-         :ok <- migrate_application(module) do
+         :ok <- start_otp_application(definition.otp_application) do
       {:ok, definition}
     else
       false -> {:error, :entry_module_not_loaded}
@@ -192,7 +209,12 @@ defmodule Contexla.Packages.Registry do
     end
   end
 
-  defp load_integration(module) when is_atom(module), do: IntegrationSDK.validate_module(module)
+  defp load_integration(module) when is_atom(module) do
+    with {:ok, definition} <- IntegrationSDK.validate_module(module),
+         :ok <- maybe_start_registered_application(definition.otp_application) do
+      {:ok, definition}
+    end
+  end
 
   defp load_integration(%{ebin: ebin, entry_module: entry_module}) do
     module = Module.concat([entry_module])
@@ -200,19 +222,12 @@ defmodule Contexla.Packages.Registry do
     with true <- Code.append_path(String.to_charlist(ebin)),
          true <- Code.ensure_loaded?(module),
          {:ok, definition} <- IntegrationSDK.validate_module(module),
-         :ok <- load_otp_application(definition.otp_application) do
+         :ok <- load_otp_application(definition.otp_application),
+         :ok <- start_otp_application(definition.otp_application) do
       {:ok, definition}
     else
       false -> {:error, :entry_module_not_loaded}
       {:error, reason} -> {:error, reason}
-    end
-  end
-
-  defp migrate_application(module) do
-    if function_exported?(module, :migrate_install, 1) do
-      module.migrate_install(Contexla.Repo)
-    else
-      :ok
     end
   end
 
@@ -221,6 +236,27 @@ defmodule Contexla.Packages.Registry do
       :ok -> :ok
       {:error, {:already_loaded, ^application}} -> :ok
       {:error, reason} -> {:error, {:application_load_failed, reason}}
+    end
+  end
+
+  defp start_otp_application(application) do
+    if Application.get_env(:contexla, :start_registered_packages, true) do
+      case Application.ensure_all_started(application) do
+        {:ok, _started} -> :ok
+        {:error, reason} -> {:error, {:application_start_failed, reason}}
+      end
+    else
+      :ok
+    end
+  end
+
+  # Test fixtures and code compiled directly into the host may use the host OTP
+  # Application. It is already being started while this registry initializes.
+  defp maybe_start_registered_application(:contexla), do: :ok
+
+  defp maybe_start_registered_application(application) do
+    with :ok <- load_otp_application(application) do
+      start_otp_application(application)
     end
   end
 

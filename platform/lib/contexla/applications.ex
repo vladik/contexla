@@ -46,14 +46,38 @@ defmodule Contexla.Applications do
 
   @doc "Gets an Application Instance visible in this installation."
   def get_instance!(%Scope{user: %Contexla.Accounts.User{}}, id) do
-    Repo.get!(ApplicationInstance, id)
+    instance = Repo.get!(ApplicationInstance, id)
+
+    case ensure_compatible(instance) do
+      {:ok, compatible} ->
+        compatible
+
+      {:error, reason} ->
+        raise ArgumentError, "incompatible Application Instance: #{inspect(reason)}"
+    end
   end
 
   @doc "Fetches an Application Instance without raising."
   def fetch_instance(%Scope{user: %Contexla.Accounts.User{}}, id) do
     case Repo.get(ApplicationInstance, id) do
       nil -> {:error, :instance_not_found}
-      instance -> {:ok, instance}
+      instance -> ensure_compatible(instance)
+    end
+  end
+
+  @doc "Checks that an Instance can run against the exact installed Application version."
+  def ensure_compatible(%ApplicationInstance{} = instance) do
+    case Registry.fetch_application(instance.application_id) do
+      {:ok, %{version: version}} when version == instance.application_version ->
+        {:ok, instance}
+
+      {:ok, %{version: installed_version}} ->
+        {:error,
+         {:application_version_mismatch,
+          %{pinned: instance.application_version, installed: installed_version}}}
+
+      {:error, :not_found} ->
+        {:error, :application_not_installed}
     end
   end
 

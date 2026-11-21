@@ -60,9 +60,11 @@ mix phx.server
 
 Open `http://localhost:4100` when using the source-linked development launcher.
 
-Database setup includes platform and Oban tables only. An installed Application
-runs its own migrations into its owned PostgreSQL schema when the package is
-loaded. In tests, Oban uses manual mode.
+Database setup includes platform and Oban tables only. Application package
+discovery never changes the database. After registering a curated package set,
+run `mix contexla.packages.migrate` explicitly to apply migrations into each
+Application-owned schema. The source-linked development launcher performs this
+step before starting the server. In tests, Oban uses manual mode.
 
 To compile the Assessment and Drupal packages independently and start the
 platform with them source-linked through the runtime registry, run from the

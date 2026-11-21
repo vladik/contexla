@@ -20,6 +20,11 @@ supported shared icon, operations, and UI surfaces. Every regular entry except `
 a lower-case SHA-256 checksum. ZIP entry metadata is fixed so identical compiled
 inputs produce identical package bytes and digest.
 
+The builder validates that identity, name, icon, version, OTP Application,
+entry module, database schema, Operations, and surfaces agree with the compiled
+Application definition. A package is rejected when its human-readable manifest
+and executable contract disagree.
+
 Build an Application from its independent Mix project:
 
 ```powershell
@@ -91,9 +96,12 @@ declaration and loader are deferred until a real Application requires them.
 
 ## Implementation status
 
-The SDK builder and source-linked runtime loader are implemented. The production
+The SDK builder, compiled-definition identity validation, exact Instance version
+guard, explicit Application migration task, and source-linked runtime loader are
+implemented. Registered external OTP Applications are started with their
+supervision trees. The production
 installer still needs to validate archive paths, sizes, checksums, manifest/BEAM
-identity, module collisions, SDK/Elixir/OTP compatibility, stage content-addressed
+module collisions, Elixir/OTP compatibility, stage content-addressed
 package files, and activate them only on controlled restart. It must feed the
 same registry path used by source-linked development packages.
 

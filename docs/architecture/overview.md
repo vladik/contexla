@@ -92,10 +92,12 @@ later, but are not required to prove the model.
 ## Application installation and instances
 
 An Application package is installed once without recompiling the platform. Its
-manifest identifies its OTP application and SDK entry module. At controlled
-startup, Contexla loads and validates the compiled package, runs its owned
-migrations, and registers its declared UI surfaces and operations. A user then creates
-one or more Application Instances, for example:
+manifest identifies its OTP application and SDK entry module. During controlled
+installation, Contexla validates manifest/compiled-definition identity and runs
+owned migrations explicitly. At startup, Contexla starts the package OTP
+Application and registers its declared UI surfaces and Operations without
+mutating the database. A user then creates one or more Application Instances,
+for example:
 
 ```text
 Installed Application: Digital Estate Assessment
@@ -124,6 +126,12 @@ hold configuration and rows identified by `application_instance_id`; they are
 not separate copies of code or separate schemas. For example,
 `contexla_estate` is owned by the Digital Estate Assessment package while
 platform tables remain in `public`.
+
+An Instance is pinned to the exact Application version used to create it. The
+initial runtime supports one active version per Application ID and refuses to
+mount or execute an Instance when its pinned version differs. Upgrades therefore
+require an explicit future compatibility/migration decision rather than silently
+running old Instances with new code.
 
 ## Secrets and offline operation
 

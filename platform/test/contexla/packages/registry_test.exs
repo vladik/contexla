@@ -17,6 +17,7 @@ defmodule Contexla.Packages.RegistryTest do
     assert application.id == "com.contexla.test.application"
 
     assert {:ok, ^application} = Registry.fetch_application(application.id)
+    assert [{Contexla.TestApplication, ^application}] = Registry.application_entries()
   end
 
   test "registers an Integration through its SDK definition" do

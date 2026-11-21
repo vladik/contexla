@@ -50,6 +50,24 @@ defmodule Contexla.ApplicationsTest do
              })
   end
 
+  test "refuses to run an Instance against a different installed Application version", %{
+    scope: scope
+  } do
+    {:ok, instance} =
+      Applications.create_instance(scope, %{
+        "application_id" => "com.contexla.test.application",
+        "name" => "Version pinned",
+        "config" => %{}
+      })
+
+    instance
+    |> Ecto.Changeset.change(application_version: "0.9.0")
+    |> Repo.update!()
+
+    assert {:error, {:application_version_mismatch, %{pinned: "0.9.0", installed: "1.0.0"}}} =
+             Applications.fetch_instance(scope, instance.id)
+  end
+
   test "updates Instance identity and uses an icon override in navigation", %{scope: scope} do
     {:ok, instance} =
       Applications.create_instance(scope, %{
