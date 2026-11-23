@@ -8,7 +8,8 @@ may use friendlier labels, but it must not silently change their meaning.
 A reusable, independently useful business Application installed in Contexla. An
 Application owns its domain behavior and may own tables, workers, UI, APIs,
 reports, and Application-specific Adapters. Digital Estate Assessment is the
-first Application.
+first implemented architecture proof; Content Integrity Monitor is the current
+portfolio hypothesis.
 
 An Application is code and metadata, not a customer's configured assessment.
 

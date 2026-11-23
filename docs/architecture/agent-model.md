@@ -24,15 +24,17 @@ An operating agent can:
 Example:
 
 ```text
-User: Audit our XYZ CMS.
+User: Monitor these product facts and tell me when the website or search index
+      differs from the catalog API.
 
 Agent:
-  - identifies Digital Estate Assessment;
-  - checks for an Adapter that implements the estate-source contract;
-  - checks for a usable Connection or snapshot import;
-  - explains missing access or collection instructions;
-  - creates an Application Instance after confirmation;
-  - starts a deterministic assessment Run;
+  - identifies Content Integrity Monitor;
+  - inspects its Operations and required Capability contracts;
+  - checks for usable source and representation Connections or imports;
+  - proposes entity, fact, extraction, normalization, and comparison mappings;
+  - explains unsupported sources or missing access precisely;
+  - creates or updates an Application Instance after approval;
+  - starts a deterministic integrity Run;
   - explains the evidence-backed findings.
 ```
 

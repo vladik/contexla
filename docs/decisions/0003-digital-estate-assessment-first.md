@@ -3,6 +3,11 @@
 Status: Accepted
 Date: 2026-11-19
 
+Current priority note: this ADR remains the historical decision for the first
+implemented architecture proof. [ADR 0023](0023-portfolio-led-market-development.md)
+changes the active commercial priority and retains Digital Estate Assessment as
+an architecture proof.
+
 ## Context
 
 The agency sees current demand for Sitecore modernization and Drupal estate

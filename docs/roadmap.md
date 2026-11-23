@@ -5,7 +5,7 @@ and leaves behind something usable.
 
 ## Current implementation status
 
-As of 2026-11-21, the repository proves:
+As of 2026-11-23, the repository proves:
 
 - the Phoenix/PostgreSQL platform boots against a repository-local database;
 - the platform compiles, boots, and is tested with no concrete Application or
@@ -66,9 +66,78 @@ As of 2026-11-21, the repository proves:
 The Application boundary and technical vertical slice work against controlled
 fixtures and a synthetic Drupal installation. Source-linked development loading
 is implemented; validated archive installation remains a later package-lifecycle
-step. The synthetic Drupal proof does not validate the commercial outcome. The
-next proof is running against real college evidence and obtaining customer
-acceptance.
+step. The synthetic Drupal proof does not validate the commercial outcome.
+Digital Estate Assessment is now retained as an architecture proof rather than
+the active commercial priority.
+
+## Current proof sequence - Content Integrity Monitor
+
+The current portfolio hypothesis and its business rationale are defined in
+[business intent and current priorities](product/business-intent-and-priorities.md).
+
+### Proof A - Standalone product contract
+
+**Question:** Is Content Integrity Monitor an independently useful Application
+with a bounded, understandable first demonstration?
+
+- define Entity, Fact, Source, Representation, Observation, Comparison Policy,
+  Finding, Evidence, and Run only to the depth required by the proof;
+- define the user, inputs, outputs, first supported source types, and explicit
+  exclusions;
+- create a synthetic CMS/API/web/search or delivery scenario with deliberate
+  missing, stale, and inconsistent facts;
+- define the public demonstration, buyer questions, and stop condition before
+  implementation expands.
+
+### Proof B - Deterministic integrity vertical slice
+
+**Question:** Can Contexla compare configured facts across authoritative and
+delivered representations and preserve actionable evidence?
+
+- acquire authoritative JSON or CSV;
+- acquire configured HTTP JSON and HTML representations;
+- extract and normalize a small set of typed values;
+- compare equality, missing, stale, and unavailable states;
+- persist Runs, Observations, Findings, and Evidence in the Application-owned
+  domain;
+- show new, ongoing, and resolved Findings in a coherent Application UI and
+  report.
+
+### Proof C - Portfolio validation
+
+**Question:** Does the completed demonstration create useful buyer conversations
+or related project opportunities?
+
+- publish the working scenario rather than a hypothetical platform description;
+- show it through the agency website, articles, LinkedIn, and direct outreach;
+- test whether prospects can name critical facts, authoritative sources, and
+  failing downstream representations;
+- seek a bounded pilot, integration, deployment, or adjacent project;
+- deepen, reposition, or stop based on response rather than adding speculative
+  features.
+
+### Proof D - Agent operation
+
+**Question:** Can an agent configure and operate the deterministic integrity
+workflow through declared Application Operations and stored evidence?
+
+Manual UI/API operation remains first-class. The agent inspects available
+contracts, proposes mappings and configuration, requests approval, starts Runs,
+monitors Activity, and explains Findings without becoming the source of truth.
+
+### Proof E - Agent extension
+
+**Question:** Can an agent create or select a missing Processor for one real
+integrity operation without changing the platform or Application core?
+
+Use the existing Capability, Binding, validation, approval, and Invocation
+boundaries. Do not introduce Python or generated code merely to demonstrate the
+runtime.
+
+## Historical foundation sequence
+
+The following proofs explain how the current foundation was built. They remain
+architectural history, not the active commercial sequence.
 
 ## Proof 0 — Commercial problem
 
@@ -154,14 +223,15 @@ needed.
 
 **Question:** Is Contexla a platform rather than assessment-specific software?
 
-Build the next commercially validated Application—likely Accessibility Monitor,
-Migration Verification, or Content Integrity—and reuse proven execution,
-Connections, artifacts, Capabilities, and UI conventions.
+Build Content Integrity Monitor as an independently useful package and reuse
+proven execution, artifacts, Operations, Capabilities, and UI conventions. Add
+Connections only when the first supported acquisition path needs them.
 
 ## Later direction
 
-Only after the above proofs should the platform expand toward Content Transport,
-publishing gates, broader CMS migration, syndication, and deeper autonomous
+Only after the current Content Integrity proofs should the portfolio or platform
+expand toward additional Applications, broad vendor integration, Content
+Transport, publishing gates, migration, syndication, or deeper autonomous
 planning.
 
 Runtime package marketplaces, arbitrary customer package combinations, and

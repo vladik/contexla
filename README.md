@@ -38,25 +38,29 @@ Connectors, evidence, validation, and auditable execution remain authoritative.
 Every core workflow must be usable manually through UI or API when an
 installation has no AI access.
 
-## Initial commercial direction
+## Business direction
 
-The first proposed Application is **Digital Estate Assessment**. It addresses
-current agency opportunities such as CMS modernization, Drupal estate audits,
-Sitecore migration discovery, integration inventory, and accessibility
-readiness.
-
-The first version should produce a useful, evidence-backed assessment from a
-controlled snapshot or a narrowly scoped Drupal integration. It should not try
-to become a universal scanner before proving customer demand.
+Contexla is a portfolio-led product asset for a small CMS-focused agency.
+Focused, independently useful Applications provide working demonstrations for
+marketing and sales, reusable foundations for client delivery, and a path from
+consulting projects to integration, support, managed operation, and future
+licensing. An Application may be built as a bounded market hypothesis before a
+contract exists; it must still have a clear standalone job, demonstrable value,
+and an explicit stop condition.
 
 The initial business model is solution-led, platform-backed, and
-service-assisted. Customers buy a defined assessment, modernization,
-verification, or assurance outcome. Contexla is the reusable product foundation
-that makes delivery repeatable and extensible; it is not initially sold as a
-generic Application marketplace. Early deployments are curated for the agreed
-solution without creating customer-specific code forks.
+service-assisted. Marketing leads with a recognizable customer problem and
+outcome. Contexla is the reusable delivery foundation, not initially a generic
+Application marketplace. Early deployments are curated for the agreed solution
+without creating customer-specific code forks.
 
-See the [solution-led commercial model](docs/product/solution-led-commercial-model.md).
+Digital Estate Assessment is retained as an architecture proof, not the current
+commercial priority. The current first serious portfolio hypothesis is
+**Content Integrity Monitor**: detect when important facts are missing, stale,
+or inconsistent across authoritative sources and delivered representations.
+
+See [business intent and current priorities](docs/product/business-intent-and-priorities.md)
+and the [solution-led commercial model](docs/product/solution-led-commercial-model.md).
 
 ## Architecture vocabulary
 

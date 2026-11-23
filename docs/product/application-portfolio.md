@@ -10,12 +10,24 @@ buyers are offered a focused outcome through a curated solution distribution,
 not asked to assemble Applications from a marketplace. See the
 [solution-led commercial model](solution-led-commercial-model.md).
 
-## Near-term portfolio
+## Current status and candidate portfolio
 
-### Digital Estate Assessment
+### Content Integrity Monitor - current portfolio hypothesis
+
+Are important facts missing, stale, or inconsistent across authoritative
+sources, CMS delivery, websites, APIs, search, and other representations?
+
+The first proof is deliberately limited to configured facts across JSON/CSV,
+HTTP JSON, and HTML. It detects and preserves evidence; it does not remediate or
+synchronize content.
+
+### Digital Estate Assessment - architecture proof, product investment paused
 
 What exists in this content estate, how is it connected, and what creates cost,
 risk, or migration complexity?
+
+The implemented slice proved platform mechanics but has not demonstrated enough
+standalone customer value to remain the commercial priority.
 
 ### Migration Readiness and Verification
 
@@ -26,10 +38,6 @@ content correctly?
 
 Did accessibility regress, and does content satisfy required rules before it is
 published?
-
-### Content Integrity
-
-Do authoritative facts agree across CMS, website, API, PDF, ERP, and search?
 
 ### Content Transport
 
@@ -42,9 +50,14 @@ What did a public page look like before, and what meaningfully changed?
 
 ## Portfolio discipline
 
-An Application should be added only when there is evidence for the use case and
-an implementation phase is beginning. Do not create empty OTP applications for
-the entire roadmap.
+An Application should be added only when its standalone job, demonstration,
+bounded proof, and commercial relevance are explicit and implementation is
+beginning. Evidence may be a paid need or a bounded market hypothesis grounded
+in observed problems and agency expertise. Do not create empty OTP Applications
+for the entire roadmap.
+
+See [business intent and current priorities](business-intent-and-priorities.md)
+for the selection test and current sequence.
 
 Applications can share:
 

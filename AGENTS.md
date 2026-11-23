@@ -126,19 +126,31 @@ translations.
 
 ## Current sequence
 
-1. Validate Digital Estate Assessment with real buyer conversations and a
-   manually deliverable assessment shape.
-2. Run the implemented fixture-backed vertical slice against real college
-   evidence and refine its input/output contract.
-3. Add an isolated Python Processor only for a real assessment operation that
-   the native slice cannot reasonably provide.
-4. Add agent operation only after the deterministic assessment is accepted.
-5. Prove reuse through a second paid or strongly validated Application.
+Contexla uses portfolio-led market development: independently useful
+Applications are working demonstrations that help the agency create demand and
+win broader integration and automation projects. A paid need is the strongest
+signal but is not required before a bounded portfolio proof. Read
+`docs/product/business-intent-and-priorities.md` before proposing product work.
 
-Do not implement later roadmap phases unless the current proof requires them.
-Before adding platform infrastructure, identify the paid or strongly validated
-solution that requires it now. See
-`docs/product/solution-led-commercial-model.md` for the commercial build gate.
+1. Treat Digital Estate Assessment as an architecture proof. Do not extend it
+   unless it is needed as a technical fixture or a buyer specifically validates
+   its standalone outcome.
+2. Define the standalone Content Integrity Monitor contract, synthetic
+   demonstration, first proof boundary, and stop condition.
+3. Build the smallest deterministic slice across authoritative JSON/CSV and
+   configured HTTP JSON/HTML representations.
+4. Publish and show the completed use case before broadening integrations,
+   comparison behavior, or platform infrastructure.
+5. Add Agent operation only after the deterministic Application works manually
+   through the same Application services.
+6. Add an isolated or agent-generated Processor only for a real missing
+   operation exposed by the proof.
+7. Start another Application only when it passes the standalone-value and
+   bounded-portfolio tests.
+
+Before adding platform infrastructure, identify the current Application proof
+or strongly supported customer outcome that requires it. Portfolio-led does not
+mean building the hypothetical full platform.
 
 ## Current implementation state
 
@@ -211,7 +223,10 @@ solution that requires it now. See
 - The synthetic proof is not real buyer evidence and must not be presented as
   commercial validation. Local DDEV database checkpoints and generated ZIPs are
   development state, not repository fixtures or customer artifacts.
-- The next priority is real college evidence and customer review. Refine the
-  snapshot contract, rules, and report from that evidence before adding agents,
-  Python Processors, live Connections, or a second Application.
+- Digital Estate Assessment is retained as an architecture proof, not the
+  current commercial priority. The active portfolio hypothesis is a generic
+  Content Integrity Monitor that detects missing, stale, or inconsistent facts
+  across configured authoritative sources and delivered representations. Its
+  first proof must remain bounded as described in
+  `docs/product/business-intent-and-priorities.md`.
 

@@ -59,20 +59,26 @@ The long-term portfolio answers five families of questions:
 
 ## Commercial model hypothesis
 
-The likely initial motion is consulting-led productization:
+The likely initial motion combines portfolio-led market development with
+consulting-led productization:
 
-1. sell a clearly scoped customer outcome rather than a generic platform;
-2. use an Application to deliver that outcome with evidence and repeatability;
-3. turn repeated paid delivery work into reusable product functionality;
-4. use the lowest-friction approved delivery mode, from bounded snapshot service
-   to customer-hosted execution;
-5. expand successful assessments into planning, implementation, verification,
-   managed assurance, and support;
-6. develop repeatable licenses or subscriptions only when they strengthen a
-   validated buying motion.
+1. build a bounded, independently useful Application around a recognizable
+   problem adjacent to the agency's expertise;
+2. use the working demonstration to create credible public content and buyer
+   conversations;
+3. sell a clearly scoped customer outcome rather than a generic platform;
+4. use the Application to deliver that outcome with evidence and repeatability;
+5. turn buyer feedback and repeated delivery work into reusable product
+   functionality;
+6. use the lowest-friction approved delivery mode, from bounded service to
+   customer-hosted execution;
+7. expand successful use cases into integration, implementation, support,
+   managed operation, and future licensing where demand supports them.
 
-This is a hypothesis to validate. Product scope must be driven by paid needs,
-not feature volume.
+Paid demand is the strongest validation but is not required before every
+bounded portfolio proof. Product scope must be driven by recognizable problems,
+demonstrable value, and explicit proof and stop conditions, not feature volume.
+See [business intent and current priorities](business-intent-and-priorities.md).
 
 See [the solution-led commercial model](solution-led-commercial-model.md) for
 distribution, customization, and build gates.

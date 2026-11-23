@@ -4,11 +4,12 @@ The documentation is organized by the kind of decision it supports.
 
 ## Product
 
+- [Business intent and current priorities](product/business-intent-and-priorities.md)
 - [Vision and positioning](product/vision.md)
 - [Solution-led commercial model](product/solution-led-commercial-model.md)
 - [Initial market wedge](product/initial-market.md)
 - [Application portfolio](product/application-portfolio.md)
-- [Digital Estate Assessment v1](product/digital-estate-assessment-v1.md)
+- [Digital Estate Assessment v1 architecture proof](product/digital-estate-assessment-v1.md)
 
 ## Architecture
 

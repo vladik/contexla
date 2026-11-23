@@ -44,6 +44,7 @@ Date: YYYY-MM-DD
 - [0020: Bound audit data and persisted failures](0020-bounded-audit-and-error-data.md)
 - [0021: Explicit release installation and operations](0021-explicit-release-operations.md)
 - [0022: Administrator operations visibility](0022-admin-operations-console.md)
+- [0023: Portfolio-led market development](0023-portfolio-led-market-development.md)
 
 Create additional ADRs when implementation makes choices concrete, for
 example:

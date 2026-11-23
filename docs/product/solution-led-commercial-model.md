@@ -99,21 +99,20 @@ multiple solutions to existing installations.
 
 ## Consulting and revenue path
 
-The assessment is a valuable deliverable and also a responsible entry point to
-larger work:
+An independently useful Application or bounded service can be a responsible
+entry point to larger work:
 
 ```text
 qualified problem
-    -> paid bounded assessment
-    -> modernization roadmap
-    -> remediation or migration delivery
-    -> migration verification
-    -> ongoing monitoring and assurance
+    -> working demonstration or bounded pilot
+    -> configured deployment or integration project
+    -> implementation and support
+    -> ongoing monitoring or operation
     -> expansion and referrals
 ```
 
-The assessment must remain independently useful. Recommendations must support
-the customer's decision rather than manufacture follow-on work.
+The initial Application or deliverable must remain independently useful and
+must not manufacture follow-on work.
 
 Initial revenue can combine:
 
@@ -141,8 +140,10 @@ judgment can be eliminated.
 - Never create a customer fork.
 - Begin a customer-specific operation at Instance scope and promote it only
   after demonstrated reuse.
-- Build a second Application only for a paid or strongly validated independent
-  outcome with its own domain and lifecycle.
+- Build another Application only when it has an independently useful outcome,
+  a bounded promotable proof, agency adjacency, and a clear stop condition.
+  Paid demand is strongest, but a disciplined portfolio hypothesis may justify
+  the initial proof before a contract exists.
 - Allow small standalone collectors, diagnostics, or lead-generation tools when
   forcing them into the platform would slow market learning. Promote successful
   operations into Contexla later.
@@ -151,7 +152,8 @@ judgment can be eliminated.
 
 Before implementing platform or package-lifecycle infrastructure, answer:
 
-> Which paid or strongly validated solution requires this now?
+> Which current Application proof or strongly supported customer outcome
+> requires this now?
 
 If there is no concrete answer, defer the feature. In particular, do not build
 a marketplace, universal workflow builder, autonomous planning system, broad
@@ -163,15 +165,15 @@ more platform-like.
 Track business proof alongside software proof:
 
 - qualified buyer conversations and their trigger events;
-- conversion from conversation to paid assessment;
-- time from approved evidence to draft report;
+- engagement with a completed demonstration or public use case;
+- conversion from conversation to a paid pilot, integration, or deployment;
+- time from approved inputs to useful output;
 - percentage of delivery reused without modification;
 - new code and manual effort required per engagement;
-- findings that changed a customer decision;
-- conversion from assessment to roadmap or implementation;
-- attachment of recurring assurance or support;
+- Findings or evidence that changed a customer action or decision;
+- conversion to implementation, support, or ongoing operation;
 - gross delivery margin and support load;
-- reusable Integrations and Capabilities produced by paid work.
+- reusable Integrations, Capabilities, and Processors produced by delivery.
 
 The objective is not zero consulting. It is increasingly valuable consulting
 with higher leverage, stronger evidence, reusable intellectual property, and a
