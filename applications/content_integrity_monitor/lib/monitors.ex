@@ -96,7 +96,9 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
       monitors: monitors,
       runs: runs,
       issues: issues,
-      issue_details: issue_details(monitors, issues)
+      issue_details: issue_details(monitors, issues),
+      matrices: latest_matrices(monitors),
+      active_runs: active_runs(runs)
     }
   end
 
@@ -287,6 +289,60 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
          evidence: current && current.evidence
        }}
     end)
+  end
+
+  defp latest_matrices([]), do: %{}
+
+  defp latest_matrices(monitors) do
+    monitor_ids = Enum.map(monitors, & &1.id)
+
+    succeeded_runs =
+      Run
+      |> where([r], r.monitor_id in ^monitor_ids and r.status == :succeeded)
+      |> order_by([r], desc: r.completed_at)
+      |> repo().all()
+
+    last_runs =
+      Enum.reduce(succeeded_runs, %{}, fn run, acc ->
+        Map.put_new(acc, run.monitor_id, run)
+      end)
+
+    run_ids = last_runs |> Map.values() |> Enum.map(& &1.id)
+
+    cells_by_run =
+      if run_ids == [] do
+        %{}
+      else
+        Observation
+        |> where([o], o.run_id in ^run_ids)
+        |> repo().all()
+        |> Enum.group_by(& &1.run_id)
+        |> Map.new(fn {run_id, obs} ->
+          {run_id, Map.new(obs, &{{&1.source_id, &1.fact_definition_id}, &1})}
+        end)
+      end
+
+    Map.new(monitors, fn monitor ->
+      run = last_runs[monitor.id]
+      cells = if run, do: Map.get(cells_by_run, run.id, %{}), else: %{}
+
+      sources =
+        Enum.sort_by(monitor.sources, fn s ->
+          {if(s.role == :authority, do: 0, else: 1), s.name}
+        end)
+
+      facts = Enum.sort_by(monitor.facts, & &1.name)
+      authority_id = Enum.find_value(sources, fn s -> if s.role == :authority, do: s.id end)
+
+      {monitor.id,
+       %{run: run, sources: sources, facts: facts, cells: cells, authority_id: authority_id}}
+    end)
+  end
+
+  defp active_runs(runs) do
+    runs
+    |> Enum.filter(&(&1.status in [:queued, :running, :waiting_tools]))
+    |> Enum.reduce(%{}, fn run, acc -> Map.put_new(acc, run.monitor_id, run) end)
   end
 
   defp valid_transition(:open, :acknowledged), do: :ok

@@ -80,9 +80,20 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.OverviewLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.application_frame id="integrity-overview" icon="hero-shield-check" title={@instance.name} subtitle={@instance.config["purpose"]} flash={assigns[:flash]}>
+    <.application_frame
+      id="integrity-overview"
+      icon="hero-shield-check"
+      title={@instance.name}
+      flash={assigns[:flash]}
+    >
       <:actions>
-        <a href={"/applications/#{@instance.id}/settings"} class="grid size-8 place-items-center text-text-muted hover:text-text" aria-label="Instance settings"><.icon name="hero-cog-6-tooth" class="size-4" /></a>
+        <a
+          href={"/applications/#{@instance.id}/settings"}
+          class="grid size-8 place-items-center text-text-muted hover:text-text"
+          aria-label="Instance settings"
+        >
+          <.icon name="hero-cog-6-tooth" class="size-4" />
+        </a>
       </:actions>
       <:navigation>
         <.tabs id="integrity-navigation">
@@ -91,69 +102,164 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.OverviewLive do
         </.tabs>
       </:navigation>
 
-      <div class="grid gap-4 sm:grid-cols-3">
-        <.stat label="Monitors" value={length(@overview.monitors)} />
-        <.stat label="Open issues" value={unresolved_count(@overview.issues)} />
-        <.stat label="Runs" value={length(@overview.runs)} />
-      </div>
-
       <div :if={@overview.monitors == []} class="mt-6">
-        <.empty_state title="Create the first integrity Monitor" description="Use the bounded program-content demonstration to prove acquisition, extraction, comparison, evidence, and Issue history.">
-          <:actions><.button id="setup-integrity-demo" phx-click="setup_demo" variant="primary">Create demonstration</.button></:actions>
+        <.empty_state
+          title="Set up your first content integrity check"
+          description="Create the demonstration to see how Contexla detects when published content differs from its authoritative source across all delivery systems."
+        >
+          <:actions>
+            <.button id="setup-integrity-demo" phx-click="setup_demo" variant="primary">
+              Create demonstration
+            </.button>
+          </:actions>
         </.empty_state>
       </div>
 
-      <div :if={@overview.monitors != []} class="mt-6 grid gap-4 xl:grid-cols-[1fr_1.35fr]">
-        <.panel title="Monitors" description="Configured integrity questions and their latest execution.">
-          <div class="divide-y divide-border">
-            <div :for={monitor <- @overview.monitors} id={"monitor-#{monitor.id}"} class="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
-              <div class="min-w-0">
-                <p class="truncate text-sm font-semibold text-text">{monitor.name}</p>
-                <p class="mt-1 text-xs text-text-muted">{monitor.entity_key} · {length(monitor.sources)} sources · {length(monitor.facts)} facts</p>
-              </div>
-              <.button id={"run-monitor-#{monitor.id}"} phx-click="run" phx-value-monitor_id={monitor.id} size="sm" variant="primary">Run</.button>
-            </div>
-          </div>
-        </.panel>
+      <div :if={@overview.monitors != []} class="mt-6 space-y-4">
+        <div :for={monitor <- @overview.monitors} id={"monitor-#{monitor.id}"}>
+          <% matrix = @overview.matrices[monitor.id] %>
+          <% active = @overview.active_runs[monitor.id] %>
+          <.panel
+            title={monitor.name}
+            description={matrix_description(matrix, active)}
+          >
+            <:actions>
+              <.button
+                id={"run-monitor-#{monitor.id}"}
+                phx-click="run"
+                phx-value-monitor_id={monitor.id}
+                size="sm"
+                variant="primary"
+              >
+                Run
+              </.button>
+            </:actions>
 
-        <.panel title="Current issues" description="Evidence-backed conditions requiring operational attention.">
-          <div :if={unresolved(@overview.issues) == []} class="text-sm text-text-muted">No open issues have been recorded.</div>
-          <div :if={unresolved(@overview.issues) != []} class="divide-y divide-border">
-            <div :for={issue <- unresolved(@overview.issues)} id={"issue-#{issue.id}"} class="py-3 first:pt-0 last:pb-0">
+            <div :if={active} class="flex items-center gap-2 py-6 text-sm text-text-muted">
+              <.icon name="hero-arrow-path" class="size-4 animate-spin" />
+              <span>Run in progress — refresh to see updated results.</span>
+            </div>
+
+            <div :if={!active && matrix.run == nil} class="py-6 text-sm text-text-muted">
+              No results yet. Click <strong class="font-medium text-text">Run</strong>
+              to check content integrity across all sources.
+            </div>
+
+            <div :if={!active && matrix.run != nil} class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-border">
+                    <th class="pb-3 pr-8 text-left text-xs font-medium uppercase tracking-wide text-text-muted">
+                      Fact
+                    </th>
+                    <th
+                      :for={source <- matrix.sources}
+                      class="pb-3 pr-4 text-left text-xs font-medium uppercase tracking-wide text-text-muted"
+                    >
+                      <span class="flex items-center gap-1.5 whitespace-nowrap">
+                        {source.name}
+                        <span
+                          :if={source.role == :authority}
+                          class="rounded bg-primary-subtle px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary"
+                        >
+                          ref
+                        </span>
+                      </span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-border/60">
+                  <tr :for={fact <- matrix.facts}>
+                    <td class="py-3 pr-8 font-medium text-text">{fact.name}</td>
+                    <td :for={source <- matrix.sources} class="py-3 pr-4">
+                      <% obs = matrix.cells[{source.id, fact.id}] %>
+                      <.integrity_badge state={obs && obs.state} />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </.panel>
+        </div>
+
+        <.panel
+          :if={unresolved(@overview.issues) != []}
+          title="Open issues"
+          description="Evidence-backed conditions requiring attention."
+        >
+          <div class="divide-y divide-border">
+            <div
+              :for={issue <- unresolved(@overview.issues)}
+              id={"issue-#{issue.id}"}
+              class="py-4 first:pt-0 last:pb-0"
+            >
               <% detail = @overview.issue_details[issue.id] %>
-              <div class="flex items-center justify-between gap-3">
-                <p class="text-sm font-medium text-text">{issue.summary}</p>
-                <span class="rounded-full bg-danger/10 px-2 py-0.5 text-[11px] font-medium text-danger">{humanize(issue.kind)}</span>
+              <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-text">{issue.fact_definition.name}</p>
+                  <p class="mt-0.5 text-xs text-text-muted">
+                    {issue.source.name} · {issue.monitor.name}
+                  </p>
+                </div>
+                <.integrity_badge state={issue.kind} />
               </div>
-              <dl class="mt-3 grid gap-2 rounded-lg border border-border bg-surface-raised p-3 sm:grid-cols-2">
+              <dl
+                :if={detail.expected || detail.observed}
+                class="mt-3 grid gap-2 rounded-lg border border-border bg-surface-raised p-3 sm:grid-cols-2"
+              >
                 <div>
-                  <dt class="text-[11px] font-medium uppercase tracking-wide text-text-muted">Authoritative</dt>
-                  <dd class="mt-1 text-sm text-text">{display_value(detail.expected)}</dd>
+                  <dt class="text-[11px] font-medium uppercase tracking-wide text-text-muted">
+                    Expected
+                  </dt>
+                  <dd class="mt-1 break-words text-sm text-text">{display_value(detail.expected)}</dd>
                 </div>
                 <div>
-                  <dt class="text-[11px] font-medium uppercase tracking-wide text-text-muted">Observed in {issue.source.name}</dt>
-                  <dd class="mt-1 text-sm text-text">{display_value(detail.observed)}</dd>
+                  <dt class="text-[11px] font-medium uppercase tracking-wide text-text-muted">
+                    Found
+                  </dt>
+                  <dd class="mt-1 break-words text-sm text-text">{display_value(detail.observed)}</dd>
                 </div>
               </dl>
-              <div class="mt-2 flex items-center gap-2">
-                <.button :if={issue.status == :open} id={"acknowledge-issue-#{issue.id}"} phx-click="acknowledge_issue" phx-value-issue_id={issue.id} size="sm" variant="soft">Acknowledge</.button>
-                <.button id={"resolve-issue-#{issue.id}"} phx-click="resolve_issue" phx-value-issue_id={issue.id} size="sm" variant="ghost">Resolve</.button>
+              <div class="mt-3 flex flex-wrap items-center gap-2">
+                <.button
+                  :if={issue.status == :open}
+                  id={"acknowledge-issue-#{issue.id}"}
+                  phx-click="acknowledge_issue"
+                  phx-value-issue_id={issue.id}
+                  size="sm"
+                  variant="soft"
+                >
+                  Acknowledge
+                </.button>
+                <.button
+                  id={"resolve-issue-#{issue.id}"}
+                  phx-click="resolve_issue"
+                  phx-value-issue_id={issue.id}
+                  size="sm"
+                  variant="ghost"
+                >
+                  Resolve
+                </.button>
+                <span class="ml-auto text-xs text-text-muted">
+                  First seen {format_time(issue.first_seen_at)} · {issue.occurrence_count} occurrence(s)
+                </span>
               </div>
-              <p :if={detail.evidence} class="mt-1 text-xs text-text-muted">
-                Evidence {short_id(detail.evidence.response_sha256)} · Tool Invocation {short_id(detail.evidence.tool_invocation_id)} · observed {format_time(detail.observed_at)}
-              </p>
-              <p class="mt-1 text-xs text-text-muted">{issue.monitor.name} · last seen {format_time(issue.last_seen_at)} · {issue.occurrence_count} occurrence(s)</p>
             </div>
           </div>
         </.panel>
-      </div>
 
-      <div :if={@overview.runs != []} class="mt-4">
-        <.panel title="Recent Runs" description="Durable execution history retained by the Application.">
+        <.panel :if={@overview.runs != []} title="Recent runs">
           <div class="divide-y divide-border">
-            <div :for={run <- @overview.runs} id={"run-#{run.id}"} class="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
-              <div><p class="text-sm font-medium text-text">{run.monitor.name}</p><p class="text-xs text-text-muted">{format_time(run.inserted_at)} · {String.slice(run.id, 0, 8)}</p></div>
-              <span class="rounded-full bg-surface-raised px-2 py-0.5 text-[11px] font-medium text-text-muted">{humanize(run.status)}</span>
+            <div
+              :for={run <- Enum.take(@overview.runs, 6)}
+              id={"run-#{run.id}"}
+              class="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0"
+            >
+              <div>
+                <p class="text-sm text-text">{run.monitor.name}</p>
+                <p class="text-xs text-text-muted">{format_time(run.inserted_at)}</p>
+              </div>
+              <.run_status_badge status={run.status} />
             </div>
           </div>
         </.panel>
@@ -162,16 +268,73 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.OverviewLive do
     """
   end
 
-  defp unresolved(issues), do: Enum.reject(issues, &(&1.status == :resolved))
-  defp unresolved_count(issues), do: issues |> unresolved() |> length()
+  attr(:state, :atom, default: nil)
 
-  defp humanize(value),
-    do: value |> to_string() |> String.replace("_", " ") |> String.capitalize()
+  defp integrity_badge(assigns) do
+    {css, icon, label} = badge_attrs(assigns.state)
+    assigns = assign(assigns, css: css, icon: icon, label: label)
+
+    ~H"""
+    <span class={@css}>
+      <.icon name={@icon} class="size-3" />
+      {@label}
+    </span>
+    """
+  end
+
+  attr(:status, :atom, required: true)
+
+  defp run_status_badge(assigns) do
+    {css, label} = run_badge_attrs(assigns.status)
+    assigns = assign(assigns, css: css, label: label)
+
+    ~H"""
+    <span class={@css}>{@label}</span>
+    """
+  end
+
+  defp badge_attrs(:healthy), do: {"badge badge-success", "hero-check", "Healthy"}
+  defp badge_attrs(:pending), do: {"badge badge-warning", "hero-clock", "Pending"}
+  defp badge_attrs(:overdue), do: {"badge badge-warning", "hero-exclamation-triangle", "Overdue"}
+  defp badge_attrs(:mismatch), do: {"badge badge-danger", "hero-x-mark", "Mismatch"}
+  defp badge_attrs(:missing), do: {"badge badge-danger", "hero-minus", "Missing"}
+
+  defp badge_attrs(:unavailable),
+    do: {"badge badge-neutral", "hero-exclamation-circle", "Unavailable"}
+
+  defp badge_attrs(:unknown), do: {"badge badge-neutral", "hero-question-mark-circle", "Unknown"}
+  defp badge_attrs(nil), do: {"badge badge-neutral", "hero-minus", "—"}
+
+  defp run_badge_attrs(:succeeded), do: {"badge badge-success", "Completed"}
+  defp run_badge_attrs(:failed), do: {"badge badge-danger", "Failed"}
+  defp run_badge_attrs(:running), do: {"badge badge-warning", "Running"}
+  defp run_badge_attrs(:waiting_tools), do: {"badge badge-warning", "Running"}
+  defp run_badge_attrs(:queued), do: {"badge badge-neutral", "Queued"}
+
+  defp matrix_description(%{run: nil}, nil), do: "Never checked"
+  defp matrix_description(_matrix, active) when active != nil, do: "Run in progress"
+
+  defp matrix_description(%{run: run}, nil),
+    do: "Last checked #{format_elapsed(run.completed_at)}"
+
+  defp format_elapsed(nil), do: "—"
+
+  defp format_elapsed(dt) do
+    diff = DateTime.diff(DateTime.utc_now(), dt, :minute)
+
+    cond do
+      diff < 1 -> "just now"
+      diff < 60 -> "#{diff} minute(s) ago"
+      diff < 1440 -> "#{div(diff, 60)} hour(s) ago"
+      true -> Calendar.strftime(dt, "%Y-%m-%d")
+    end
+  end
+
+  defp unresolved(issues), do: Enum.reject(issues, &(&1.status == :resolved))
 
   defp format_time(nil), do: "—"
-  defp format_time(datetime), do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
+  defp format_time(dt), do: Calendar.strftime(dt, "%Y-%m-%d %H:%M UTC")
+
   defp display_value(nil), do: "Not observed"
   defp display_value(value), do: value
-  defp short_id(nil), do: "—"
-  defp short_id(value), do: String.slice(value, 0, 12)
 end
