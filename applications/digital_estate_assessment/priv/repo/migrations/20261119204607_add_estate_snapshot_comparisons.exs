@@ -1,4 +1,4 @@
-defmodule Contexla.Estate.Migrations.AddEstateSnapshotComparisons do
+defmodule Contexla.Applications.DigitalEstateAssessment.Migrations.AddEstateSnapshotComparisons do
   use Ecto.Migration
 
   def change do

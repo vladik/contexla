@@ -13,13 +13,13 @@ Every entry is generated from an explicit allow-list:
 manifest.json   bundle identity, schema version, file sizes and checksums
 health.json     bounded diagnostics and aggregate execution counts
 runtime.json    platform/runtime versions, migration versions, package identities
-activity.json   recent safe Operation, Capability, job, and audit references
+activity.json   recent safe Operation, Tool Invocation, job, and audit references
 ```
 
 Activity is bounded to the same recent records shown by the Operations Console.
 Application and Integration identity, version, OTP running state, and database
-schema identity may be included. Capability and Processor identity/version may
-be included. Migration data contains schema owners, status, and applied version
+schema identity may be included. Tool identity, version, runtime, and worker
+profile may be included. Migration data contains schema owners, status, and applied version
 numbers only.
 
 ## Exclusions

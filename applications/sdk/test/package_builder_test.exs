@@ -1,11 +1,11 @@
-defmodule Contexla.ApplicationSDK.PackageBuilderTest do
+defmodule Contexla.Applications.Sdk.Test.PackageBuilderTest do
   use ExUnit.Case, async: true
 
-  alias Contexla.ApplicationSDK.{Definition, Surface}
-  alias Contexla.ApplicationSDK.PackageBuilder
+  alias Contexla.Applications.Sdk.{Definition, Surface}
+  alias Contexla.Applications.Sdk.PackageBuilder
 
   defmodule PackagedApplication do
-    @behaviour Contexla.ApplicationSDK.Application
+    @behaviour Contexla.Applications.Sdk.Application
 
     @impl true
     def definition do
@@ -61,27 +61,27 @@ defmodule Contexla.ApplicationSDK.PackageBuilderTest do
         "icon" => "hero-beaker",
         "version" => "1.0.0",
         "otpApplication" => "example",
-        "entryModule" => "Contexla.ApplicationSDK.PackageBuilderTest.PackagedApplication",
+        "entryModule" => "Contexla.Applications.Sdk.Test.PackageBuilderTest.PackagedApplication",
         "sdkRequirement" => "~> 0.1",
         "operations" => [],
         "surfaces" => [
           %{
             "id" => "new",
             "path" => "new",
-            "module" => "Contexla.ApplicationSDK.PackageBuilderTest.PackagedApplication",
+            "module" => "Contexla.Applications.Sdk.Test.PackageBuilderTest.PackagedApplication",
             "role" => "new"
           },
           %{
             "id" => "home",
             "path" => "home",
-            "module" => "Contexla.ApplicationSDK.PackageBuilderTest.PackagedApplication",
+            "module" => "Contexla.Applications.Sdk.Test.PackageBuilderTest.PackagedApplication",
             "role" => "instance",
             "default" => true
           },
           %{
             "id" => "settings",
             "path" => "settings",
-            "module" => "Contexla.ApplicationSDK.PackageBuilderTest.PackagedApplication",
+            "module" => "Contexla.Applications.Sdk.Test.PackageBuilderTest.PackagedApplication",
             "role" => "instance",
             "kind" => "settings"
           }
@@ -123,27 +123,27 @@ defmodule Contexla.ApplicationSDK.PackageBuilderTest do
         "icon" => "hero-beaker",
         "version" => "1.0.0",
         "otpApplication" => "example",
-        "entryModule" => "Contexla.ApplicationSDK.PackageBuilderTest.PackagedApplication",
+        "entryModule" => "Contexla.Applications.Sdk.Test.PackageBuilderTest.PackagedApplication",
         "sdkRequirement" => "~> 0.1",
         "operations" => [],
         "surfaces" => [
           %{
             "id" => "new",
             "path" => "new",
-            "module" => "Contexla.ApplicationSDK.PackageBuilderTest.PackagedApplication",
+            "module" => "Contexla.Applications.Sdk.Test.PackageBuilderTest.PackagedApplication",
             "role" => "new"
           },
           %{
             "id" => "home",
             "path" => "home",
-            "module" => "Contexla.ApplicationSDK.PackageBuilderTest.PackagedApplication",
+            "module" => "Contexla.Applications.Sdk.Test.PackageBuilderTest.PackagedApplication",
             "role" => "instance",
             "default" => true
           },
           %{
             "id" => "settings",
             "path" => "settings",
-            "module" => "Contexla.ApplicationSDK.PackageBuilderTest.PackagedApplication",
+            "module" => "Contexla.Applications.Sdk.Test.PackageBuilderTest.PackagedApplication",
             "role" => "instance",
             "kind" => "settings"
           }

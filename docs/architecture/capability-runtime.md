@@ -1,5 +1,12 @@
 # Capability and Processor runtime
 
+> **Legacy implementation:** This document describes the currently implemented
+> architecture proof. Its public architecture is superseded by
+> [Tool architecture and runtime](tool-runtime.md) and
+> [ADR 0024](../decisions/0024-unified-tool-execution-model.md). Do not extend
+> this model with new Capability, Processor, or Binding features; migrate it to
+> Tools through a bounded refactor.
+
 This document is the implementation guide for Contexla's executable extension
 model. The normative hierarchy is:
 

@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: contexla_dev
       POSTGRES_DB: contexla_dev
     ports:
-      - "${POSTGRES_PORT:-55433}:5432"
+      - "${POSTGRES_PORT:-15432}:5432"
     volumes:
       - contexla_postgres:/var/lib/postgresql/data
     healthcheck:

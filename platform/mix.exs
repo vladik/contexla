@@ -1,4 +1,4 @@
-defmodule Contexla.MixProject do
+defmodule Contexla.Platform.MixProject do
   use Mix.Project
 
   def project do
@@ -21,7 +21,7 @@ defmodule Contexla.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {Contexla.Application, []},
+      mod: {Contexla.Platform.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end
@@ -43,9 +43,8 @@ defmodule Contexla.MixProject do
     [
       {:pbkdf2_elixir, "~> 2.0"},
       {:swoosh, "~> 1.19"},
-      {:contexla_capability_sdk, path: "../capabilities/sdk"},
-      {:contexla_capabilities, path: "../capabilities/bundled"},
-      {:contexla_processors_native, path: "../processors/native"},
+      {:contexla_tool_sdk, path: "../tools/sdk"},
+      {:contexla_tools_bundled, path: "../tools/bundled"},
       {:contexla_application_sdk, path: "../applications/sdk"},
       {:contexla_ui, path: "../ui/contexla_ui"},
       {:contexla_integration_sdk, path: "../integrations/sdk"},
@@ -72,6 +71,7 @@ defmodule Contexla.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
+      {:req, "~> 0.7"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"}
     ]

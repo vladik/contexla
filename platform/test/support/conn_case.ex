@@ -1,4 +1,4 @@
-defmodule ContexlaWeb.ConnCase do
+defmodule Contexla.Platform.Test.Support.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -11,7 +11,7 @@ defmodule ContexlaWeb.ConnCase do
   we enable the SQL sandbox, so changes done to the database
   are reverted at the end of every test. If you are using
   PostgreSQL, you can even run database tests asynchronously
-  by setting `use ContexlaWeb.ConnCase, async: true`, although
+  by setting `use Contexla.Platform.Test.Support.ConnCase, async: true`, although
   this option is not recommended for other databases.
   """
 
@@ -20,19 +20,19 @@ defmodule ContexlaWeb.ConnCase do
   using do
     quote do
       # The default endpoint for testing
-      @endpoint ContexlaWeb.Endpoint
+      @endpoint Contexla.Platform.Web.Endpoint
 
-      use ContexlaWeb, :verified_routes
+      use Contexla.Platform.Web, :verified_routes
 
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
-      import ContexlaWeb.ConnCase
+      import Contexla.Platform.Test.Support.ConnCase
     end
   end
 
   setup tags do
-    Contexla.DataCase.setup_sandbox(tags)
+    Contexla.Platform.Test.Support.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 
@@ -45,8 +45,8 @@ defmodule ContexlaWeb.ConnCase do
   test context.
   """
   def register_and_log_in_user(%{conn: conn} = context) do
-    user = Contexla.AccountsFixtures.user_fixture()
-    scope = Contexla.Accounts.Scope.for_user(user)
+    user = Contexla.Platform.Test.Support.Fixtures.AccountsFixtures.user_fixture()
+    scope = Contexla.Platform.Accounts.Scope.for_user(user)
 
     opts =
       context
@@ -62,7 +62,7 @@ defmodule ContexlaWeb.ConnCase do
   It returns an updated `conn`.
   """
   def log_in_user(conn, user, opts \\ []) do
-    token = Contexla.Accounts.generate_user_session_token(user)
+    token = Contexla.Platform.Accounts.generate_user_session_token(user)
 
     maybe_set_token_authenticated_at(token, opts[:token_authenticated_at])
 
@@ -74,6 +74,9 @@ defmodule ContexlaWeb.ConnCase do
   defp maybe_set_token_authenticated_at(_token, nil), do: nil
 
   defp maybe_set_token_authenticated_at(token, authenticated_at) do
-    Contexla.AccountsFixtures.override_token_authenticated_at(token, authenticated_at)
+    Contexla.Platform.Test.Support.Fixtures.AccountsFixtures.override_token_authenticated_at(
+      token,
+      authenticated_at
+    )
   end
 end

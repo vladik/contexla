@@ -30,8 +30,8 @@ try {
 $applicationEbin = Join-Path $application "_build\dev\lib\contexla_estate\ebin"
 $integrationEbin = Join-Path $integration "_build\dev\lib\contexla_drupal\ebin"
 
-$env:CONTEXLA_APPLICATION_PACKAGES = "$applicationEbin|Contexla.Estate"
-$env:CONTEXLA_INTEGRATION_PACKAGES = "$integrationEbin|Contexla.Drupal"
+$env:CONTEXLA_APPLICATION_PACKAGES = "$applicationEbin|Contexla.Applications.DigitalEstateAssessment.Package"
+$env:CONTEXLA_INTEGRATION_PACKAGES = "$integrationEbin|Contexla.Integrations.Drupal.Package"
 $env:PORT = $Port.ToString()
 
 Push-Location $platform

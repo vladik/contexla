@@ -1,4 +1,4 @@
-defmodule Contexla.Repo.Migrations.CreateUsersAuthTables do
+defmodule Contexla.Platform.Repo.Migrations.CreateUsersAuthTables do
   use Ecto.Migration
 
   def change do

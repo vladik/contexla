@@ -10,6 +10,7 @@ The documentation is organized by the kind of decision it supports.
 - [Initial market wedge](product/initial-market.md)
 - [Application portfolio](product/application-portfolio.md)
 - [Digital Estate Assessment v1 architecture proof](product/digital-estate-assessment-v1.md)
+- [Content Integrity Monitor v1](product/content-integrity-monitor-v1.md)
 
 ## Architecture
 
@@ -18,7 +19,8 @@ The documentation is organized by the kind of decision it supports.
 - [UI and layout architecture](architecture/ui-and-layout.md)
 - [Core concepts and boundaries](architecture/concepts.md)
 - [Glossary](architecture/glossary.md)
-- [Capability and Processor runtime](architecture/capability-runtime.md)
+- [Tool architecture and runtime](architecture/tool-runtime.md)
+- [Legacy Capability/Processor runtime](architecture/capability-runtime.md)
 - [Agent model](architecture/agent-model.md)
 - [Assessment domain model](architecture/assessment-domain-model.md)
 
@@ -35,6 +37,7 @@ The documentation is organized by the kind of decision it supports.
 
 - [Getting started](development/getting-started.md)
 - [Application UI guide](development/application-ui.md)
+- [Module naming and file placement](development/module-naming.md)
 
 ## Operations
 

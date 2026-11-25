@@ -1,4 +1,4 @@
-defmodule Contexla.IntegrationSDK.MixProject do
+defmodule Contexla.Integrations.Sdk.MixProject do
   use Mix.Project
 
   def project do

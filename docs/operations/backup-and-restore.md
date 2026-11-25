@@ -12,7 +12,7 @@ maintenance window:
 1. Stop traffic and allow running Oban jobs to finish or stop the serving
    process cleanly.
 2. Record the Contexla release version and exact Application, Integration,
-   Capability, and Processor package versions. Do not copy secret values into
+   Tool package versions. Do not copy secret values into
    the manifest.
 3. Create a PostgreSQL custom-format dump:
 

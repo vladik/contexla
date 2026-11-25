@@ -1,0 +1,10 @@
+defmodule <%= module %>.Test.PackageTest do
+  use ExUnit.Case, async: true
+
+  test "declares a valid independent Application definition" do
+    definition = <%= package_module %>.definition()
+
+    assert definition.id == "<%= id %>"
+    assert :ok = Contexla.Applications.Sdk.Definition.validate(definition)
+  end
+end

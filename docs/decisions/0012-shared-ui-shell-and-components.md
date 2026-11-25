@@ -23,7 +23,7 @@ package owns route-independent design tokens and domain-free components. Both
 the platform and trusted Applications may depend on that package.
 
 Applications own domain surfaces and optional namespaced assets. They do not
-depend on `ContexlaWeb`, reproduce the platform shell, or assume the platform
+depend on `Contexla.Platform.Web`, reproduce the platform shell, or assume the platform
 Tailwind build scans their source. Package-specific asset loading will be added
 only when a real surface requires assets beyond the shared contract.
 

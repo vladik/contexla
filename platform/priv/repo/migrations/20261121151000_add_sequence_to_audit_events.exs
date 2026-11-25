@@ -1,4 +1,4 @@
-defmodule Contexla.Repo.Migrations.AddSequenceToAuditEvents do
+defmodule Contexla.Platform.Repo.Migrations.AddSequenceToAuditEvents do
   use Ecto.Migration
 
   def change do

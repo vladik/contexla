@@ -1,11 +1,11 @@
 import Config
 
 # Configure your database
-config :contexla, Contexla.Repo,
+config :contexla, Contexla.Platform.Repo,
   username: "contexla",
   password: "contexla_dev",
   hostname: "localhost",
-  port: String.to_integer(System.get_env("POSTGRES_PORT", "55433")),
+  port: String.to_integer(System.get_env("POSTGRES_PORT", "15432")),
   database: "contexla_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
@@ -17,7 +17,7 @@ config :contexla, Contexla.Repo,
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
-config :contexla, ContexlaWeb.Endpoint,
+config :contexla, Contexla.Platform.Web.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   http: [ip: {127, 0, 0, 1}],

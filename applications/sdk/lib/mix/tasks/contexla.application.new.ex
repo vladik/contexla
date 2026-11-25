@@ -2,20 +2,20 @@ defmodule Mix.Tasks.Contexla.Application.New do
   use Mix.Task
 
   @shortdoc "Creates an independent Contexla Application project"
-  @switches [module: :string, id: :string, name: :string]
+  @switches [id: :string, name: :string]
   @templates ~w(
     .formatter.exs
     .gitignore
     README.md
     contexla-application.json
     mix.exs
+    lib/package.ex
     lib/application.ex
-    lib/application_otp.ex
-    lib/new_live.ex
-    lib/overview_live.ex
-    lib/collection_live.ex
-    lib/settings_live.ex
-    test/application_test.exs
+    lib/web/new_live.ex
+    lib/web/overview_live.ex
+    lib/web/collection_live.ex
+    lib/web/settings_live.ex
+    test/package_test.exs
     test/test_helper.exs
   )
 
@@ -23,8 +23,8 @@ defmodule Mix.Tasks.Contexla.Application.New do
   def run(args) do
     {options, remaining, invalid} = OptionParser.parse(args, strict: @switches)
 
-    case {remaining, invalid, options[:module]} do
-      {[path], [], module} when is_binary(module) -> generate!(path, options)
+    case {remaining, invalid} do
+      {[path], []} -> generate!(path, options)
       _ -> Mix.raise(usage())
     end
   end
@@ -36,8 +36,7 @@ defmodule Mix.Tasks.Contexla.Application.New do
     project = target |> Path.basename() |> Macro.underscore()
     validate_project!(project)
 
-    module = options[:module]
-    validate_module!(module)
+    module = "Contexla.Applications." <> Macro.camelize(project)
 
     name = options[:name] || humanize(project)
     id = options[:id] || "com.example.application.#{String.replace(project, "_", "-")}"
@@ -47,7 +46,8 @@ defmodule Mix.Tasks.Contexla.Application.New do
     binding = [
       project: project,
       module: module,
-      web_module: module <> "Web",
+      package_module: module <> ".Package",
+      web_module: module <> ".Web",
       name: name,
       id: id,
       sdk_path: dependency_path(sdk_root, target),
@@ -89,12 +89,6 @@ defmodule Mix.Tasks.Contexla.Application.New do
     end
   end
 
-  defp validate_module!(module) do
-    unless module =~ ~r/^[A-Z][A-Za-z0-9]*(\.[A-Z][A-Za-z0-9]*)*$/ do
-      Mix.raise("--module must be an Elixir module name such as Acme.ContentAudit")
-    end
-  end
-
   defp humanize(project) do
     project
     |> String.split("_")
@@ -103,9 +97,16 @@ defmodule Mix.Tasks.Contexla.Application.New do
 
   defp dependency_path(source, target) do
     source
-    |> Path.relative_to(target)
+    |> Path.expand()
+    |> normalize_drive()
+    |> Path.relative_to(target |> Path.expand() |> normalize_drive(), force: true)
     |> String.replace("\\", "/")
   end
+
+  defp normalize_drive(<<drive::binary-size(1), ":", rest::binary>>),
+    do: String.downcase(drive) <> ":" <> rest
+
+  defp normalize_drive(path), do: path
 
   defp template_root do
     Application.app_dir(:contexla_application_sdk, "priv/templates/application")
@@ -120,6 +121,6 @@ defmodule Mix.Tasks.Contexla.Application.New do
   end
 
   defp usage do
-    "usage: mix contexla.application.new PATH --module MODULE [--id ID] [--name NAME]"
+    "usage: mix contexla.application.new PATH [--id ID] [--name NAME]"
   end
 end

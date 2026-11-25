@@ -21,7 +21,7 @@ defmodule Mix.Tasks.Contexla.Admin.Bootstrap do
     email = fetch_env!("CONTEXLA_ADMIN_EMAIL")
     password = fetch_env!("CONTEXLA_ADMIN_PASSWORD")
 
-    case Contexla.Accounts.bootstrap_admin(%{email: email, password: password}) do
+    case Contexla.Platform.Accounts.bootstrap_admin(%{email: email, password: password}) do
       {:ok, user} ->
         Mix.shell().info("Created administrator #{user.email}.")
         Mix.shell().info("The bootstrap password must be changed on first login.")

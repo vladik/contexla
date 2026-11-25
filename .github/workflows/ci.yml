@@ -29,12 +29,13 @@ jobs:
           - name: Digital Estate Assessment
             path: applications/digital_estate_assessment
             package: true
-          - name: Capability SDK
-            path: capabilities/sdk
-          - name: Bundled Capabilities
-            path: capabilities/bundled
-          - name: Native Processors
-            path: processors/native
+          - name: Content Integrity Monitor
+            path: applications/content_integrity_monitor
+            package: true
+          - name: Tool SDK
+            path: tools/sdk
+          - name: Bundled Tools
+            path: tools/bundled
           - name: Integration SDK
             path: integrations/sdk
           - name: Drupal Integration

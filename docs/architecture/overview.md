@@ -29,15 +29,18 @@ ui/
 applications/
   sdk/                    Application package contracts
   digital_estate_assessment/
-capabilities/
-  sdk/                    implementation-neutral Capability contracts
-  bundled/                trusted first-party Capability definitions
-processors/
-  native/                 trusted native Processor implementations
+tools/
+  sdk/                    Tool manifest, package, and test contracts
+  bundled/                trusted first-party Tool implementations
 integrations/
   sdk/
   drupal/
 ```
+
+This is the active structure. The superseded `capabilities/` and `processors/`
+projects were migrated to `tools/` and removed. Historical decisions and the
+one irreversible database migration retain the old terms only to explain and
+preserve earlier execution records.
 
 Each directory is a separate Mix project. A substantial Application is an
 independently compiled OTP application. The platform depends on the Application
@@ -54,7 +57,7 @@ Keep the platform core small:
 - user authentication and authorization within one installation;
 - encrypted Connections and secrets;
 - Run and job execution conventions;
-- Capability and Processor registry, scoped Bindings, and invocation runtime;
+- Tool registry, durable Invocation lifecycle, worker routing, and runtime;
 - artifact/evidence storage;
 - append-only platform lifecycle audit events and safe error conventions;
 - notifications and basic observability;
@@ -70,7 +73,8 @@ external uptime, log, or alert infrastructure.
 
 Application-specific entities and findings belong to the Application.
 Application-specific surfaces use the independent `contexla_ui` contract and
-render inside the platform-owned shell; they never depend on `ContexlaWeb`.
+render inside the platform-owned shell; they never depend on
+`Contexla.Platform.Web`.
 
 Applications may expose one-time, scheduled, event-driven, synchronous, or
 durable Operations without becoming generic workflows. Humans, agents, APIs,
@@ -84,31 +88,30 @@ execution is retained as a Run.
   visibility.
 - PostgreSQL stores platform and Application state.
 - Artifact storage keeps snapshots, exports, reports, screenshots, and evidence.
-- Applications request a Capability contract; the runtime resolves an Instance,
-  Application, or Platform Binding and executes the selected Processor.
-- PostgreSQL mirrors trusted code definitions and stores Bindings and
-  Invocations. Bundled code remains authoritative and same-version definition
-  drift is rejected.
-- Native Processors run through the native Runner with contract validation and
+- Applications explicitly pin Tool identities and versions and request durable
+  Invocations through the Tool Runtime.
+- PostgreSQL stores Tool control metadata and Invocation state; Artifact storage
+  retains immutable external Tool Packages and produced files.
+- Trusted native Tools run with schema validation, permissions, provenance, and
   explicit timeouts.
-- Python Processors will execute as isolated operating-system processes with
-  locked dependencies, explicit limits, and structured input/output.
+- Reviewed Python Tools execute as child processes with Tool-specific virtual
+  environments, locked dependencies, limits, and structured JSON input/output.
 
 The Digital Estate Assessment package owns its worker, executor, domain services,
 UI, reports, schemas, and migrations. It accesses Artifacts, Adapters,
-Capabilities, jobs, and actor-scoped Instance services only through the bounded
-typed functions supplied by `Contexla.ApplicationSDK.Runtime`. The SDK declares
+Tools, jobs, and actor-scoped Instance services only through the bounded
+typed functions supplied by `Contexla.Applications.Sdk.Runtime`. The SDK declares
 the host service behaviour and the platform injects its implementation; an
 Application never dynamically names platform functions or depends on the
 platform implementation module.
 
 Application Operations cross a platform-owned invocation boundary before
 Application code executes. The boundary enforces declaration, pinned version,
-command/read transport, input schema, required Capability availability, and
+command/read transport, input schema, required Tool availability, and
 approval, then records a bounded Operation Invocation. An Application-owned Run
 may be linked to that invocation without becoming platform-owned domain state.
 
-Microservices and container-per-Processor sandboxing may become appropriate
+Microservices and container-per-Tool sandboxing may become appropriate
 later, but are not required to prove the model.
 
 ## Application installation and instances

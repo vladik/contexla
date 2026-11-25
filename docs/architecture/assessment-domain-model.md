@@ -199,7 +199,7 @@ contexla_estate.estate_inventory_items       normalized inventory/resources
 contexla_estate.estate_relationships         typed inventory relationships
 contexla_estate.estate_findings              deterministic and expert Findings
 contexla_estate.estate_review_decisions      reviewer dispositions and rationale
-public.capability_invocations                Capability/Processor execution provenance
+public.tool_invocations                      exact Tool execution provenance
 ```
 
 The first slice uses one Drupal target per imported package. A separate Target

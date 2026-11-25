@@ -1,8 +1,8 @@
-defmodule Contexla.TestApplication do
-  @behaviour Contexla.ApplicationSDK.Application
+defmodule Contexla.Platform.Test.Support.PackageFixtures.TestApplication do
+  @behaviour Contexla.Applications.Sdk.Application
 
-  alias Contexla.ApplicationSDK.{Definition, Operation, Surface}
-  alias Contexla.CapabilitySDK.Requirement
+  alias Contexla.Applications.Sdk.{Definition, Operation, Surface}
+  alias Contexla.Tools.Sdk.Requirement
 
   @operations [
     %Operation{
@@ -23,10 +23,10 @@ defmodule Contexla.TestApplication do
     %Operation{id: "test.download", name: "Download", kind: :read},
     %Operation{id: "test.failure", name: "Failure"},
     %Operation{
-      id: "test.missing-capability",
-      name: "Missing Capability",
-      required_capabilities: [
-        %Requirement{capability_id: "com.contexla.missing", contract_version: "1"}
+      id: "test.missing-tool",
+      name: "Missing Tool",
+      required_tools: [
+        %Requirement{tool_id: "com.contexla.missing", version: "1.0.0"}
       ]
     }
   ]
@@ -46,14 +46,14 @@ defmodule Contexla.TestApplication do
         %Surface{
           id: :new,
           path: "new",
-          module: Contexla.TestNewSurfaceLive,
+          module: Contexla.Platform.Test.Support.PackageFixtures.TestNewSurfaceLive,
           role: :new,
           label: "New test"
         },
         %Surface{
           id: :overview,
           path: "overview",
-          module: Contexla.TestSurfaceLive,
+          module: Contexla.Platform.Test.Support.PackageFixtures.TestSurfaceLive,
           role: :instance,
           default: true,
           label: "Test overview"
@@ -61,7 +61,7 @@ defmodule Contexla.TestApplication do
         %Surface{
           id: :settings,
           path: "configuration",
-          module: Contexla.TestSettingsSurfaceLive,
+          module: Contexla.Platform.Test.Support.PackageFixtures.TestSettingsSurfaceLive,
           role: :instance,
           kind: :settings,
           label: "Test settings"
@@ -96,12 +96,12 @@ defmodule Contexla.TestApplication do
 
   def execute_operation("test.failure", _instance, _input), do: {:error, :expected_failure}
 
-  def execute_operation("test.missing-capability", _instance, _input) do
-    raise "unavailable Capability should prevent execution"
+  def execute_operation("test.missing-tool", _instance, _input) do
+    raise "unavailable Tool should prevent execution"
   end
 end
 
-defmodule Contexla.TestSettingsSurfaceLive do
+defmodule Contexla.Platform.Test.Support.PackageFixtures.TestSettingsSurfaceLive do
   use Phoenix.LiveView
 
   @impl true
@@ -117,7 +117,7 @@ defmodule Contexla.TestSettingsSurfaceLive do
   end
 end
 
-defmodule Contexla.TestNewSurfaceLive do
+defmodule Contexla.Platform.Test.Support.PackageFixtures.TestNewSurfaceLive do
   use Phoenix.LiveView
 
   @impl true
@@ -133,7 +133,7 @@ defmodule Contexla.TestNewSurfaceLive do
   end
 end
 
-defmodule Contexla.TestSurfaceLive do
+defmodule Contexla.Platform.Test.Support.PackageFixtures.TestSurfaceLive do
   use Phoenix.LiveView
 
   @impl true
@@ -154,7 +154,7 @@ defmodule Contexla.TestSurfaceLive do
   end
 end
 
-defmodule Contexla.TestAdapter do
+defmodule Contexla.Platform.Test.Support.PackageFixtures.TestAdapter do
   def validate_source(path, _options) do
     with {:ok, bytes} <- File.read(path) do
       {:ok,
@@ -169,8 +169,8 @@ defmodule Contexla.TestAdapter do
   end
 end
 
-defmodule Contexla.TestIntegration do
-  alias Contexla.IntegrationSDK.{Adapter, Definition}
+defmodule Contexla.Platform.Test.Support.PackageFixtures.TestIntegration do
+  alias Contexla.Integrations.Sdk.{Adapter, Definition}
 
   def definition do
     %Definition{
@@ -183,7 +183,7 @@ defmodule Contexla.TestIntegration do
         %Adapter{
           id: "test.snapshot.v1",
           contract: "contexla.test.source.v1",
-          module: Contexla.TestAdapter,
+          module: Contexla.Platform.Test.Support.PackageFixtures.TestAdapter,
           source_types: ["file"]
         }
       ]

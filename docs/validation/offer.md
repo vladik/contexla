@@ -77,7 +77,7 @@ deep source-code assessment are follow-on scopes.
 > evidence, identify dependencies and complexity, and show which areas need
 > retirement, replacement, migration, or deeper investigation.
 
-Avoid leading with OTP, Oban, Python isolation, or agent-generated Capabilities.
+Avoid leading with OTP, Oban, Python isolation, or agent-generated Tools.
 Those explain how Contexla can become efficient and adaptable; they are not the
 outcome the initial buyer purchases.
 

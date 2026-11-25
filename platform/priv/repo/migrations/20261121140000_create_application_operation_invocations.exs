@@ -1,4 +1,4 @@
-defmodule Contexla.Repo.Migrations.CreateApplicationOperationInvocations do
+defmodule Contexla.Platform.Repo.Migrations.CreateApplicationOperationInvocations do
   use Ecto.Migration
 
   def change do

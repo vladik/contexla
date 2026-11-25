@@ -29,7 +29,7 @@ scope, bindings, and history; they do not duplicate Application code.
 
 A named command declared and implemented by an Application. An Operation is an
 Application-facing unit such as running an assessment, evaluating a gate,
-capturing a snapshot, or delivering a batch. It may orchestrate Capabilities and
+capturing a snapshot, or delivering a batch. It may orchestrate Tools and
 normally produces an auditable Run when execution or evidence must be retained.
 
 ## Operation Invocation
@@ -62,7 +62,7 @@ entity.
 ## Run
 
 One auditable execution of an operation for an Application Instance. A Run pins
-the relevant input, configuration, Application/Adapter/Capability versions,
+the relevant input, configuration, Application/Adapter/Tool versions,
 status, timestamps, results, and errors.
 
 ## Agent Session
@@ -108,37 +108,39 @@ Application Instances may bind to one Connection according to policy.
 An uploaded offline snapshot is an import source and does not require a
 persistent credentialed Connection.
 
-## Capability
+## Tool
 
-A stable, versioned semantic contract for a small executable operation: what it
-does, the input/output/error schemas, allowed permissions, determinism, side
-effects, and idempotency. It does not specify a programming language and is not
-a complete business use case.
+A small, versioned executable unit that performs one bounded operation. A Tool
+owns its purpose, input/output schemas, implementation, runtime, entrypoint,
+dependencies, permissions, limits, tests, and worker compatibility metadata.
+It is not a complete business use case and owns no Application UI or domain
+state.
 
-## Processor
+## Tool Package
 
-One concrete, versioned implementation of a Capability. It declares runtime,
-entrypoint, dependencies or package identity, implementation configuration,
-requested permissions, timeout, and resource limits. Multiple Processors may
-implement the same Capability contract.
+The distributable representation of a Tool, such as a reviewed ZIP containing
+a manifest, implementation, locked dependencies, tests, fixtures, and usage
+instructions. A trusted native Elixir Tool compiled into a release need not
+exist as a separate Tool Package.
 
-## Capability Binding
+## Tool Invocation
 
-The active selection of a Processor for a Capability at Platform, Application,
-or Application Instance scope, including approved configuration and granted
-permissions. Resolution prefers Instance, then Application, then Platform.
+One durable requested execution of an exact Tool version and package checksum.
+It is created before its Oban job and records Application/Instance/Run context,
+actor, status, timestamps, audit-safe input/output or error, and produced
+Artifacts.
 
-## Capability Invocation
+## Tool Runtime
 
-One auditable execution of a Capability through a resolved Binding and exact
-Processor version. It records actor, Application Instance, input, output or
-error, status, and timestamps.
+Platform infrastructure that validates, schedules, routes, prepares, executes,
+and records Tools. Applications use this boundary rather than directly starting
+commands or locating Tool environments.
 
-## Runner
+## Tool Worker
 
-Platform runtime infrastructure that executes a selected Processor according
-to its runtime type and limits. A Runner is not a business Capability and is
-not selected directly by an Application.
+A Contexla runtime role that consumes compatible Tool queues and executes Tools
+locally. Web, ordinary worker, and Tool Worker machines may run the same
+Contexla release with different role and queue configuration.
 
 ## Artifact
 

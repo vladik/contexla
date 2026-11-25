@@ -1,7 +1,7 @@
 # Contexla platform
 
 The Phoenix host for Contexla authentication, generic Application routing,
-package/runtime services, Artifacts, Capability execution, and the shared
+package/runtime services, Artifacts, Tool execution, and the shared
 authenticated shell.
 
 The platform depends on the Application and Integration SDKs. It must compile

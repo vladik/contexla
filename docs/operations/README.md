@@ -1,5 +1,8 @@
 # Operating Contexla
 
+> The Operations Console reports the unified Tool and Tool Invocation model
+> defined in [Tool architecture and runtime](../architecture/tool-runtime.md).
+
 Contexla's first deployment model is one organization per installation. An
 installation consists of one platform release, PostgreSQL, durable Artifact
 storage, and the curated trusted packages selected for the customer Solution.
@@ -24,9 +27,9 @@ An installation administrator can open `/operations` from the platform
 sidebar. The console refreshes every 15 seconds and presents:
 
 - the bounded readiness checks;
-- installed Application, Integration, Capability, and Processor counts;
+- installed Application, Integration, and Tool counts;
 - registered Application package versions and OTP running state;
-- recent Application Operation and Capability Invocations;
+- recent Application Operation and Tool Invocations;
 - recent Oban background jobs;
 - recent append-only audit activity;
 - Application Instance links and short support reference IDs.
@@ -52,7 +55,7 @@ When an operator reports a failure, collect the Application Instance, time,
 requested action, and any Run or Invocation identifier. Then:
 
 1. check `/health/live` and `/health/ready`;
-2. open `/operations` and inspect the relevant Operation, Capability, and job;
+2. open `/operations` and inspect the relevant Operation, Tool Invocation, and job;
 3. follow the Instance link and inspect the Application-owned Run and evidence;
 4. correlate the support reference with the service or container logs;
 5. run `Contexla.Release.diagnostics/0` when the web process cannot provide the

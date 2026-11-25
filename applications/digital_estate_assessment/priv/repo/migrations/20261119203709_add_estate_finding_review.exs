@@ -1,4 +1,4 @@
-defmodule Contexla.Estate.Migrations.AddEstateFindingReview do
+defmodule Contexla.Applications.DigitalEstateAssessment.Migrations.AddEstateFindingReview do
   use Ecto.Migration
 
   def change do

@@ -122,7 +122,7 @@ The initial implementation maps Drupal status, modules, themes, sites, content
 types, fields, Views, workflows, role summaries, aggregate content/media counts,
 and scheduled jobs when those JSON documents are present. It preserves missing
 evidence as a limitation rather than producing empty inventory. Composer
-manifests are passed to the separately versioned Composer Capability rather than
+manifests are passed to the separately versioned Composer Tool rather than
 interpreted inside the Adapter.
 
 ## Open questions for the collector spike

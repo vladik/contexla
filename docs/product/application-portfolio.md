@@ -65,9 +65,8 @@ Applications can share:
   and observability;
 - Clients and Connectors for external systems;
 - stable Adapters where an Application-facing contract is genuinely shared;
-- Capability contracts such as extraction, normalization, comparison,
-  validation, transformation, and reporting, with replaceable Processor
-  implementations.
+- versioned Tools for bounded extraction, normalization, comparison,
+  validation, transformation, and reporting operations.
 
 They should not share generic domain tables merely to appear configurable.
 

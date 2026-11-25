@@ -1,4 +1,4 @@
-defmodule Contexla.Repo.Migrations.CreateArtifacts do
+defmodule Contexla.Platform.Repo.Migrations.CreateArtifacts do
   use Ecto.Migration
 
   def change do

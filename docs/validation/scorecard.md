@@ -65,7 +65,7 @@ Requested next step:
 Repeated data source:
 Repeated manual operation:
 Potential deterministic rule:
-Potential Capability:
+Potential Tool:
 Potential Client/Adapter/Connector need:
 Application-domain requirement:
 Not productizable / expert judgment:

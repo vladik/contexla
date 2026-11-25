@@ -1,13 +1,13 @@
-defmodule Contexla.AccountsFixtures do
+defmodule Contexla.Platform.Test.Support.Fixtures.AccountsFixtures do
   @moduledoc """
   This module defines test helpers for creating
-  entities via the `Contexla.Accounts` context.
+  entities via the `Contexla.Platform.Accounts` context.
   """
 
   import Ecto.Query
 
-  alias Contexla.Accounts
-  alias Contexla.Accounts.Scope
+  alias Contexla.Platform.Accounts
+  alias Contexla.Platform.Accounts.Scope
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
   def valid_user_password, do: "hello world!"
@@ -46,7 +46,7 @@ defmodule Contexla.AccountsFixtures do
 
     user
     |> Ecto.Changeset.change(role: :admin)
-    |> Contexla.Repo.update!()
+    |> Contexla.Platform.Repo.update!()
   end
 
   def user_scope_fixture do
@@ -72,7 +72,7 @@ defmodule Contexla.AccountsFixtures do
   end
 
   def override_token_authenticated_at(token, authenticated_at) when is_binary(token) do
-    Contexla.Repo.update_all(
+    Contexla.Platform.Repo.update_all(
       from(t in Accounts.UserToken,
         where: t.token == ^token
       ),
@@ -82,14 +82,14 @@ defmodule Contexla.AccountsFixtures do
 
   def generate_user_magic_link_token(user) do
     {encoded_token, user_token} = Accounts.UserToken.build_email_token(user, "login")
-    Contexla.Repo.insert!(user_token)
+    Contexla.Platform.Repo.insert!(user_token)
     {encoded_token, user_token.token}
   end
 
   def offset_user_token(token, amount_to_add, unit) do
     dt = DateTime.add(DateTime.utc_now(:second), amount_to_add, unit)
 
-    Contexla.Repo.update_all(
+    Contexla.Platform.Repo.update_all(
       from(ut in Accounts.UserToken, where: ut.token == ^token),
       set: [inserted_at: dt, authenticated_at: dt]
     )

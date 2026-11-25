@@ -1,6 +1,6 @@
 # Python Processors run out of process in isolated environments
 
-Status: Accepted
+Status: Superseded by [ADR 0024](0024-unified-tool-execution-model.md)
 Date: 2026-11-19
 
 ## Context

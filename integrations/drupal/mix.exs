@@ -1,4 +1,4 @@
-defmodule Contexla.Drupal.MixProject do
+defmodule Contexla.Integrations.Drupal.MixProject do
   use Mix.Project
 
   def project do
@@ -15,7 +15,7 @@ defmodule Contexla.Drupal.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Contexla.Drupal.Application, []}
+      mod: {Contexla.Integrations.Drupal.Application, []}
     ]
   end
 

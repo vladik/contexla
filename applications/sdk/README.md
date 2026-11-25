@@ -1,4 +1,4 @@
-# Contexla.ApplicationSDK
+# Contexla.Applications.Sdk
 
 The Contexla Application SDK is the only supported compile-time contract between
 the platform and an independently developed trusted Application.
@@ -6,30 +6,30 @@ the platform and an independently developed trusted Application.
 An Application declares its identity, configuration schema, operations, Adapter
 requirements, PostgreSQL schema, and UI surfaces. It may own Ecto schemas,
 migrations, Oban workers, LiveViews, reports, assets, and supervised runtime code.
-It accesses shared platform facilities through `Contexla.ApplicationSDK.Runtime`
+It accesses shared platform facilities through `Contexla.Applications.Sdk.Runtime`
 instead of depending on platform modules.
 
 `Runtime` exposes named functions for the supported host services: Instance
-management, Artifacts and source import, Adapter lookup, Capability and
+management, Artifacts and source import, Adapter lookup, Tool request and
 Operation invocation, durable job enqueueing, and the shared Ecto Repo used by
 Application-owned schemas. Applications must not dynamically invoke platform
 function names or depend on `Contexla.ApplicationServices`; adding or changing
 a host service is an SDK contract change.
 
 Application-owned persistence and UI may use
-`Contexla.ApplicationSDK.Error.code/2` when an internal failure crosses an
+`Contexla.Applications.Sdk.Error.code/2` when an internal failure crosses an
 audit or user boundary. It retains stable atom/tag identity without copying
 exception messages, changesets, credentials, paths, or arbitrary nested terms.
 
 An Application Operation is a domain command exposed to the platform UI, API,
 agents, and approved triggers. It may coordinate Application state and multiple
-Capabilities; it is not a small reusable Capability and does not imply a generic
+Tools; it is not a small executable Tool and does not imply a generic
 workflow graph. Invocations that require durability or auditability produce
 Runs owned by the Application or shared runtime conventions.
 
 Each Operation declares whether it is a state-changing `:command` or read-only
-`:read`, its structured input schema, approval requirement, and required
-Capabilities. Commands execute through POST or trusted runtime services; only
+`:read`, its structured input schema, approval requirement, and exact required
+Tool versions. Commands execute through POST or trusted runtime services; only
 declared read Operations are callable through GET. Inputs may mark properties
 with `"sensitive" => true` so invocation audit data stores a redacted value.
 
@@ -53,10 +53,14 @@ make it a platform dependency.
 
 ```powershell
 mix contexla.application.new ..\my_application `
-  --module Acme.MyApplication `
   --id com.acme.application.my-application `
   --name "My Application"
 ```
+
+The module namespace is derived from the package directory and follows the
+repository naming contract. The example above generates
+`Contexla.Applications.MyApplication.*`; arbitrary shorter module prefixes are
+not accepted.
 
 The generated surfaces demonstrate the required setup, canonical overview,
 collection/list-detail, and Application settings patterns. Replace the starter

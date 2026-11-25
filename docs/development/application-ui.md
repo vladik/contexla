@@ -107,8 +107,8 @@ must reflow instead of assuming a permanently wide canvas.
 
 - Use `contexla_ui` components for domain-free presentation.
 - Keep domain cards, result renderers, and event handling in the Application.
-- Do not depend on `ContexlaWeb`, platform repositories, or platform routes.
-- Use `Contexla.ApplicationSDK.Runtime` for bounded platform services.
+- Do not depend on `Contexla.Platform.Web`, platform repositories, or platform routes.
+- Use `Contexla.Applications.Sdk.Runtime` for bounded platform services.
 - Promote a component to shared UI only after unrelated surfaces demonstrate
   the same presentation need.
 

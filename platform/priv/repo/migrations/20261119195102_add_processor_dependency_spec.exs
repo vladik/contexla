@@ -1,4 +1,4 @@
-defmodule Contexla.Repo.Migrations.AddProcessorDependencySpec do
+defmodule Contexla.Platform.Repo.Migrations.AddProcessorDependencySpec do
   use Ecto.Migration
 
   def change do

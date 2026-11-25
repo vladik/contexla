@@ -26,7 +26,7 @@ Application
 ```
 
 The platform must not compile against a concrete Application. An Application
-must not depend on `ContexlaWeb` or platform routes. Both may depend on the
+must not depend on `Contexla.Platform.Web` or platform routes. Both may depend on the
 independently compiled `contexla_ui` package.
 
 ## Surface contract
@@ -227,7 +227,7 @@ Needs independent events/state?                      -> LiveComponent
 Presentation only?                                   -> function component
 ```
 
-Shared components must not access `Contexla.Repo`, storage clients, Application
+Shared components must not access `Contexla.Platform.Repo`, storage clients, Application
 contexts, or platform authentication. Application UI must use its public domain
 services and bounded SDK runtime services.
 

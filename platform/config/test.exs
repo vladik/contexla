@@ -4,8 +4,8 @@ import Config
 config :pbkdf2_elixir, :rounds, 1
 
 config :contexla,
-  application_packages: [Contexla.TestApplication],
-  integration_packages: [Contexla.TestIntegration],
+  application_packages: [Contexla.Platform.Test.Support.PackageFixtures.TestApplication],
+  integration_packages: [Contexla.Platform.Test.Support.PackageFixtures.TestIntegration],
   artifact_storage_path:
     Path.expand(
       "../.tmp/test-artifacts/#{System.get_env("MIX_TEST_PARTITION", "default")}",
@@ -19,18 +19,18 @@ config :contexla, Oban, testing: :manual, queues: false
 # The MIX_TEST_PARTITION environment variable can be used
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
-config :contexla, Contexla.Repo,
+config :contexla, Contexla.Platform.Repo,
   username: "contexla",
   password: "contexla_dev",
   hostname: "localhost",
-  port: String.to_integer(System.get_env("POSTGRES_PORT", "55433")),
+  port: String.to_integer(System.get_env("POSTGRES_PORT", "15432")),
   database: "contexla_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
-config :contexla, ContexlaWeb.Endpoint,
+config :contexla, Contexla.Platform.Web.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: "pm+Cao/q05sQrVthqHqFCVoSjlXQJRS9w4q31i2Glntmnf+GJOqEGWKovb/64+WO",
   server: false

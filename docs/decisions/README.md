@@ -26,9 +26,7 @@ Date: YYYY-MM-DD
 - [0004 — Applications own their domains](0004-application-owned-domains.md)
 - [0005 — Controlled packages for trusted OTP extensions](0005-controlled-trusted-packages.md)
 - [0006 — Manual UI and agents share services](0006-manual-and-agent-service-boundary.md)
-- [0007 — Isolated out-of-process Python Processors](0007-isolated-python-processors.md)
 - [0008 — Immutable content-addressed Artifact storage](0008-content-addressed-artifacts.md)
-- [0009 — Capability contracts and Processor implementations](0009-capability-processor-runtime.md)
 - [0010 — Bundled Application domain and infrastructure execution boundary](0010-bundled-application-domain-execution.md)
 
 - [0011 — Independent Application packages](0011-independent-application-packages.md)
@@ -45,6 +43,15 @@ Date: YYYY-MM-DD
 - [0021: Explicit release installation and operations](0021-explicit-release-operations.md)
 - [0022: Administrator operations visibility](0022-admin-operations-console.md)
 - [0023: Portfolio-led market development](0023-portfolio-led-market-development.md)
+- [0024: Unified Tool execution model](0024-unified-tool-execution-model.md)
+- [0025: Repository-shaped module namespaces](0025-repository-shaped-module-namespaces.md)
+
+## Superseded decisions
+
+- [0007 — Isolated out-of-process Python Processors](0007-isolated-python-processors.md),
+  superseded by 0024 while retaining its dependency-isolation requirements.
+- [0009 — Capability contracts and Processor implementations](0009-capability-processor-runtime.md),
+  superseded by 0024.
 
 Create additional ADRs when implementation makes choices concrete, for
 example:
@@ -52,6 +59,6 @@ example:
 - umbrella application layout and package boundaries;
 - Application migration lifecycle;
 - encrypted secret storage;
-- external Processor protocol and package lifecycle;
+- external Tool protocol and package lifecycle;
 - artifact storage contract.
 

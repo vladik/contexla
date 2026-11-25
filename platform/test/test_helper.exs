@@ -1,5 +1,5 @@
 ExUnit.start()
 
-if Process.whereis(Contexla.Repo) do
-  Ecto.Adapters.SQL.Sandbox.mode(Contexla.Repo, :manual)
+if Process.whereis(Contexla.Platform.Repo) do
+  Ecto.Adapters.SQL.Sandbox.mode(Contexla.Platform.Repo, :manual)
 end

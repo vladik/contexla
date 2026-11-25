@@ -13,13 +13,13 @@ mix test test/contexla/operations_failure_drill_test.exs
 The drill creates temporary test records for:
 
 - a failed declared Application Operation;
-- a failed Capability Invocation with an exact Processor reference;
+- a failed Tool Invocation with an exact Tool version reference;
 - a discarded Oban job;
 - an Application Instance lifecycle audit event;
 - generation of an administrator support bundle.
 
 It then opens the generated ZIP in memory and verifies that the Operation,
-Capability, job, audit action, safe error codes, and support references can be
+Tool Invocation, job, audit action, safe error codes, and support references can be
 correlated. It also plants unique private markers in invocation output, error
 details, Oban arguments/errors, audit metadata, content-like input, and the
 administrator email and verifies that none occur in any bundle entry.

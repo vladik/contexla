@@ -14,7 +14,7 @@ platform function and hid the real public contract from tooling and authors.
 
 ## Decision
 
-`Contexla.ApplicationSDK.Runtime` exposes explicit named functions for every
+`Contexla.Applications.Sdk.Runtime` exposes explicit named functions for every
 supported host service. The SDK also owns the `PlatformServices` behaviour; the
 platform supplies an implementation at runtime and verifies it at compile time.
 

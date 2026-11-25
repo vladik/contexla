@@ -5,7 +5,7 @@ platform.
 
 It provides a shared runtime for independently useful Applications that help
 organizations understand, validate, move, monitor, govern, and preserve digital
-content. Applications reuse platform Connectors, Adapters, and Capabilities
+content. Applications reuse platform Connectors, Adapters, and Tools
 without being forced into one generic workflow or data model.
 
 Contexla is not a CMS and does not compete with CMS products. It works across
@@ -30,8 +30,8 @@ AI agents have two roles:
 
 1. **Operate the platform** by translating intent into configuration and Runs,
    inspecting evidence, explaining results, and recommending actions.
-2. **Extend the platform** by defining missing Capability contracts or creating
-   isolated Processors that implement existing contracts.
+2. **Extend the platform** through reviewed Tool Packages that contain bounded
+   operations, structured contracts, implementation, dependencies, and tests.
 
 AI is optional and is never the source of truth. Deterministic rules,
 Connectors, evidence, validation, and auditable execution remain authoritative.
@@ -78,16 +78,15 @@ and the [solution-led commercial model](docs/product/solution-led-commercial-mod
 - **Adapter** — the Contexla-side implementation of an Application-facing
   contract. It coordinates Clients and translates external data into stable
   structures the Application understands.
-- **Capability** — a stable, versioned contract describing what operation the
-  platform can perform, including semantic purpose, input/output schemas, and
-  allowed permissions.
-- **Processor** — one versioned implementation of a Capability. A Processor
-  supplies the runtime, entrypoint, dependencies, limits, and implementation
-  configuration; it may be native Elixir, isolated Python, a CLI, or HTTP.
-- **Capability Binding** — the explicit choice of Processor and configuration
-  for a Capability at platform, Application, or Application Instance scope.
-- **Capability Invocation** — one auditable execution that records the exact
-  Capability, Processor, Binding, actor, input, output, and status.
+- **Tool** — a small, versioned executable unit that performs one bounded
+  operation and owns its schemas, implementation, runtime, dependencies,
+  permissions, limits, and tests.
+- **Tool Package** — the reviewed distributable representation of a Tool when
+  one is required, such as an immutable ZIP containing its manifest,
+  implementation, dependency lock, tests, fixtures, and instructions.
+- **Tool Invocation** — one durable requested execution that records the exact
+  Tool version and package checksum, actor, Application context, safe result or
+  error, Artifacts, status, and timestamps.
 - **Run** — one auditable execution of an Application or operation.
 - **Artifact/Evidence** — durable output that supports a result, finding, or
   decision.
@@ -97,6 +96,10 @@ See [docs/README.md](docs/README.md) for the documentation map.
 ## Status
 
 Contexla is at the commercial-validation and first architecture-proof stage.
+The unified Tool model is now the normative executable-extension architecture.
+The former Capability/Processor/Binding runtime has been migrated to the
+unified Tool catalog, durable Tool Invocations, and Tool workers. Historical
+invocation records are preserved by the platform migration.
 The platform now compiles and boots without concrete Applications. Digital
 Estate Assessment and Drupal compile independently and are loaded through the
 SDK registry; the Application owns its PostgreSQL schema, migrations, execution,
@@ -106,8 +109,8 @@ validate manifest identity against compiled definitions, Application migrations
 run explicitly rather than during registry startup, and configured Instances
 refuse to execute against a different installed Application version.
 Application Operations now pass through a declared and auditable platform
-boundary that enforces structured input, command/read transport, required
-Capabilities, and authenticated approval before calling package code.
+boundary that enforces structured input, command/read transport, exact Tool
+requirements, and authenticated approval before calling package code.
 The platform owns the shared authenticated shell and visual system, while the
 independent `contexla_ui` package gives Applications route-free components and
 semantic styling without coupling them to platform web code.
@@ -120,8 +123,8 @@ state. It is a UI foundation only: no Agent provider, session persistence, or
 tool execution is implemented yet.
 Installation administrators now have a read-only Operations Console for
 bounded readiness, registered package state, recent Application Operation and
-Capability Invocations, Oban jobs, and lifecycle audit activity. The console
-uses safe error/reference data and links to affected Application Instances
+Tool Invocations, Oban jobs, and lifecycle audit activity. The
+console uses safe error/reference data and links to affected Application Instances
 without copying Application-owned Runs or exposing payloads and secrets.
 Administrators can export the same bounded operational evidence as a checksummed
 support bundle. An isolated automated failure drill verifies that useful
@@ -130,7 +133,8 @@ error details, audit metadata, and user email addresses do not leak.
 The repository contains an executable first Digital Estate Assessment vertical
 slice. An authenticated user can create an Assessment Instance, upload and
 validate a Drupal snapshot, retain it as immutable evidence, queue an Oban Run,
-normalize inventory through the Drupal Adapter, invoke the Composer Capability,
+normalize inventory through the Drupal Adapter, invoke the bundled Composer
+Tool,
 persist relationships and deterministic findings, inspect results, and produce
 HTML or JSON report output. Reviewers can disposition deterministic findings
 with an append-only rationale and add attributed expert findings. The slice is
@@ -139,11 +143,17 @@ inventory.
 
 A read-only Drush collector spike has now been exercised against a disposable
 Drupal 11 installation in both clean and synthetic-college states. Those
-snapshots completed the full Artifact, Capability, Oban, persistence,
+snapshots completed the full Artifact, Tool Invocation, Oban, persistence,
 comparison, Finding, and JSON-report path. This is a stronger technical proof
 than hand-authored fixtures, but it is still synthetic evidence; real college
 evidence and customer review remain required for commercial validation.
 
 See [the development guide](docs/development/getting-started.md) to run the
 current platform.
+
+The independent Content Integrity Monitor package now provides the first
+bounded portfolio-product slice: Application-owned Monitors, Sources, Facts,
+Runs, Observations, Issues, and Evidence; exact JSON/HTML extraction Tools; and
+a synthetic external content chain for local demonstration. This remains a
+market hypothesis until prospects validate and fund a pilot or integration.
 

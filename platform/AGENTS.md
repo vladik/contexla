@@ -1,5 +1,11 @@
 This is a web application written using the Phoenix web framework.
 
+Follow the repository-wide module naming and placement contract in
+`../docs/development/module-naming.md`. New platform modules use the
+`Contexla.Platform.*` namespace, and platform tests use
+`Contexla.Platform.Test.*`. Existing shorter namespaces are transitional and
+must not be used as precedent for new modules.
+
 ## Contexla-specific boundaries
 
 - There is no public user registration or public magic-link login. Accounts are
@@ -16,13 +22,13 @@ This is a web application written using the Phoenix web framework.
   package installation before an explicit product decision.
 - Application Instances persist configuration and pin the installed Application
   version; they do not duplicate Application code.
-- Capability contracts and Processor definitions bundled in code are
-  authoritative; PostgreSQL mirrors them for discovery, binding, and audit.
-- Applications invoke Capability identities through `Contexla.Capabilities`.
-  Do not call Processor modules directly from Application code or workers.
-- A changed Capability contract or Processor definition requires a new version;
-  catalog synchronization rejects same-version definition drift.
-- Capability Binding resolution is Instance, then Application, then Platform.
+- Bundled Tool definitions are code-authoritative; PostgreSQL mirrors them for
+  discovery and audit.
+- Applications request exact Tool identities through `Contexla.Platform.Tools` via the
+  Application SDK. Do not call Tool entrypoints directly from Application code
+  or workers.
+- A changed Tool contract or implementation requires a new version; catalog
+  synchronization rejects same-version definition drift.
 - Concrete Applications are not platform dependencies. They contribute surfaces,
   operations, migrations, and runtime code through the Application SDK and use
   only the bounded service modules supplied through `ApplicationSDK.Runtime`.
@@ -97,7 +103,7 @@ LiveViews that require login should **always be placed inside the __existing__ `
       pipe_through [:browser, :require_authenticated_user]
 
       live_session :require_authenticated_user,
-        on_mount: [{ContexlaWeb.UserAuth, :require_authenticated}] do
+        on_mount: [{Contexla.Platform.Web.UserAuth, :require_authenticated}] do
         # phx.gen.auth generated routes
         live "/users/settings", UserLive.Settings, :edit
         live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
@@ -122,7 +128,7 @@ LiveViews that can work with or without authentication, **always use the __exist
       pipe_through [:browser]
 
       live_session :current_user,
-        on_mount: [{ContexlaWeb.UserAuth, :mount_current_scope}] do
+        on_mount: [{Contexla.Platform.Web.UserAuth, :mount_current_scope}] do
         # our own routes that work with or without authentication
         live "/", PublicLive
       end

@@ -1,10 +1,10 @@
 import Ecto.Query
 
-alias Contexla.Accounts.{Scope, User}
-alias Contexla.ApplicationSDK.Instance, as: SDKInstance
-alias Contexla.Applications.ApplicationInstance
-alias Contexla.Estate.{AssessmentRun, Assessments}
-alias Contexla.{ApplicationOperations, Applications, Repo, SourceImports}
+alias Contexla.Applications.Sdk.Instance, as: SDKInstance
+alias Contexla.Applications.DigitalEstateAssessment.{AssessmentRun, Assessments}
+alias Contexla.Platform.Accounts.{Scope, User}
+alias Contexla.Platform.Applications.ApplicationInstance
+alias Contexla.Platform.{ApplicationOperations, Applications, Repo, SourceImports}
 
 application_id = "com.contexla.application.digital-estate-assessment"
 adapter_id = "drupal.assessment.snapshot.v1"

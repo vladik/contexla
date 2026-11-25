@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Contexla.Packages.Migrate do
+defmodule Mix.Tasks.Contexla.Platform.Packages.Migrate do
   use Mix.Task
 
   @shortdoc "Runs migrations owned by registered Application packages"
@@ -11,7 +11,7 @@ defmodule Mix.Tasks.Contexla.Packages.Migrate do
     try do
       Mix.Task.run("app.start")
 
-      case Contexla.Packages.Migrations.run_all() do
+      case Contexla.Platform.Packages.Migrations.run_all() do
         :ok -> Mix.shell().info("Registered Application migrations are current.")
         {:error, reason} -> Mix.raise("Application migration failed: #{inspect(reason)}")
       end

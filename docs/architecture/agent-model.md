@@ -2,6 +2,9 @@
 
 AI agents play two distinct roles: they operate Contexla and extend Contexla.
 
+Executable extension rules are defined by the
+[Tool architecture and runtime](tool-runtime.md).
+
 The interaction model is Agent-first but not chat-only. Users express intent in
 a persistent, context-aware Agent workspace while structured Application UI
 remains authoritative for configuration, Runs, evidence, Findings, approvals,
@@ -12,8 +15,7 @@ and reports.
 An operating agent can:
 
 1. understand user intent;
-2. inspect installed Applications, Connections, Adapters, Capability contracts,
-   and bound Processors;
+2. inspect installed Applications, Connections, Adapters, and approved Tools;
 3. determine whether the request is currently supported;
 4. ask for missing configuration or explain how to acquire access;
 5. propose a plan and configuration;
@@ -29,7 +31,7 @@ User: Monitor these product facts and tell me when the website or search index
 
 Agent:
   - identifies Content Integrity Monitor;
-  - inspects its Operations and required Capability contracts;
+  - inspects its Operations and required Tools;
   - checks for usable source and representation Connections or imports;
   - proposes entity, fact, extraction, normalization, and comparison mappings;
   - explains unsupported sources or missing access precisely;
@@ -45,32 +47,30 @@ access can be generated safely from a prompt.
 
 ## Extend the platform
 
-The agent first checks whether the required Capability contract exists. If the
-contract exists but no suitable implementation is available, it creates a
-Processor. If the semantic operation itself is new, a human or controlled
-extension flow defines a new Capability contract and then a Processor.
+The agent first checks whether an installed, approved Tool performs the required
+bounded operation. If no suitable Tool exists, the initial extension path is
+AI-assisted development rather than autonomous production installation.
 
 ```text
 intent
-  -> inspect registry
-  -> identify missing Capability or missing Processor
-  -> select/create Capability contract
-  -> generate Processor package (manifest, code, dependencies, tests)
-  -> create isolated environment
-  -> validate contract, permissions, and tests
-  -> execute against approved sample input
-  -> human/policy approval
-  -> register Processor version
-  -> bind it at Instance, Application, or Platform scope
-  -> invoke the Capability in an authorized Run
+  -> inspect Tool registry
+  -> identify one missing bounded operation
+  -> ask for required behavior, schemas, permissions, and fixtures
+  -> generate Tool Package (manifest, code, locked dependencies, tests)
+  -> developer review and CI validation
+  -> package/install through the supported delivery process
+  -> administrator approval
+  -> configure an exact Tool version for the Application Instance
+  -> invoke it in an authorized Run
 ```
 
-Generated customer-specific behavior starts at Instance scope. It is promoted
-to Application or Platform scope only after review and demonstrated reuse. The
-agent never calls generated code directly; the Capability runtime owns schema
-validation, permission enforcement, execution, and provenance.
+V1 expects AI-generated Tools to begin with Python and use one isolated virtual
+environment per Tool version. A virtual environment isolates dependencies but
+is not a security sandbox, so production Agents never silently install, enable,
+replace, or execute generated code. The Tool Runtime owns schema validation,
+permission enforcement, durable execution, and provenance.
 
-A missing system integration is not always a missing Capability. A new CMS may
+A missing system integration is not always a missing Tool. A new CMS may
 require a Client, an Application-facing Adapter, and sometimes a Connector.
 Those are larger, reviewed extension packages with explicit contracts and
 lifecycle management.
@@ -85,7 +85,7 @@ Agents are not the source of truth.
 - Agents cannot silently broaden permissions, reveal credentials, install
   unreviewed code in production, or change authoritative rules.
 - Generated output must be traceable to model/provider, prompt/configuration,
-  inputs, Capability contract, Processor version, and Binding when relevant.
+  inputs, exact Tool version/package checksum, and approval when relevant.
 - High-impact actions require explicit authorization or a pre-approved policy.
 
 ## Agent workspace and context
@@ -120,7 +120,7 @@ Agent Session
   conversation, plan, investigation, approvals
        -> Application Operation
        -> Run (authoritative execution)
-       -> Capability Invocation
+       -> Tool Invocation
 ```
 
 The initial workspace shell intentionally displays AI as unconfigured. It does
@@ -133,8 +133,7 @@ All essential functionality must remain available without an AI provider:
 - administrators configure Connections and Application Instances manually;
 - users start and inspect Runs through UI/API;
 - deterministic reports and findings remain available;
-- Capability contracts and Processors can be authored and registered by
-  developers;
+- Tools can be authored, reviewed, packaged, and installed by developers;
 - the platform displays agent features as unavailable rather than degrading core
   execution.
 

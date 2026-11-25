@@ -1,4 +1,4 @@
-# Contexla.Drupal
+# Contexla.Integrations.Drupal
 
 **TODO: Add description**
 

@@ -10,39 +10,38 @@ import Config
 config :contexla, :scopes,
   user: [
     default: true,
-    module: Contexla.Accounts.Scope,
+    module: Contexla.Platform.Accounts.Scope,
     assign_key: :current_scope,
     access_path: [:user, :id],
     schema_key: :user_id,
     schema_type: :binary_id,
     schema_table: :users,
-    test_data_fixture: Contexla.AccountsFixtures,
+    test_data_fixture: Contexla.Platform.Test.Support.Fixtures.AccountsFixtures,
     test_setup_helper: :register_and_log_in_user
   ]
 
 config :contexla,
-  ecto_repos: [Contexla.Repo],
+  ecto_repos: [Contexla.Platform.Repo],
   generators: [timestamp_type: :utc_datetime, binary_id: true],
   application_packages: [],
   integration_packages: [],
-  capability_packages: [Contexla.Capabilities.Bundled],
-  processor_packages: [Contexla.Processors.Native],
+  tool_packages: [Contexla.Tools.Bundled.Package],
   artifact_storage_path: Path.expand("../.tmp/artifacts", __DIR__)
 
 config :contexla, Oban,
   engine: Oban.Engines.Basic,
-  repo: Contexla.Repo,
-  queues: [application_runs: 4]
+  repo: Contexla.Platform.Repo,
+  queues: [application_runs: 4, tool_invocations: 4]
 
 config :contexla_application_sdk,
-  services: %{repo: Contexla.Repo, platform: Contexla.ApplicationServices}
+  services: %{repo: Contexla.Platform.Repo, platform: Contexla.Platform.ApplicationServices}
 
 # Configure the endpoint
-config :contexla, ContexlaWeb.Endpoint,
+config :contexla, Contexla.Platform.Web.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [html: ContexlaWeb.ErrorHTML, json: ContexlaWeb.ErrorJSON],
+    formats: [html: Contexla.Platform.Web.ErrorHTML, json: Contexla.Platform.Web.ErrorJSON],
     layout: false
   ],
   pubsub_server: Contexla.PubSub,
@@ -85,7 +84,7 @@ config :phoenix, :json_library, Jason
 
 # Email delivery is retained for authenticated account settings. Public
 # registration and magic-link login are not exposed by Contexla.
-config :contexla, Contexla.Mailer, adapter: Swoosh.Adapters.Local
+config :contexla, Contexla.Platform.Mailer, adapter: Swoosh.Adapters.Local
 config :swoosh, :api_client, false
 
 # Import environment specific config. This must remain at the bottom

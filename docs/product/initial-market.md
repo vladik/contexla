@@ -96,6 +96,6 @@ search, CMS delivery, migration verification, deployment, support, and ongoing
 operation while remaining useful by itself.
 
 Do not fork the product per customer. Package differences as configuration,
-Application Instances, Connections, Bindings, or versioned extensions that can
-be evaluated for later reuse.
+Application Instances, Connections, pinned Tool versions, or versioned
+extensions that can be evaluated for later reuse.
 

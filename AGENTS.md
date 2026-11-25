@@ -40,7 +40,8 @@ boundaries below when planning or changing it.
   reuse.
 - Early customer distributions are curated supported package combinations, not
   a marketplace. Never create customer forks; represent differences through
-  Instances, configuration, Connections, Bindings, and bounded extensions.
+  Instances, configuration, Connections, pinned Tool versions, and bounded
+  extensions.
 - Do not require on-premise installation for a bounded snapshot engagement when
   an approved evidence package and agreed secure processing environment satisfy
   the customer. Keep customer-hosted execution available when policy requires
@@ -56,9 +57,7 @@ Configured use of an Application?         -> Application Instance
 Native component in/near external system? -> Connector
 Low-level external communication?         -> Client
 Implements an Application-facing external-system contract? -> Adapter
-Small reusable executable operation?      -> Capability
-Concrete implementation of a Capability? -> Processor
-Scoped selection/configuration of a Processor? -> Capability Binding
+Small reusable executable operation?      -> Tool
 Infrastructure needed by many Applications? -> Core/Runtime
 ```
 
@@ -68,12 +67,22 @@ translations.
 
 ## Implementation principles
 
+- Follow `docs/development/module-naming.md`. Module namespaces must expose the
+  repository package category, full package name, and meaningful folder path.
+  For example,
+  `applications/content_integrity_monitor/test/simulators/external_http_source.ex`
+  defines
+  `Contexla.Applications.ContentIntegrityMonitor.Test.Simulators.ExternalHttpSource`.
+  Do not shorten `ContentIntegrityMonitor` to `Integrity`, and do not place
+  Application-owned fixtures, simulators, or acceptance infrastructure outside
+  the owning Application. Existing shorter namespaces are transitional; do not
+  expand them with new functionality.
 - Applications own their domain and database tables.
 - Applications also own their services, migrations, workers, execution, reports,
   domain UI surfaces, and optional namespaced browser assets. The platform owns
   the authenticated shell, global theme/assets, navigation, and generic routes.
   Shared route-independent components belong in `contexla_ui`; Applications
-  must never depend on `ContexlaWeb`.
+  must never depend on `Contexla.Platform.Web`.
 - Reuse and extend the established `contexla_ui` primitives and shell patterns.
   Do not create parallel Application-local buttons, inputs, modals, tables,
   themes, or full-page layouts unless the shared contract genuinely cannot
@@ -89,23 +98,27 @@ translations.
 - Shared platform code owns only cross-Application concerns.
 - Use Oban for durable jobs and OTP supervision for runtime processes.
 - Store secrets encrypted and never include them in logs, artifacts, prompts, or
-  Capability input unless explicitly required and authorized.
-- Applications depend on Capability contracts, never directly on Processor
-  modules, scripts, or binaries.
-- Processors own implementation details: runtime, entrypoint, dependencies,
-  limits, and implementation configuration.
-- Python Processors own isolated dependencies and communicate through the
-  Capability's structured input/output contract.
-- Execute Processors only through the Capability runtime so validation,
-  binding, permissions, provenance, and invocation history cannot be bypassed.
-- Treat generated code as untrusted until its manifest, permissions, tests, and
-  execution have been validated.
+  Tool input unless explicitly required and authorized.
+- A Tool owns one bounded operation, structured input/output schemas,
+  implementation, runtime, entrypoint, dependencies, permissions, limits, and
+  tests. Capability, Processor, and Capability Binding are superseded concepts.
+- Applications pin exact Tool versions and invoke them only through the Tool
+  Runtime; they never start commands, locate environments, or load Tool Package
+  files directly.
+- Python Tools own isolated virtual environments and communicate through the
+  standard structured JSON process protocol.
+- Create a durable Tool Invocation before enqueueing its Oban execution job.
+  Execute Tools only through the Tool Runtime so validation, permissions,
+  provenance, version pinning, and Invocation history cannot be bypassed.
+- Treat generated code as untrusted. V1 requires developer review, CI
+  validation, supported installation, and explicit administrator approval
+  before execution.
 - Prefer deterministic validation for correctness; use AI for planning,
   interpretation, suggestions, and bounded generation.
 - Keep Runs auditable and retain evidence for important findings.
 - Execute Application Operations only through the platform Operation boundary.
   Commands use POST or trusted runtime services; GET is reserved for declared
-  read Operations. Enforce input schemas, required Capabilities, approval, safe
+  read Operations. Enforce input schemas, required Tools, approval, safe
   audit projection, and Invocation history before calling Application code.
 - Keep package lifecycle stages explicit: validate/build, migrate/install, then
   discover/start. Registry startup must not run Application migrations, and an
@@ -135,17 +148,21 @@ signal but is not required before a bounded portfolio proof. Read
 1. Treat Digital Estate Assessment as an architecture proof. Do not extend it
    unless it is needed as a technical fixture or a buyer specifically validates
    its standalone outcome.
-2. Define the standalone Content Integrity Monitor contract, synthetic
-   demonstration, first proof boundary, and stop condition.
-3. Build the smallest deterministic slice across authoritative JSON/CSV and
-   configured HTTP JSON/HTML representations.
-4. Publish and show the completed use case before broadening integrations,
+2. Keep the completed unified Tool runtime bounded. Do not add Python or dynamic
+   Tool installation until a concrete Application proof requires it.
+3. Keep the documented standalone Content Integrity Monitor contract,
+   synthetic demonstration, proof boundary, and stop condition authoritative.
+4. Complete the Content Integrity Monitor UI so non-technical users can
+   understand results at a glance: replace the current stats-and-issues layout
+   with a fact × source matrix showing healthy/overdue/missing/unavailable
+   states, and ensure the demo flow (create → run → inspect) is self-evident.
+5. Publish and show the completed use case before broadening integrations,
    comparison behavior, or platform infrastructure.
-5. Add Agent operation only after the deterministic Application works manually
+6. Add Agent operation only after the deterministic Application works manually
    through the same Application services.
-6. Add an isolated or agent-generated Processor only for a real missing
-   operation exposed by the proof.
-7. Start another Application only when it passes the standalone-value and
+7. Add an isolated or AI-generated Tool only for a real missing operation
+   exposed by the proof, using the reviewed package-delivery flow.
+8. Start another Application only when it passes the standalone-value and
    bounded-portfolio tests.
 
 Before adding platform infrastructure, identify the current Application proof
@@ -153,6 +170,10 @@ or strongly supported customer outcome that requires it. Portfolio-led does not
 mean building the hypothetical full platform.
 
 ## Current implementation state
+
+- [ADR 0024](docs/decisions/0024-unified-tool-execution-model.md) accepts Tool
+  as the single executable-extension concept. The former
+  Capability/Processor/Binding runtime has been migrated and removed.
 
 - Digital Estate Assessment is independently compiled and source-linked through
   the runtime registry; it is not a platform dependency.
@@ -165,12 +186,12 @@ mean building the hypothetical full platform.
 - Application Operations have declared command/read and input contracts. The
   platform records Operation Invocations and links Application-owned Runs when
   supplied; Digital Estate Assessment starts Runs through this boundary.
-- Applications use explicit typed `Contexla.ApplicationSDK.Runtime` functions
+- Applications use explicit typed `Contexla.Applications.Sdk.Runtime` functions
   for shared host services. Dynamic platform function dispatch is not part of
   the SDK contract.
 - Current Instance and source-import lifecycle actions produce append-only Audit
-  Events. Capability/Operation audit projections redact schema-marked sensitive
-  fields, and persisted or user-facing failures use bounded codes/messages
+  Events. Tool/Operation audit projections redact schema-marked
+  sensitive fields, and persisted or user-facing failures use bounded codes/messages
   rather than serialized internal terms.
 - GitHub CI independently format-checks, compiles, and tests every Mix project;
   its PostgreSQL-backed platform job also builds assets, while the Assessment
@@ -190,7 +211,7 @@ mean building the hypothetical full platform.
   Chat and Activity views. It currently exposes only an honest unconfigured
   state; no AI provider, Agent Session persistence, tool execution, or approval
   runtime is implemented. Agent Sessions must remain separate from authoritative
-  Application Runs and Capability Invocations.
+  Application Runs and Tool Invocations.
 - `contexla_ui` provides the shared Application frame and demonstrated layout
   patterns. The SDK starter generates an independently compiled package using
   those contracts; it is scaffolding, not a bundled product Application.
@@ -198,14 +219,15 @@ mean building the hypothetical full platform.
   lifecycle. Instances share its tables through `application_instance_id`.
 - The fixture-backed Digital Estate Assessment vertical slice is implemented:
   create Instance, upload/validate Artifact, queue Oban Run, normalize through
-  the Drupal Adapter, invoke Composer Capability, persist evidence/inventory/
-  relationships/findings, inspect results, and render HTML/JSON reports. The
+  the Drupal Adapter, invoke the bundled Composer Tool, persist
+  evidence/inventory/relationships/findings, inspect results, and render
+  HTML/JSON reports. The
   HTML report includes decision and scope, method, declared limitations,
   inventory, comparison, finding provenance, review history, and evidence.
 - Findings preserve deterministic versus expert origin, and status changes are
   recorded as append-only Review Decisions with reviewer and rationale.
 - Installation administrators have a read-only Operations Console with bounded
-  readiness, registered package state, recent Operation/Capability Invocations,
+  readiness, registered package state, recent Operation and Tool Invocations,
   Oban job metadata, lifecycle audit events, and Application Instance links.
   Payloads, job arguments, secrets, Artifact contents, and exception text are
   intentionally excluded; external uptime checks and logs remain required.
@@ -217,7 +239,7 @@ mean building the hypothetical full platform.
   stable inventory identity, preserving added, changed, and removed values.
 - A read-only Drush collector spike under `connectors/drupal_snapshot/` has been
   run against a disposable Drupal 11 site. Clean and seeded synthetic-college
-  snapshots completed the real Artifact, native Composer Processor, Oban,
+  snapshots completed the real Artifact, native Composer Tool Invocation, Oban,
   persistence, comparison, deterministic Finding, and report path. Aggregate
   content/media counts are normalized as evidence-backed Resources.
 - The synthetic proof is not real buyer evidence and must not be presented as
@@ -229,4 +251,17 @@ mean building the hypothetical full platform.
   across configured authoritative sources and delivered representations. Its
   first proof must remain bounded as described in
   `docs/product/business-intent-and-priorities.md`.
+- Content Integrity Monitor is independently generated and owns its
+  `contexla_integrity` schema, Monitors, Sources, Facts, Runs, source checks,
+  Observations, Issues, Evidence, workers, and UI. Its first slice uses exact
+  JSON/HTML extraction Tools and a development-only synthetic content chain.
+  PostgreSQL-backed overdue, pending, missing, healthy, and unavailable modes
+  completed through Operations, Oban, Tool Invocations, evidence, Issue
+  reconciliation, and history. This is a technical portfolio proof, not market
+  validation.
+- Repository-wide module namespaces now follow the folder-matched convention:
+  `Contexla.Platform.*` for the platform, `Contexla.Applications.*` for
+  Applications, `Contexla.Integrations.*` for Integrations, and
+  `Contexla.Tools.*` for Tools. The former `Contexla.*` and `Contexla.Web.*`
+  namespaces have been removed. All 201 tests across every Mix project pass.
 

@@ -1,4 +1,4 @@
-defmodule ContexlaUI.MixProject do
+defmodule Contexla.Ui.ContexlaUi.MixProject do
   use Mix.Project
 
   def project do

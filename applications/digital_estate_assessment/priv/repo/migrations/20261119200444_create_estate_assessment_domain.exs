@@ -1,4 +1,4 @@
-defmodule Contexla.Estate.Migrations.CreateEstateAssessmentDomain do
+defmodule Contexla.Applications.DigitalEstateAssessment.Migrations.CreateEstateAssessmentDomain do
   use Ecto.Migration
 
   def change do

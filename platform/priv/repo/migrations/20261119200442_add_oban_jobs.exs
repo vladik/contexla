@@ -1,4 +1,4 @@
-defmodule Contexla.Repo.Migrations.AddObanJobs do
+defmodule Contexla.Platform.Repo.Migrations.AddObanJobs do
   use Ecto.Migration
 
   def up do

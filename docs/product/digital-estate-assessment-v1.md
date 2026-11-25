@@ -23,7 +23,7 @@ Customer or assessor prepares approved evidence
               -> package validation and hashing
               -> Drupal source Adapter
               -> normalized estate snapshot
-              -> versioned Capability contracts and bound Processors
+              -> versioned Tools
               -> deterministic assessment rules
               -> findings linked to evidence
               -> architect review
@@ -41,7 +41,8 @@ is repeatedly valuable.
 3. Upload an evidence package that conforms to the v1 contract.
 4. Validate the package structure, hashes, source type, and collection metadata.
 5. Run the Drupal Adapter to create a normalized snapshot.
-6. Invoke required Capability contracts through their approved Processors.
+6. Invoke required Tools through the Tool Runtime. The current implementation
+   uses the bundled Composer Tool through a durable Tool Invocation.
 7. Inspect the inventory and evidence gaps.
 8. Execute deterministic assessment rules.
 9. Review, annotate, accept, suppress, or revise findings without changing the

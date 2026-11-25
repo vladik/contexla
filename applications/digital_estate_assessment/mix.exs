@@ -1,4 +1,4 @@
-defmodule Contexla.Estate.MixProject do
+defmodule Contexla.Applications.DigitalEstateAssessment.MixProject do
   use Mix.Project
 
   def project do
@@ -15,7 +15,7 @@ defmodule Contexla.Estate.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Contexla.Estate.Application, []}
+      mod: {Contexla.Applications.DigitalEstateAssessment.Application, []}
     ]
   end
 

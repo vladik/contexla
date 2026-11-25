@@ -36,7 +36,7 @@ Recognizable customer problem
         -> market-facing Solution
              outcome, scope, configuration, integrations, and services
         -> one or more independently useful Contexla Applications
-        -> shared platform, Integrations, Capabilities, and Processors
+        -> shared platform, Integrations, and Tools
 ```
 
 A Solution is how the agency packages and promotes an outcome. It is not a
@@ -67,7 +67,7 @@ credible:
    conversation.
 6. It is adjacent to work the agency is qualified to deliver.
 7. Its reusable domain and execution justify an Application rather than a
-   standalone script, Capability, or consulting template.
+   standalone script, Tool, or consulting template.
 
 Paid demand remains the strongest validation, but it is not the only permitted
 starting signal. Observed market problems, the agency's delivery experience,
@@ -111,8 +111,8 @@ recreate for every solution:
 - shared UI shell and Application surface contracts;
 - Application Operation invocation, approval, audit, and Run linkage;
 - Integration registration, Clients, Adapters, and Connections;
-- Capability contracts, Processor selection, isolated execution, permissions,
-  provenance, and invocation history;
+- Tool registration, isolated execution, permissions, provenance, version
+  pinning, and durable Invocation history;
 - artifacts, evidence, durable jobs, operational diagnostics, and support
   boundaries;
 - a context-aware Agent workspace that can eventually operate every installed
@@ -131,7 +131,7 @@ Contexla gives agents two distinct roles.
 ### Operate
 
 An agent understands intent, inspects installed Applications, Operations,
-Integrations, Connections, Capabilities, and evidence, proposes configuration,
+Integrations, Connections, Tools, and evidence, proposes configuration,
 requests approvals, invokes authorized Operations, monitors activity, and
 explains stored results.
 
@@ -141,11 +141,11 @@ available when no AI provider is allowed.
 
 ### Extend
 
-When an operation is missing, an agent can help define a Capability contract or
-create a Processor implementation with code, dependencies, tests, and a
-manifest. Generated code begins at the narrowest useful scope, is treated as
-untrusted, and executes only through the Capability runtime after validation
-and approval.
+When an operation is missing, an agent can help generate a Tool Package with a
+manifest, schemas, code, locked dependencies, tests, fixtures, and instructions.
+Generated code is treated as untrusted and initially enters production only
+through developer review, CI validation, supported installation, and explicit
+approval. It executes only through the Tool Runtime.
 
 The reliable platform owns authorization, execution, retries, validation,
 evidence, and provenance. Agents supply adaptability, planning,
@@ -154,13 +154,13 @@ source of truth.
 
 The architecture must preserve this direction from the beginning, but a real
 Application's deterministic workflow is implemented before autonomous agent
-operation or generated Processors are added to it.
+operation or generated Tools are added to it.
 
 ## Current portfolio decision
 
 Digital Estate Assessment proved important platform mechanics: independent
 packages, Application-owned data and migrations, generic surface mounting,
-Operations, durable Runs, Artifacts, Adapters, Capability invocation, evidence,
+Operations, durable Runs, Artifacts, Adapters, Tool invocation, evidence,
 Findings, reports, and operational support. Its current output has not shown
 enough standalone customer value to justify further product investment.
 
@@ -212,8 +212,8 @@ want a pilot, integration, deployment, or related project.
    conversations before broadening integrations or comparison behavior.
 6. Add Agent operation only after the deterministic Application services and
    evidence model work manually.
-7. Add an isolated or agent-generated Processor only when the proof exposes a
-   real missing operation that cannot reasonably remain native.
+7. Add an isolated or AI-generated Tool only when the proof exposes a real
+   missing operation and use the reviewed package-delivery flow.
 8. Start another Application only when it passes the same standalone-value and
    bounded-portfolio tests.
 

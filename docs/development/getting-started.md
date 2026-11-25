@@ -1,5 +1,8 @@
 # Getting started
 
+> Executable extensions use the unified Tool model defined by
+> [Tool architecture and runtime](../architecture/tool-runtime.md).
+
 ## Prerequisites
 
 - Elixir 1.20 and Erlang/OTP 29;
@@ -15,9 +18,9 @@ The initial skeleton was generated with Phoenix installer 1.8.9.
 platform/                                Phoenix release and shared platform
 applications/sdk/                        Application package contract
 applications/digital_estate_assessment/  first bundled Application
-capabilities/sdk/                         Capability contract SDK
-capabilities/bundled/                     first-party Capability definitions
-processors/native/                        trusted native Processors
+applications/content_integrity_monitor/  active portfolio Application proof
+tools/sdk/                               Tool definition and package contract
+tools/bundled/                           trusted bundled Tools
 integrations/sdk/                        Integration package contract
 integrations/drupal/                     first bundled Integration
 docs/                                    product and architecture source of truth
@@ -38,7 +41,7 @@ docker compose up -d postgres
 ```
 
 The checked-in `contexla/contexla_dev` credential is only for the loopback-bound
-development database. It is exposed on port `55433` by default to avoid
+development database. It is exposed on port `15432` by default to avoid
 collisions with other local projects; set `POSTGRES_PORT` to override it.
 Production uses `DATABASE_URL` and externally managed secrets.
 
@@ -86,6 +89,56 @@ alongside another local Phoenix project on port `4000`. Override it when needed:
 
 This changes only the Contexla listener started by the script.
 
+## Run the Content Integrity demonstration
+
+Start the Application-owned external HTTP source simulator in one terminal:
+
+```powershell
+Set-Location applications/content_integrity_monitor
+$env:MIX_ENV = "test"
+mix deps.get
+mix run --no-halt test/simulators/run_external_http_source.exs
+```
+
+The simulator is acceptance-test infrastructure owned by Content Integrity
+Monitor. It is compiled only in the test environment, is not a Connector, and
+is excluded from the production Application package.
+
+Start PostgreSQL as described above, then run the independently registered
+Content Integrity Application in another terminal:
+
+```powershell
+Set-Location C:\Repos\contexla
+.\scripts\dev-integrity.ps1
+```
+
+Open `http://localhost:4100`, create a Content Integrity Monitor Instance,
+create the demonstration Monitor from its Overview, and start a Run. The demo
+defaults to an overdue website credential and a missing search duration. Its
+mode can be changed without restarting:
+
+```powershell
+Invoke-RestMethod -Method Post http://localhost:4205/mode/pending
+Invoke-RestMethod -Method Post http://localhost:4205/mode/overdue
+Invoke-RestMethod -Method Post http://localhost:4205/mode/unavailable
+```
+
+For a repeatable non-UI proof, leave the synthetic source running and execute
+the same Application Operations through a script from another terminal:
+
+```powershell
+Set-Location platform
+$application = (Resolve-Path ..\applications\content_integrity_monitor).Path
+$env:CONTEXLA_APPLICATION_PACKAGES = "$application\_build\dev\lib\content_integrity_monitor\ebin|Contexla.Applications.ContentIntegrityMonitor.Package"
+mix run ..\scripts\run-local-integrity-proof.exs
+```
+
+The script reuses a named local Instance, runs `overdue`, `pending`, and
+`unavailable` modes, waits for the Oban and Tool Invocation path, and prints
+Run summaries plus evidence identities. It requires an existing administrator
+and current platform/Application migrations. It is synthetic development
+evidence, not buyer validation.
+
 ## Bootstrap the administrator
 
 Contexla does not expose public account registration and does not ship a shared
@@ -112,19 +165,19 @@ mix test
 Set-Location ../digital_estate_assessment
 mix test
 
+Set-Location ../content_integrity_monitor
+mix test
+
 Set-Location ../../integrations/sdk
 mix test
 
 Set-Location ../drupal
 mix test
 
-Set-Location ../../capabilities/sdk
+Set-Location ../../tools/sdk
 mix test
 
 Set-Location ../bundled
-mix test
-
-Set-Location ../../processors/native
 mix test
 ```
 
@@ -133,10 +186,10 @@ semicolon-separated `EBIN_PATH|Entry.Module` registrations. The development
 script sets these variables; production installation will populate equivalent
 validated package registrations from the package catalog.
 
-The platform also starts `Contexla.CapabilityRuntime.Registry`. Bundled
-Capability and Processor definitions are code-authoritative and are mirrored
-to PostgreSQL lazily before invocation. Applications invoke contracts through
-`Contexla.Capabilities`; they must not call Processor modules directly.
+The platform also starts `Contexla.Platform.ToolRuntime.Registry`. Bundled Tool
+definitions are code-authoritative and are mirrored to PostgreSQL before
+invocation. Applications request exact Tool versions through the typed
+Application SDK; they must not call Tool entrypoints directly.
 
 The platform's generated `mix test` alias provisions the test database before
 running ExUnit, so the complete platform suite intentionally requires the
@@ -171,9 +224,9 @@ local proof can be run without starting a web listener:
 Set-Location platform
 
 $env:CONTEXLA_APPLICATION_PACKAGES = `
-  "<assessment-ebin>|Contexla.Estate"
+  "<assessment-ebin>|Contexla.Applications.DigitalEstateAssessment.Package"
 $env:CONTEXLA_INTEGRATION_PACKAGES = `
-  "<drupal-ebin>|Contexla.Drupal"
+  "<drupal-ebin>|Contexla.Integrations.Drupal.Package"
 $env:CONTEXLA_BASELINE_SNAPSHOT = "<clean-snapshot.zip>"
 $env:CONTEXLA_SEEDED_SNAPSHOT = "<seeded-snapshot.zip>"
 $env:CONTEXLA_PROOF_REPORT = "<report-output.json>"

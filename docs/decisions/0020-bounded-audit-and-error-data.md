@@ -19,7 +19,7 @@ schema properties marked `sensitive` are replaced with `[REDACTED]` before an
 Invocation is persisted. Execution still receives the original validated value.
 
 Failures crossing persistence, API, or UI boundaries use bounded codes from
-`Contexla.ApplicationSDK.Error`; arbitrary strings, exceptions, changesets, and
+`Contexla.Applications.Sdk.Error`; arbitrary strings, exceptions, changesets, and
 nested terms are not copied into those boundaries.
 
 Because audit projection is part of a Capability's observable contract, the

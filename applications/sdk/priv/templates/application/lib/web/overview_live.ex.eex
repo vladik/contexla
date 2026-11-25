@@ -1,0 +1,32 @@
+defmodule <%= web_module %>.OverviewLive do
+  use Contexla.Ui.ContexlaUi, :live_view
+
+  alias Contexla.Applications.Sdk.Instance
+
+  @impl true
+  def mount(_params, %{"instance" => data}, socket),
+    do: {:ok, assign(socket, :instance, Instance.from_session!(data))}
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <.application_frame id="application-overview" icon="hero-squares-2x2" title={@instance.name} subtitle={@instance.config["purpose"]} flash={assigns[:flash]}>
+      <:actions>
+        <a href={"/applications/#{@instance.id}/settings"} class="grid size-8 place-items-center text-text-muted hover:text-text" aria-label="Instance settings"><.icon name="hero-cog-6-tooth" class="size-4" /></a>
+      </:actions>
+      <:navigation>
+        <.tabs id="application-navigation">
+          <:tab label="Overview" icon="hero-home" navigate={"/applications/#{@instance.id}"} selected />
+          <:tab label="Records" icon="hero-list-bullet" navigate={"/applications/#{@instance.id}/collection"} />
+        </.tabs>
+      </:navigation>
+      <div class="grid gap-4 sm:grid-cols-3">
+        <.stat label="Records" value="0" />
+        <.stat label="Open findings" value="0" />
+        <.stat label="Runs" value="0" />
+      </div>
+      <div class="mt-6"><.empty_state title="Ready for the first domain workflow" description="Replace this instructional state with the first useful action and evidence-backed result." /></div>
+    </.application_frame>
+    """
+  end
+end

@@ -26,7 +26,7 @@ defmodule Mix.Tasks.Contexla.Application.Package do
           "#{application}-#{version}.contexla-app"
         ])
 
-    case Contexla.ApplicationSDK.PackageBuilder.build(
+    case Contexla.Applications.Sdk.PackageBuilder.build(
            manifest,
            Mix.Project.app_path(),
            output

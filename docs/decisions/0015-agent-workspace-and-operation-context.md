@@ -1,5 +1,10 @@
 # ADR 0015: Agent workspace and Application Operation context
 
+> Terminology note: [ADR 0024](0024-unified-tool-execution-model.md) replaces
+> Processor and Capability Invocation with Tool and Tool Invocation. The Agent
+> workspace, Operation context, and separation of Agent Sessions from
+> authoritative execution remain accepted.
+
 Status: Accepted
 
 Date: 2026-11-21

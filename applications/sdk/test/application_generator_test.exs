@@ -14,8 +14,6 @@ defmodule Mix.Tasks.Contexla.Application.NewTest do
 
     Mix.Tasks.Contexla.Application.New.run([
       target,
-      "--module",
-      "Acme.Starter",
       "--id",
       "com.acme.application.starter",
       "--name",
@@ -24,18 +22,25 @@ defmodule Mix.Tasks.Contexla.Application.NewTest do
 
     assert File.exists?(Path.join(target, "mix.exs"))
     assert File.exists?(Path.join(target, "contexla-application.json"))
-    assert File.exists?(Path.join(target, "lib/overview_live.ex"))
+    assert File.exists?(Path.join(target, "lib/web/overview_live.ex"))
 
-    definition = File.read!(Path.join(target, "lib/application.ex"))
+    generated_module = "Contexla.Applications." <> (target |> Path.basename() |> Macro.camelize())
+
+    mix_file = File.read!(Path.join(target, "mix.exs"))
+    refute mix_file =~ ~r/[A-Za-z]:\//
+
+    definition = File.read!(Path.join(target, "lib/package.ex"))
     refute definition =~ "ContexlaWeb"
-    assert definition =~ "Contexla.ApplicationSDK"
+    assert definition =~ "Contexla.Applications.Sdk"
+    assert definition =~ generated_module <> ".Package"
 
-    new_surface = File.read!(Path.join(target, "lib/new_live.ex"))
+    new_surface = File.read!(Path.join(target, "lib/web/new_live.ex"))
     assert new_surface =~ "Runtime.create_instance"
     refute new_surface =~ "Runtime.call"
 
     manifest = target |> Path.join("contexla-application.json") |> File.read!() |> Jason.decode!()
     assert manifest["applicationId"] == "com.acme.application.starter"
+    assert manifest["entryModule"] == generated_module <> ".Package"
     assert Enum.any?(manifest["surfaces"], &(&1["default"] == true))
     assert Enum.any?(manifest["surfaces"], &(&1["kind"] == "settings"))
   end

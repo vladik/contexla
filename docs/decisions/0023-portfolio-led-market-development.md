@@ -54,7 +54,7 @@ Contexla uses portfolio-led market development alongside paid validation.
   accessibility certification, AI extraction, PDF/OCR, and broad vendor
   integration coverage.
 - Agent-first architecture remains a requirement, while deterministic manual
-  operation is completed before Agent operation or generated Processors.
+  operation is completed before Agent operation or generated Tools.
 
 This decision changes the current product priority established after ADR 0003.
 ADR 0003 remains an accurate historical record of why Digital Estate Assessment

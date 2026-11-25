@@ -1,4 +1,4 @@
-defmodule Contexla.Repo.Migrations.AddIconToApplicationInstances do
+defmodule Contexla.Platform.Repo.Migrations.AddIconToApplicationInstances do
   use Ecto.Migration
 
   def change do

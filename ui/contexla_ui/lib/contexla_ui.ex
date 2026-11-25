@@ -1,4 +1,4 @@
-defmodule ContexlaUI do
+defmodule Contexla.Ui.ContexlaUi do
   @moduledoc """
   Route-independent UI primitives shared by the Contexla platform and trusted
   Application packages.
@@ -27,22 +27,22 @@ defmodule ContexlaUI do
 
   defp html_helpers do
     quote do
-      import ContexlaUI.Components
-      import ContexlaUI.Components.ApplicationFrame
-      import ContexlaUI.Components.Layout.Patterns
-      import ContexlaUI.Components.UI.Button
-      import ContexlaUI.Components.UI.Header
-      import ContexlaUI.Components.UI.Icon
-      import ContexlaUI.Components.UI.IconPicker
-      import ContexlaUI.Components.UI.Input
-      import ContexlaUI.Components.UI.List
-      import ContexlaUI.Components.UI.Modal
-      import ContexlaUI.Components.UI.Table
-      import ContexlaUI.Components.UI.Tabs
-      import ContexlaUI.Components.UI.Tooltip
-      import ContexlaUI.Components.UI.Avatar
-      import ContexlaUI.Components.UI.Toast
-      import ContexlaUI.Components.Layout.SidebarNav
+      import Contexla.Ui.ContexlaUi.Components
+      import Contexla.Ui.ContexlaUi.Components.ApplicationFrame
+      import Contexla.Ui.ContexlaUi.Components.Layout.Patterns
+      import Contexla.Ui.ContexlaUi.Components.UI.Button
+      import Contexla.Ui.ContexlaUi.Components.UI.Header
+      import Contexla.Ui.ContexlaUi.Components.UI.Icon
+      import Contexla.Ui.ContexlaUi.Components.UI.IconPicker
+      import Contexla.Ui.ContexlaUi.Components.UI.Input
+      import Contexla.Ui.ContexlaUi.Components.UI.List
+      import Contexla.Ui.ContexlaUi.Components.UI.Modal
+      import Contexla.Ui.ContexlaUi.Components.UI.Table
+      import Contexla.Ui.ContexlaUi.Components.UI.Tabs
+      import Contexla.Ui.ContexlaUi.Components.UI.Tooltip
+      import Contexla.Ui.ContexlaUi.Components.UI.Avatar
+      import Contexla.Ui.ContexlaUi.Components.UI.Toast
+      import Contexla.Ui.ContexlaUi.Components.Layout.SidebarNav
     end
   end
 end

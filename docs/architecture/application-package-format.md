@@ -85,7 +85,7 @@ separately.
 
 The platform root layout supplies the authenticated shell, navigation, theme,
 and global assets around every surface. Applications must not reproduce that
-shell or depend on `ContexlaWeb`. They may use the independently compiled
+shell or depend on `Contexla.Platform.Web`. They may use the independently compiled
 `contexla_ui` package for route-free components and semantic styling.
 
 An Application must not assume the platform Tailwind build scans its source.

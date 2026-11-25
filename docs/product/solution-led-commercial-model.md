@@ -25,8 +25,8 @@ Customer problem and decision
              platform runtime
              required Application(s)
              required Integration(s)
-             required Capabilities and Processors
-             customer configuration and Bindings
+             required Tools
+             customer configuration and pinned Tool versions
         -> evidence-backed consulting outcome
 ```
 
@@ -37,8 +37,8 @@ The architectural vocabulary is not the buyer-facing message:
   solution inside Contexla;
 - an **Application Instance** is one configured customer use, such as an
   assessment of a college Drupal estate;
-- Integrations, Capabilities, Processors, and Bindings supply the reusable and
-  customer-specific operations required by that Instance.
+- Integrations and Tools supply the reusable and customer-specific operations
+  required by that Instance.
 
 ## Positioning rule
 
@@ -80,13 +80,13 @@ deployment friction for every pilot. AI remains optional in all three modes.
 Early releases are curated solution distributions rather than a marketplace.
 For example, a Digital Estate Assessment release may contain the platform,
 Assessment Application, Drupal Integration, snapshot Collector, and only the
-Capabilities and Processors required for the agreed scope.
+Tools required for the agreed scope.
 
 Curated does not mean forked:
 
 - customers run supported versions of the same platform and package code;
 - customer differences live in configuration, Application Instances,
-  Connections, Bindings, and bounded extension packages;
+  Connections, pinned Tool versions, and bounded extension packages;
 - customer-specific code never enters the platform core merely to finish an
   engagement;
 - supported package combinations remain deliberately few;
@@ -117,7 +117,7 @@ must not manufacture follow-on work.
 Initial revenue can combine:
 
 - fixed-scope assessment fees;
-- paid custom Integration or Capability development;
+- paid custom Integration or Tool development;
 - architecture and modernization planning;
 - implementation and remediation projects;
 - customer-hosted deployment and support;
@@ -173,7 +173,7 @@ Track business proof alongside software proof:
 - Findings or evidence that changed a customer action or decision;
 - conversion to implementation, support, or ongoing operation;
 - gross delivery margin and support load;
-- reusable Integrations, Capabilities, and Processors produced by delivery.
+- reusable Integrations and Tools produced by delivery.
 
 The objective is not zero consulting. It is increasingly valuable consulting
 with higher leverage, stronger evidence, reusable intellectual property, and a
