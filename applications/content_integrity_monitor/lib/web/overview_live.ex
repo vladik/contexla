@@ -7,27 +7,27 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.OverviewLive do
   @impl true
   def mount(_params, %{"instance" => data}, socket) do
     instance = Instance.from_session!(data)
-    {:ok, socket |> assign(:instance, instance) |> load()}
+    socket = socket |> assign(:instance, instance) |> load()
+
+    if connected?(socket) && map_size(socket.assigns.overview.active_runs) > 0 do
+      Process.send_after(self(), :poll, 2_000)
+    end
+
+    {:ok, socket}
   end
 
   @impl true
-  def handle_event("setup_demo", _params, socket) do
-    instance = socket.assigns.instance
+  def handle_info(:poll, socket) do
+    socket = load(socket)
 
-    case Runtime.invoke_operation(instance.actor_id, instance.id, "integrity.demo_setup", %{},
-           approved: true
-         ) do
-      {:ok, _result, _invocation} ->
-        {:noreply, socket |> load() |> put_flash(:info, "Demonstration Monitor created.")}
-
-      {:error, _reason} ->
-        {:noreply, put_flash(socket, :error, "The demonstration Monitor could not be created.")}
-
-      {:error, _reason, _invocation} ->
-        {:noreply, put_flash(socket, :error, "The demonstration Monitor could not be created.")}
+    if map_size(socket.assigns.overview.active_runs) > 0 do
+      Process.send_after(self(), :poll, 2_000)
     end
+
+    {:noreply, socket}
   end
 
+  @impl true
   def handle_event("run", %{"monitor_id" => monitor_id}, socket) do
     instance = socket.assigns.instance
 
@@ -38,6 +38,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.OverviewLive do
            %{"monitor_id" => monitor_id}
          ) do
       {:ok, _result, _invocation} ->
+        Process.send_after(self(), :poll, 2_000)
         {:noreply, socket |> load() |> put_flash(:info, "Integrity Run queued.")}
 
       {:error, _reason} ->
@@ -104,24 +105,30 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.OverviewLive do
 
       <div :if={@overview.monitors == []} class="mt-6">
         <.empty_state
-          title="Set up your first content integrity check"
-          description="Create the demonstration to see how Contexla detects when published content differs from its authoritative source across all delivery systems."
+          title="No monitors configured"
+          description="Add a monitor to start tracking content integrity across your authoritative sources and delivery systems."
         >
           <:actions>
-            <.button id="setup-integrity-demo" phx-click="setup_demo" variant="primary">
-              Create demonstration
-            </.button>
+            <.link
+              navigate={"/applications/#{@instance.id}/monitors"}
+              class="btn btn-primary"
+            >
+              Go to Monitors
+            </.link>
           </:actions>
         </.empty_state>
       </div>
 
       <div :if={@overview.monitors != []} class="mt-6 space-y-4">
         <div :for={monitor <- @overview.monitors} id={"monitor-#{monitor.id}"}>
-          <% matrix = @overview.matrices[monitor.id] %>
           <% active = @overview.active_runs[monitor.id] %>
+          <% is_collection = not is_nil(monitor.scope_source_id) %>
+          <% summary = @overview.summaries[monitor.id] %>
+          <% matrix = @overview.matrices[monitor.id] %>
+
           <.panel
             title={monitor.name}
-            description={matrix_description(matrix, active)}
+            description={panel_description(is_collection, summary, matrix, active)}
           >
             <:actions>
               <.button
@@ -137,15 +144,40 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.OverviewLive do
 
             <div :if={active} class="flex items-center gap-2 py-6 text-sm text-text-muted">
               <.icon name="hero-arrow-path" class="size-4 animate-spin" />
-              <span>Run in progress — refresh to see updated results.</span>
+              <span>Run in progress…</span>
             </div>
 
-            <div :if={!active && matrix.run == nil} class="py-6 text-sm text-text-muted">
+            <%!-- Collection monitor — aggregate summary --%>
+            <div :if={!active && is_collection && summary && summary.run != nil} class="space-y-3">
+              <div class="flex flex-wrap gap-2">
+                <.state_count_badge
+                  :for={{state_key, count} <- Enum.sort(summary.states)}
+                  :if={count > 0}
+                  state={String.to_existing_atom(state_key)}
+                  count={count}
+                />
+              </div>
+              <p :if={summary.open_issues > 0} class="text-xs text-text-muted">
+                {summary.open_issues} open issue(s) · {summary.entity_count} entities checked
+              </p>
+              <p :if={summary.open_issues == 0} class="text-xs text-text-muted">
+                No open issues · {summary.entity_count} entities checked
+              </p>
+            </div>
+
+            <%!-- Collection monitor — no results yet --%>
+            <div :if={!active && is_collection && (is_nil(summary) || is_nil(summary.run))} class="py-6 text-sm text-text-muted">
               No results yet. Click <strong class="font-medium text-text">Run</strong>
               to check content integrity across all sources.
             </div>
 
-            <div :if={!active && matrix.run != nil} class="overflow-x-auto">
+            <%!-- Single-entity monitor — fact × source matrix --%>
+            <div :if={!active && !is_collection && matrix && matrix.run == nil} class="py-6 text-sm text-text-muted">
+              No results yet. Click <strong class="font-medium text-text">Run</strong>
+              to check content integrity across all sources.
+            </div>
+
+            <div :if={!active && !is_collection && matrix && matrix.run != nil} class="overflow-x-auto">
               <table class="w-full text-sm">
                 <thead>
                   <tr class="border-b border-border">
@@ -159,10 +191,10 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.OverviewLive do
                       <span class="flex items-center gap-1.5 whitespace-nowrap">
                         {source.name}
                         <span
-                          :if={source.role == :authority}
+                          :if={source.role == :source}
                           class="rounded bg-primary-subtle px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary"
                         >
-                          ref
+                          source
                         </span>
                       </span>
                     </th>
@@ -196,9 +228,10 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.OverviewLive do
               <% detail = @overview.issue_details[issue.id] %>
               <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0">
-                  <p class="text-sm font-medium text-text">{issue.fact_definition.name}</p>
+                  <p class="text-sm font-medium text-text">{issue.fact.name}</p>
                   <p class="mt-0.5 text-xs text-text-muted">
                     {issue.source.name} · {issue.monitor.name}
+                    <span :if={issue.entity_id} class="ml-1 font-mono">[{issue.entity_id}]</span>
                   </p>
                 </div>
                 <.integrity_badge state={issue.kind} />
@@ -282,6 +315,21 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.OverviewLive do
     """
   end
 
+  attr(:state, :atom, required: true)
+  attr(:count, :integer, required: true)
+
+  defp state_count_badge(assigns) do
+    {css, icon, label} = badge_attrs(assigns.state)
+    assigns = assign(assigns, css: css, icon: icon, label: label)
+
+    ~H"""
+    <span class={@css}>
+      <.icon name={@icon} class="size-3" />
+      {@count} {@label}
+    </span>
+    """
+  end
+
   attr(:status, :atom, required: true)
 
   defp run_status_badge(assigns) do
@@ -293,16 +341,16 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.OverviewLive do
     """
   end
 
-  defp badge_attrs(:healthy), do: {"badge badge-success", "hero-check", "Healthy"}
-  defp badge_attrs(:pending), do: {"badge badge-warning", "hero-clock", "Pending"}
-  defp badge_attrs(:overdue), do: {"badge badge-warning", "hero-exclamation-triangle", "Overdue"}
-  defp badge_attrs(:mismatch), do: {"badge badge-danger", "hero-x-mark", "Mismatch"}
-  defp badge_attrs(:missing), do: {"badge badge-danger", "hero-minus", "Missing"}
+  defp badge_attrs(:healthy), do: {"badge badge-success", "hero-check", "healthy"}
+  defp badge_attrs(:pending), do: {"badge badge-warning", "hero-clock", "pending"}
+  defp badge_attrs(:overdue), do: {"badge badge-warning", "hero-exclamation-triangle", "overdue"}
+  defp badge_attrs(:mismatch), do: {"badge badge-danger", "hero-x-mark", "mismatch"}
+  defp badge_attrs(:missing), do: {"badge badge-danger", "hero-minus", "missing"}
 
   defp badge_attrs(:unavailable),
-    do: {"badge badge-neutral", "hero-exclamation-circle", "Unavailable"}
+    do: {"badge badge-neutral", "hero-exclamation-circle", "unavailable"}
 
-  defp badge_attrs(:unknown), do: {"badge badge-neutral", "hero-question-mark-circle", "Unknown"}
+  defp badge_attrs(:unknown), do: {"badge badge-neutral", "hero-question-mark-circle", "unknown"}
   defp badge_attrs(nil), do: {"badge badge-neutral", "hero-minus", "—"}
 
   defp run_badge_attrs(:succeeded), do: {"badge badge-success", "Completed"}
@@ -311,11 +359,21 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.OverviewLive do
   defp run_badge_attrs(:waiting_tools), do: {"badge badge-warning", "Running"}
   defp run_badge_attrs(:queued), do: {"badge badge-neutral", "Queued"}
 
-  defp matrix_description(%{run: nil}, nil), do: "Never checked"
-  defp matrix_description(_matrix, active) when active != nil, do: "Run in progress"
+  defp panel_description(_is_collection, _summary, _matrix, active) when not is_nil(active),
+    do: "Run in progress"
 
-  defp matrix_description(%{run: run}, nil),
+  defp panel_description(true, %{run: nil}, _matrix, _active), do: "Never checked"
+
+  defp panel_description(true, %{run: run}, _matrix, _active),
     do: "Last checked #{format_elapsed(run.completed_at)}"
+
+  defp panel_description(false, _summary, %{run: nil}, _active), do: "Never checked"
+
+  defp panel_description(false, _summary, %{run: run}, _active),
+    do: "Last checked #{format_elapsed(run.completed_at)}"
+
+  defp panel_description(_is_collection, nil, nil, _active), do: "Never checked"
+  defp panel_description(_is_collection, _summary, _matrix, _active), do: ""
 
   defp format_elapsed(nil), do: "—"
 

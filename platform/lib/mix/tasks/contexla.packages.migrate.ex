@@ -21,6 +21,6 @@ defmodule Mix.Tasks.Contexla.Platform.Packages.Migrate do
   end
 
   def run(_args) do
-    Mix.raise("usage: mix contexla.packages.migrate")
+    Mix.raise("usage: mix contexla.platform.packages.migrate")
   end
 end

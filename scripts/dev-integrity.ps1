@@ -26,7 +26,7 @@ try {
   mix ecto.migrate
   if ($LASTEXITCODE -ne 0) { throw "Platform migration failed." }
 
-  mix contexla.packages.migrate
+  mix contexla.platform.packages.migrate
   if ($LASTEXITCODE -ne 0) { throw "Content Integrity Application migration failed." }
 
   mix phx.server

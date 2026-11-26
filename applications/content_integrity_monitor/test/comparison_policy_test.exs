@@ -50,7 +50,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Test.ComparisonPolicyTes
 
   defp state(overrides) do
     %{
-      source_role: :representation,
+      source_role: :secondary,
       source_status: :completed,
       required: true,
       value: "Diploma",

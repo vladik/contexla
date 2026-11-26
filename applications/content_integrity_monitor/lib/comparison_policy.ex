@@ -3,16 +3,14 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.ComparisonPolicy do
 
   @spec evaluate(map()) :: atom()
   def evaluate(context) when is_map(context) do
-    authority_updated_at = context.authority_updated_at || context.now
-
     cond do
-      context.source_role == :authority and context.source_status == :failed ->
+      context.source_role == :source and context.source_status == :failed ->
         :unavailable
 
-      context.source_role == :authority and context.required and is_nil(context.value) ->
+      context.source_role == :source and context.required and is_nil(context.value) ->
         :missing
 
-      context.source_role == :authority ->
+      context.source_role == :source ->
         :healthy
 
       context.source_status == :failed ->
@@ -30,42 +28,46 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.ComparisonPolicy do
       context.value == context.authority_value ->
         :healthy
 
-      inside_delay?(context.allowed_delay_seconds, authority_updated_at, context.now) ->
-        :pending
-
-      context.allowed_delay_seconds > 0 ->
-        :overdue
-
       true ->
         :mismatch
     end
   end
 
-  def normalize(nil), do: nil
+  @spec normalize(term(), atom()) :: String.t() | nil
+  def normalize(value, comparison_type \\ :text)
+  def normalize(nil, _comparison_type), do: nil
 
-  def normalize(value) when is_binary(value),
-    do: value |> String.replace(~r/\s+/u, " ") |> String.trim()
+  def normalize(value, :text) do
+    value |> to_string() |> String.replace(~r/\s+/u, " ") |> String.trim()
+  end
 
-  def normalize(value) when is_number(value) or is_boolean(value), do: to_string(value)
-  def normalize(_value), do: nil
+  def normalize(value, :text_case_insensitive) do
+    value |> to_string() |> String.replace(~r/\s+/u, " ") |> String.trim() |> String.downcase()
+  end
 
-  def source_updated_at(nil), do: nil
+  def normalize(value, :numeric) do
+    str = value |> to_string() |> String.replace(~r/[^0-9.\-]/, "")
 
-  def source_updated_at(evidence) do
-    case evidence.values["_updated_at"] do
-      value when is_binary(value) ->
-        case DateTime.from_iso8601(value) do
-          {:ok, datetime, _offset} -> datetime
-          _error -> nil
-        end
-
-      _value ->
-        nil
+    case Float.parse(str) do
+      {f, _} -> to_string(f)
+      :error -> nil
     end
   end
 
-  defp inside_delay?(delay, %DateTime{} = updated_at, %DateTime{} = now) when delay > 0,
-    do: DateTime.diff(now, updated_at, :second) < delay
+  def normalize(value, :date) do
+    str = value |> to_string() |> String.trim()
 
-  defp inside_delay?(_delay, _updated_at, _now), do: false
+    cond do
+      match = Regex.run(~r/^(\d{4})-(\d{2})-(\d{2})/, str) ->
+        [_, y, m, d] = match
+        "#{y}-#{m}-#{d}"
+
+      match = Regex.run(~r/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, str) ->
+        [_, d, m, y] = match
+        "#{y}-#{String.pad_leading(m, 2, "0")}-#{String.pad_leading(d, 2, "0")}"
+
+      true ->
+        str
+    end
+  end
 end

@@ -1,4 +1,4 @@
-defmodule Contexla.Applications.ContentIntegrityMonitor.FactDefinition do
+defmodule Contexla.Applications.ContentIntegrityMonitor.Fact do
   @moduledoc "A fact and deterministic comparison policy owned by a Monitor."
 
   use Ecto.Schema
@@ -8,18 +8,22 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.FactDefinition do
   @foreign_key_type :binary_id
   @schema_prefix "contexla_integrity"
 
-  schema "integrity_fact_definitions" do
+  schema "integrity_facts" do
     field(:key, :string)
     field(:name, :string)
     field(:required, :boolean, default: true)
+    field(:comparison_type, Ecto.Enum, values: [:text, :text_case_insensitive, :numeric, :date], default: :text)
     belongs_to(:monitor, Contexla.Applications.ContentIntegrityMonitor.Monitor)
     timestamps(type: :utc_datetime)
   end
 
   def changeset(fact, attrs) do
     fact
-    |> cast(attrs, [:monitor_id, :key, :name, :required])
+    |> cast(attrs, [:monitor_id, :key, :name, :required, :comparison_type])
     |> validate_required([:monitor_id, :key, :name, :required])
+    |> validate_format(:key, ~r/^[a-z0-9_-]+$/,
+      message: "can only contain lowercase letters, numbers, hyphens and underscores"
+    )
     |> unique_constraint([:monitor_id, :key])
   end
 end

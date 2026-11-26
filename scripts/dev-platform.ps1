@@ -36,7 +36,7 @@ $env:PORT = $Port.ToString()
 
 Push-Location $platform
 try {
-  mix contexla.packages.migrate
+  mix contexla.platform.packages.migrate
   if ($LASTEXITCODE -ne 0) { throw "Application package migration failed." }
 
   mix phx.server

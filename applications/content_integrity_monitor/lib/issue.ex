@@ -9,6 +9,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Issue do
   @schema_prefix "contexla_integrity"
 
   schema "integrity_issues" do
+    field(:entity_id, :string)
     field(:kind, Ecto.Enum, values: [:overdue, :mismatch, :missing, :unavailable])
     field(:status, Ecto.Enum, values: [:open, :acknowledged, :resolved], default: :open)
     field(:summary, :string)
@@ -18,7 +19,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Issue do
     field(:resolved_at, :utc_datetime)
     belongs_to(:monitor, Contexla.Applications.ContentIntegrityMonitor.Monitor)
     belongs_to(:source, Contexla.Applications.ContentIntegrityMonitor.Source)
-    belongs_to(:fact_definition, Contexla.Applications.ContentIntegrityMonitor.FactDefinition)
+    belongs_to(:fact, Contexla.Applications.ContentIntegrityMonitor.Fact, foreign_key: :fact_id)
     belongs_to(:current_observation, Contexla.Applications.ContentIntegrityMonitor.Observation)
     timestamps(type: :utc_datetime)
   end
@@ -28,8 +29,9 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Issue do
     |> cast(attrs, [
       :monitor_id,
       :source_id,
-      :fact_definition_id,
+      :fact_id,
       :current_observation_id,
+      :entity_id,
       :kind,
       :status,
       :summary,
@@ -41,7 +43,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Issue do
     |> validate_required([
       :monitor_id,
       :source_id,
-      :fact_definition_id,
+      :fact_id,
       :kind,
       :status,
       :summary,

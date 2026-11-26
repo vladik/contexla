@@ -16,7 +16,7 @@ Registered Application migrations are explicit:
 
 ```powershell
 mix ecto.migrate
-mix contexla.packages.migrate
+mix contexla.platform.packages.migrate
 ```
 
 Package discovery and platform startup never run Application-owned migrations

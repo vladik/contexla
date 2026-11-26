@@ -21,7 +21,8 @@ defmodule Contexla.Ui.ContexlaUi.Components.UI.IconPicker do
   attr(:icons, :list, default: @icons)
 
   def icon_picker(assigns) do
-    assigns = assign(assigns, :display_icon, assigns.value || assigns.default_icon)
+    display = if assigns.value && assigns.value != "", do: assigns.value, else: assigns.default_icon
+    assigns = assign(assigns, :display_icon, display)
 
     ~H"""
     <div>

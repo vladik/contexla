@@ -9,23 +9,48 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Test.Simulators.External
   plug(:match)
   plug(:dispatch)
 
-  get "/authority/programs/PN123" do
-    json(conn, program("Ontario College Diploma", "2 years", updated_at()))
+  @programs %{
+    "PN100" => %{name: "Practical Nursing", credential: "Ontario College Advanced Diploma", duration: "3 years"},
+    "PN101" => %{name: "Computer Programming", credential: "Ontario College Diploma", duration: "2 years"},
+    "PN102" => %{name: "Business Administration", credential: "Ontario College Certificate", duration: "1 year"}
+  }
+
+  get "/scope/programs" do
+    ids = @programs |> Map.keys() |> Enum.sort() |> Enum.map(&%{"id" => &1})
+    json(conn, %{"programs" => ids})
   end
 
-  get "/delivery/programs/PN123" do
-    json(conn, program("Ontario College Diploma", "2 years", updated_at()))
+  get "/authority/programs/:id" do
+    id = conn.params["id"]
+    json(conn, program_json(id, credential(id), duration(id), updated_at()))
   end
 
-  get "/programs/PN123" do
-    html(conn, program_html("Ontario College Certificate", "2 years", updated_at()))
+  get "/delivery/programs/:id" do
+    id = conn.params["id"]
+    json(conn, program_json(id, credential(id), duration(id), updated_at()))
   end
 
-  get "/search/programs/PN123" do
-    if State.mode() == :unavailable do
-      Plug.Conn.send_resp(conn, 503, "search unavailable")
-    else
-      html(conn, program_html("Ontario College Diploma", nil, updated_at()))
+  get "/programs/:id" do
+    id = conn.params["id"]
+
+    displayed_credential =
+      if State.mode() == :healthy, do: credential(id), else: "WRONG CREDENTIAL"
+
+    html(conn, program_html(id, displayed_credential, duration(id), updated_at()))
+  end
+
+  get "/search/programs/:id" do
+    id = conn.params["id"]
+
+    cond do
+      State.mode() == :unavailable ->
+        Plug.Conn.send_resp(conn, 503, "search unavailable")
+
+      State.mode() == :healthy ->
+        html(conn, program_html(id, credential(id), duration(id), updated_at()))
+
+      true ->
+        html(conn, program_html(id, credential(id), nil, updated_at()))
     end
   end
 
@@ -33,7 +58,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Test.Simulators.External
     json(conn, %{"mode" => to_string(State.mode())})
   end
 
-  post "/mode/:mode" when mode in ["pending", "overdue", "unavailable"] do
+  post "/mode/:mode" when mode in ["healthy", "pending", "overdue", "unavailable"] do
     :ok = State.set_mode(String.to_existing_atom(mode))
     json(conn, %{"mode" => mode})
   end
@@ -42,11 +67,15 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Test.Simulators.External
     Plug.Conn.send_resp(conn, 404, "not found")
   end
 
-  defp program(credential, duration, updated_at) do
+  defp credential(id), do: get_in(@programs, [id, :credential]) || "Ontario College Certificate"
+  defp duration(id), do: get_in(@programs, [id, :duration]) || "1 year"
+  defp name(id), do: get_in(@programs, [id, :name]) || "Unknown Program"
+
+  defp program_json(id, credential, duration, updated_at) do
     %{
       "program" => %{
-        "id" => "PN123",
-        "name" => "Practical Nursing",
+        "id" => id,
+        "name" => name(id),
         "credential" => credential,
         "duration" => duration,
         "updated_at" => updated_at
@@ -54,11 +83,11 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Test.Simulators.External
     }
   end
 
-  defp program_html(credential, duration, updated_at) do
+  defp program_html(id, credential, duration, updated_at) do
     """
     <!doctype html>
-    <html><body><article data-program-id="PN123">
-      <h1 data-field="program-name">Practical Nursing</h1>
+    <html><body><article data-program-id="#{id}">
+      <h1 data-field="program-name">#{name(id)}</h1>
       <p data-field="credential">#{credential}</p>
       #{if duration, do: ~s(<p data-field="duration">#{duration}</p>), else: ""}
       <time data-field="updated-at">#{updated_at}</time>

@@ -30,9 +30,21 @@ defmodule Contexla.Platform.Tools.Catalog do
     attrs = attrs(definition)
 
     case Repo.get_by(Tool, key: definition.id, version: definition.version) do
-      nil -> insert(Tool.changeset(%Tool{}, attrs))
-      %Tool{definition_digest: digest} when digest == attrs.definition_digest -> :ok
-      _tool -> {:error, {:tool_definition_drift, definition.id, definition.version}}
+      nil ->
+        insert(Tool.changeset(%Tool{}, attrs))
+
+      %Tool{definition_digest: digest} when digest == attrs.definition_digest ->
+        :ok
+
+      %Tool{} = tool ->
+        if Mix.env() == :dev do
+          case Repo.update(Tool.changeset(tool, attrs)) do
+            {:ok, _record} -> :ok
+            {:error, changeset} -> {:error, changeset}
+          end
+        else
+          {:error, {:tool_definition_drift, definition.id, definition.version}}
+        end
     end
   end
 

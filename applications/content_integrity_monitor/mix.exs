@@ -28,10 +28,12 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.MixProject do
       {:oban, "~> 2.24"},
       {:req, "~> 0.7"},
       {:jason, "~> 1.4"},
-      {:bandit, "~> 1.15", only: :test}
+      {:cocktail, "~> 0.10"},
+      {:bandit, "~> 1.15", only: [:dev, :test]}
     ]
   end
 
   defp elixirc_paths(:test), do: ["lib", "test"]
+  defp elixirc_paths(:dev), do: ["lib", "test"]
   defp elixirc_paths(_environment), do: ["lib"]
 end

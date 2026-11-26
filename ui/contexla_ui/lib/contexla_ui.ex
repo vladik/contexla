@@ -42,6 +42,7 @@ defmodule Contexla.Ui.ContexlaUi do
       import Contexla.Ui.ContexlaUi.Components.UI.Tooltip
       import Contexla.Ui.ContexlaUi.Components.UI.Avatar
       import Contexla.Ui.ContexlaUi.Components.UI.Toast
+      import Contexla.Ui.ContexlaUi.Components.UI.TagInput
       import Contexla.Ui.ContexlaUi.Components.Layout.SidebarNav
     end
   end

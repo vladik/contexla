@@ -11,11 +11,15 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Source do
   schema "integrity_sources" do
     field(:key, :string)
     field(:name, :string)
-    field(:role, Ecto.Enum, values: [:authority, :representation])
-    field(:format, Ecto.Enum, values: [:json, :html])
+    field(:role, Ecto.Enum, values: [:scope, :source, :target])
+    field(:format, Ecto.Enum, values: [:json, :html, :csv, :manual])
+    field(:fetch_strategy, Ecto.Enum, values: [:fetch_entity, :fetch_all_entities], default: :fetch_entity)
     field(:url, :string)
+    field(:array_path, :string)
+    field(:id_field, :string, default: "id")
     field(:mappings, :map, default: %{})
-    field(:allowed_delay_seconds, :integer, default: 0)
+    field(:static_ids, :string)
+    field(:sort_order, :integer, default: 0)
     belongs_to(:monitor, Contexla.Applications.ContentIntegrityMonitor.Monitor)
     timestamps(type: :utc_datetime)
   end
@@ -28,12 +32,15 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Source do
       :name,
       :role,
       :format,
+      :fetch_strategy,
       :url,
+      :array_path,
+      :id_field,
       :mappings,
-      :allowed_delay_seconds
+      :static_ids,
+      :sort_order
     ])
-    |> validate_required([:monitor_id, :key, :name, :role, :format, :url, :mappings])
-    |> validate_number(:allowed_delay_seconds, greater_than_or_equal_to: 0)
+    |> validate_required([:monitor_id, :key, :name, :role, :format, :mappings])
     |> unique_constraint([:monitor_id, :key])
   end
 end

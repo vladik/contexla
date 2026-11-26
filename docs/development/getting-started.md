@@ -65,7 +65,7 @@ Open `http://localhost:4100` when using the source-linked development launcher.
 
 Database setup includes platform and Oban tables only. Application package
 discovery never changes the database. After registering a curated package set,
-run `mix contexla.packages.migrate` explicitly to apply migrations into each
+run `mix contexla.platform.packages.migrate` explicitly to apply migrations into each
 Application-owned schema. The source-linked development launcher performs this
 step before starting the server. In tests, Oban uses manual mode.
 
@@ -91,40 +91,24 @@ This changes only the Contexla listener started by the script.
 
 ## Run the Content Integrity demonstration
 
-Start the Application-owned external HTTP source simulator in one terminal:
-
-```powershell
-Set-Location applications/content_integrity_monitor
-$env:MIX_ENV = "test"
-mix deps.get
-mix run --no-halt test/simulators/run_external_http_source.exs
-```
-
-The simulator is acceptance-test infrastructure owned by Content Integrity
-Monitor. It is compiled only in the test environment, is not a Connector, and
-is excluded from the production Application package.
-
 Start PostgreSQL as described above, then run the independently registered
-Content Integrity Application in another terminal:
+Content Integrity Application:
 
 ```powershell
-Set-Location C:\Repos\contexla
 .\scripts\dev-integrity.ps1
 ```
 
-Open `http://localhost:4100`, create a Content Integrity Monitor Instance,
-create the demonstration Monitor from its Overview, and start a Run. The demo
-defaults to an overdue website credential and a missing search duration. Its
-mode can be changed without restarting:
+The simulator starts automatically when the Application boots in dev — no
+separate terminal is needed. Open `http://localhost:4100`, create a Content
+Integrity Monitor Instance, then create the demonstration Monitor from its
+Overview and start a Run.
 
-```powershell
-Invoke-RestMethod -Method Post http://localhost:4205/mode/pending
-Invoke-RestMethod -Method Post http://localhost:4205/mode/overdue
-Invoke-RestMethod -Method Post http://localhost:4205/mode/unavailable
-```
+Switch the simulator mode from the **Developer** tab in Instance settings
+(`/applications/:id/dev`) — Healthy, Overdue, Pending, or Unavailable. Each
+mode simulates a different integrity state without restarting.
 
-For a repeatable non-UI proof, leave the synthetic source running and execute
-the same Application Operations through a script from another terminal:
+For a repeatable non-UI proof, execute the same Application Operations through
+a script from another terminal:
 
 ```powershell
 Set-Location platform

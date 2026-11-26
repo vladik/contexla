@@ -3,7 +3,7 @@
 
 @source "../css";
 @source "../js";
-@source "../../lib/contexla_web";
+@source "../../lib";
 @source "../../deps/contexla_ui/lib";
 /* Source-linked development and curated monorepo builds; not an installed-package asset contract. */
 @source "../../../applications";

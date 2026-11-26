@@ -38,14 +38,14 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.SettingsLive do
         <.tabs id="settings-navigation">
           <:tab label="General" icon="hero-identification" navigate={"/applications/#{@instance.id}/settings"} />
           <:tab label="Application" icon="hero-adjustments-horizontal" navigate={"/applications/#{@instance.id}/configuration"} selected />
+          <:tab :if={Mix.env() == :dev} label="Developer" icon="hero-code-bracket" navigate={"/applications/#{@instance.id}/dev"} />
         </.tabs>
       </:navigation>
       <.panel title="Application configuration" description="Keep domain-owned settings in this surface.">
         <.form for={@form} id="application-settings-form" phx-change="validate" phx-submit="save">
           <.form_layout>
-            <.form_section title="Purpose" description="A one-column sectioned editor is the default form pattern.">
+            <.form_section title="Purpose" description="Describe the operational integrity outcome for this Instance.">
               <.input field={@form[:purpose]} type="textarea" label="Purpose" required rows="4" />
-              <.input field={@form[:demo_base_url]} type="url" label="Demonstration source URL" />
             </.form_section>
             <:actions><.button type="submit" variant="primary">Save changes</.button></:actions>
           </.form_layout>

@@ -17,8 +17,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.NewLive do
            "name" => "",
            "description" => "",
            "purpose" =>
-             "Monitor important facts across authoritative sources and delivered representations.",
-           "demo_base_url" => "http://localhost:4205"
+             "Monitor important facts across authoritative sources and delivered representations."
          },
          as: :instance
        )
@@ -36,8 +35,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.NewLive do
       "name" => params["name"],
       "description" => params["description"],
       "config" => %{
-        "purpose" => params["purpose"],
-        "demo_base_url" => params["demo_base_url"]
+        "purpose" => params["purpose"]
       }
     }
 
@@ -67,7 +65,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.NewLive do
             </.form_section>
             <.form_section title="Purpose" description="Describe the operational integrity outcome for this Instance.">
               <.input field={@form[:purpose]} type="textarea" label="Purpose" required rows="4" />
-              <.input field={@form[:demo_base_url]} type="url" label="Demonstration source URL" />
             </.form_section>
             <:actions><.button type="submit" variant="primary">Create Instance</.button></:actions>
           </.form_layout>

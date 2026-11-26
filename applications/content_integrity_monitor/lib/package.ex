@@ -60,8 +60,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Package do
         "Detect missing, delayed, unavailable, or inconsistent facts across digital representations.",
       database_schema: "contexla_integrity",
       config_schema: %{
-        "purpose" => %{type: :string, required: true},
-        "demo_base_url" => %{type: :string, required: false}
+        "purpose" => %{type: :string, required: true}
       },
       operations: available_operations(),
       surfaces: [
@@ -95,7 +94,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Package do
           kind: :settings,
           label: "Application settings"
         }
-      ],
+      ] ++ dev_surfaces(),
       required_adapter_contracts: required_adapter_contracts()
     }
   end
@@ -174,4 +173,20 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Package do
   end
 
   def execute_operation(_operation, _instance, _input), do: {:error, :unsupported_operation}
+
+  if Mix.env() == :dev do
+    defp dev_surfaces do
+      [
+        %Surface{
+          id: :dev,
+          path: "dev",
+          module: Contexla.Applications.ContentIntegrityMonitor.Web.DevLive,
+          role: :instance,
+          label: "Developer"
+        }
+      ]
+    end
+  else
+    defp dev_surfaces, do: []
+  end
 end

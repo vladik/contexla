@@ -196,6 +196,7 @@ defmodule Contexla.Platform.Packages.Registry do
 
   defp load_application(%{ebin: ebin, entry_module: entry_module}) do
     module = Module.concat([entry_module])
+    load_package_dep_ebins(ebin)
 
     with true <- Code.append_path(String.to_charlist(ebin)),
          true <- Code.ensure_loaded?(module),
@@ -218,6 +219,7 @@ defmodule Contexla.Platform.Packages.Registry do
 
   defp load_integration(%{ebin: ebin, entry_module: entry_module}) do
     module = Module.concat([entry_module])
+    load_package_dep_ebins(ebin)
 
     with true <- Code.append_path(String.to_charlist(ebin)),
          true <- Code.ensure_loaded?(module),
@@ -257,6 +259,21 @@ defmodule Contexla.Platform.Packages.Registry do
   defp maybe_start_registered_application(application) do
     with :ok <- load_otp_application(application) do
       start_otp_application(application)
+    end
+  end
+
+  defp load_package_dep_ebins(package_ebin) do
+    lib_dir = package_ebin |> Path.dirname() |> Path.dirname()
+
+    case File.ls(lib_dir) do
+      {:ok, entries} ->
+        Enum.each(entries, fn entry ->
+          dep_ebin = Path.join([lib_dir, entry, "ebin"])
+          if File.dir?(dep_ebin), do: Code.append_path(String.to_charlist(dep_ebin))
+        end)
+
+      _ ->
+        :ok
     end
   end
 

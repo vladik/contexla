@@ -15,6 +15,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Test.Simulators.External
       |> ExternalHttpSource.Router.call([])
 
     assert conn.status == 200
-    assert Jason.decode!(conn.resp_body) == %{"mode" => "overdue"}
+    assert Jason.decode!(conn.resp_body) == %{"mode" => "healthy"}
   end
 end
