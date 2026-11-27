@@ -60,6 +60,14 @@ if config_env() == :dev do
 end
 
 if config_env() == :prod do
+  credential_encryption_key =
+    System.get_env("CREDENTIAL_ENCRYPTION_KEY") ||
+      raise "environment variable CREDENTIAL_ENCRYPTION_KEY is missing. " <>
+              "Generate with: :crypto.strong_rand_bytes(32) |> Base.encode64()"
+
+  config :contexla, :credential_encryption_key, credential_encryption_key
+
+
   artifact_storage_path =
     System.get_env("CONTEXLA_ARTIFACTS_PATH") ||
       raise "environment variable CONTEXLA_ARTIFACTS_PATH is missing"

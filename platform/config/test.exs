@@ -36,6 +36,9 @@ config :contexla, Contexla.Platform.Web.Endpoint,
   server: false
 
 # Print only warnings and errors during test
+config :contexla, :credential_encryption_key,
+  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+
 config :logger, level: :warning
 
 # Initialize plugs at runtime for faster test compilation

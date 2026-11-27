@@ -56,6 +56,9 @@ config :contexla, Contexla.Platform.Web.Endpoint,
 # Enable dev routes for dashboard and mailbox
 config :contexla, dev_routes: true
 
+config :contexla, :credential_encryption_key,
+  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
 
