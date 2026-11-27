@@ -167,6 +167,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
 
       _ ->
         {:error, :invalid_static_refs}
+    end
   end
 
   defp discover_entity_ids(scope_source) do
