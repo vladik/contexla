@@ -1648,14 +1648,13 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                         >
                           <option value="required" selected={expected == :required}>Required</option>
                           <option value="optional" selected={expected == :optional}>Optional</option>
-                          <option value="excluded" selected={expected == :excluded}>Not checked</option>
+                          <option value="excluded" selected={expected == :excluded}>Excluded</option>
                         </select>
                         <select
                           :if={expected != :excluded}
                           name="comparison_type"
                           class="rounded border border-border bg-surface px-2 py-1 text-xs text-text outline-none focus:border-primary"
                         >
-                          <option value="" selected={is_nil(comparison_type)}>Default</option>
                           <%= for {label, val} <- comparison_type_options() do %>
                             <option value={val} selected={to_string(comparison_type) == val}>{label}</option>
                           <% end %>
@@ -1674,7 +1673,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                         type="text"
                         name="pattern"
                         value={pattern || ""}
-                        placeholder="e.g. ^[A-Z]{3}$ or Co-op"
+                        placeholder="e.g. ^[A-Z]{3}$ or ^\d{4}-\d{2}-\d{2}$"
                         class="w-full rounded border border-border bg-surface px-2 py-1 font-mono text-xs text-text placeholder:text-text-muted focus:outline-none focus:border-primary"
                       />
                     </form>
@@ -2040,7 +2039,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
     Enum.map(facts, fn fact ->
       profile = Map.get(profiles_by_fact_id, fact.id)
       expected = (profile && profile.expected) || :required
-      comparison_type = profile && profile.comparison_type
+      comparison_type = (profile && profile.comparison_type) || fact.comparison_type
       pattern = profile && profile.pattern
       {fact.id, fact.key, fact.name, expected, comparison_type, pattern}
     end)
