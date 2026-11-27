@@ -1,0 +1,4 @@
+%{
+  "floki": {:hex, :floki, "0.38.5", "5786298f62ea266f9a8e88642753a8bc99925cd1ed7a7c8e420f6965ddbc7d1f", [:mix], [], "hexpm", "c8c5b04455f01b076cd489fee7dc26b49edf9851ef61146e743f4676114bf6b0"},
+  "jason": {:hex, :jason, "1.4.5", "2e3a008590b0b8d7388c20293e9dcc9cf3e5d642fd2a114e4cbbb52e595d940a", [:mix], [{:decimal, "~> 1.0 or ~> 2.0 or ~> 3.0", [hex: :decimal, repo: "hexpm", optional: true]}], "hexpm", "b0c823996102bcd0239b3c2444eb00409b72f6a140c1950bc8b457d836b30684"},
+}

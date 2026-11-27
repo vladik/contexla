@@ -11,8 +11,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
     Issue,
     Observation,
     Run,
-    SourceCheck,
-    SourceClient
+    SourceCheck
   }
 
   alias Contexla.Applications.ContentIntegrityMonitor.Workers.RunWorker
@@ -151,7 +150,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
     end
   end
 
-  defp discover_entity_ids(%{format: :manual} = scope_source) do
+  defp discover_entity_ids(%{connection_id: nil} = scope_source) do
     ref_field = scope_source.ref_field || "ref"
     raw = scope_source.static_refs || "[]"
 
@@ -175,12 +174,9 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
   end
 
   defp fetch_scope_via_http(scope_source) do
-    case SourceClient.fetch(scope_source) do
-      {:ok, acquisition} ->
-        extract_entity_ids(acquisition.document, scope_source)
-
-      {:error, reason} ->
-        {:error, reason}
+    case Runtime.gateway_fetch(scope_source.connection_id, scope_source.url) do
+      {:ok, acquisition} -> extract_entity_ids(acquisition.document, scope_source)
+      {:error, reason} -> {:error, reason}
     end
   end
 
@@ -260,7 +256,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
   defp start_bulk_source_checks(_run, _source, []), do: :ok
 
   defp start_bulk_source_checks(run, source, checks) do
-    case SourceClient.fetch(source) do
+    case Runtime.gateway_fetch(source.connection_id, source.url) do
       {:ok, acquisition} ->
         ref_field = source.ref_field || "id"
 
@@ -317,19 +313,12 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
 
   defp start_entity_check(run, %SourceCheck{} = check) do
     source = Enum.find(run.monitor.sources, &(&1.id == check.source_id))
-    url = entity_url(source, check.ref_id)
 
-    case SourceClient.fetch(%{source | url: url}) do
+    case Runtime.gateway_fetch(source.connection_id, source.url, check.ref_id) do
       {:ok, acquisition} -> request_extraction(run, check, acquisition)
       {:error, reason} -> fail_check(check, reason)
     end
   end
-
-  defp entity_url(%{fetch_strategy: :fetch_entity, url: url}, entity_id) when is_binary(url) do
-    String.replace(url, ":ref", entity_id)
-  end
-
-  defp entity_url(%{url: url}, _entity_id), do: url
 
   defp evaluate_collection(run, entity_ids) do
     repo().transaction(fn ->
@@ -405,14 +394,14 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
   defp start_source_check(_run, %SourceCheck{status: status}) when status != :pending, do: :ok
 
   defp start_source_check(run, %SourceCheck{} = check) do
-    case SourceClient.fetch(check.source) do
+    case Runtime.gateway_fetch(check.source.connection_id, check.source.url) do
       {:ok, acquisition} -> request_extraction(run, check, acquisition)
       {:error, reason} -> fail_check(check, reason)
     end
   end
 
   defp request_extraction(run, check, acquisition) do
-    {tool_id, input} = extraction_request(check.source, acquisition.document)
+    {tool_id, input} = extraction_request(acquisition.adapter_key, check.source.mappings, acquisition.document)
 
     case Runtime.request_tool(
            run.initiated_by_user_id,
@@ -439,12 +428,12 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
     end
   end
 
-  defp extraction_request(%{format: :json, mappings: mappings}, document) do
-    {"com.contexla.extract.json-values", %{"document" => document, "mappings" => mappings}}
+  defp extraction_request("generic_http_html", mappings, document) do
+    {"com.contexla.extract.html-values", %{"html" => document, "mappings" => mappings}}
   end
 
-  defp extraction_request(%{format: :html, mappings: mappings}, document) do
-    {"com.contexla.extract.html-values", %{"html" => document, "mappings" => mappings}}
+  defp extraction_request(_adapter_key, mappings, document) do
+    {"com.contexla.extract.json-values", %{"document" => document, "mappings" => mappings}}
   end
 
   defp complete_source_check(_run, %SourceCheck{status: status}) when status != :waiting_tool,

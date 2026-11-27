@@ -522,7 +522,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
           key: "scope",
           name: "Program catalog (scope)",
           role: :scope,
-          format: :json,
           fetch_strategy: :fetch_all_entities,
           url: base_url <> "/scope/programs",
           array_path: "programs",
@@ -571,7 +570,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
         key: "source",
         name: "Authoritative program API",
         role: :source,
-        format: :json,
         fetch_strategy: :fetch_entity,
         url: base_url <> "/authority/programs/:id",
         mappings: json_mappings
@@ -580,7 +578,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
         key: "delivery",
         name: "Delivery API",
         role: :target,
-        format: :json,
         fetch_strategy: :fetch_entity,
         url: base_url <> "/delivery/programs/:id",
         mappings: json_mappings
@@ -589,7 +586,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
         key: "website",
         name: "Public program page",
         role: :target,
-        format: :html,
         fetch_strategy: :fetch_entity,
         url: base_url <> "/programs/:id",
         mappings: html_mappings
@@ -598,7 +594,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
         key: "search",
         name: "Program search",
         role: :target,
-        format: :html,
         fetch_strategy: :fetch_entity,
         url: base_url <> "/search/programs/:id",
         mappings: html_mappings

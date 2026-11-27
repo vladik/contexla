@@ -23,6 +23,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
        instance: instance,
        monitors: monitors,
        archived_monitors: archived_monitors,
+       available_connections: Runtime.list_connections(),
        view: :list,
        active_tab: :general,
        selected_monitor: nil,
@@ -32,7 +33,8 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
        # Scope tab
        scope_form: nil,
        scope_editing: false,
-       scope_adapter_type: "http_json",
+       scope_connection_id: nil,
+       scope_is_manual: false,
        # Facts tab
        fact_form_state: nil,
        fact_form: nil,
@@ -40,14 +42,14 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
        # Source tab
        source_form: nil,
        source_form_state: nil,
-       source_adapter_type: "http_json",
+       source_connection_id: nil,
        source_fetch_strategy: "fetch_entity",
        source_mapping_rows: [],
        confirm_delete_source_id: nil,
        # Target tab
        target_form_state: nil,
        target_form: nil,
-       target_adapter_type: "http_json",
+       target_connection_id: nil,
        target_fetch_strategy: "fetch_entity",
        target_mapping_rows: [],
        target_profile_rows: [],
@@ -81,17 +83,18 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
        current_tags: [],
        scope_form: nil,
        scope_editing: false,
-       scope_adapter_type: "http_json",
+       scope_connection_id: nil,
+       scope_is_manual: false,
        fact_form_state: nil,
        fact_form: nil,
        source_form: nil,
        source_form_state: nil,
-       source_adapter_type: "http_json",
+       source_connection_id: nil,
        source_fetch_strategy: "fetch_entity",
        source_mapping_rows: [],
        target_form_state: nil,
        target_form: nil,
-       target_adapter_type: "http_json",
+       target_connection_id: nil,
        target_fetch_strategy: "fetch_entity",
        target_mapping_rows: [],
        target_profile_rows: [],
@@ -115,16 +118,19 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
            current_tags: tags_from_monitor(monitor),
            scope_form: nil,
            scope_editing: false,
-           scope_adapter_type: "http_json",
+           scope_connection_id: nil,
+           scope_is_manual: false,
            fact_form_state: nil,
            fact_form: nil,
            source_form: nil,
            source_form_state: nil,
-           source_adapter_type: "http_json_per_entity",
+           source_connection_id: nil,
+           source_fetch_strategy: "fetch_entity",
            source_mapping_rows: [],
            target_form_state: nil,
            target_form: nil,
-           target_adapter_type: "http_json_per_entity",
+           target_connection_id: nil,
+           target_fetch_strategy: "fetch_entity",
            target_mapping_rows: [],
            schedule_form: schedule_form_from(monitor),
            window_form_state: nil,
@@ -249,22 +255,29 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
     {:noreply, assign(socket, current_tags: tags)}
   end
 
-  # -- Adapter picker events --
+  # -- Connection picker events --
 
-  def handle_event("set_scope_adapter", %{"type" => type}, socket) do
-    {:noreply, assign(socket, scope_adapter_type: type)}
+  def handle_event("set_scope_manual", %{"manual" => manual}, socket) do
+    {:noreply, assign(socket, scope_is_manual: manual == "true")}
   end
 
-  def handle_event("set_source_adapter", %{"type" => type}, socket) do
-    {:noreply, assign(socket, source_adapter_type: type, source_fetch_strategy: "fetch_entity")}
+  def handle_event("set_scope_connection", %{"connection_id" => id}, socket) do
+    id = if id == "", do: nil, else: id
+    {:noreply, assign(socket, scope_connection_id: id)}
+  end
+
+  def handle_event("set_source_connection", %{"connection_id" => id}, socket) do
+    id = if id == "", do: nil, else: id
+    {:noreply, assign(socket, source_connection_id: id, source_fetch_strategy: "fetch_entity")}
   end
 
   def handle_event("set_source_fetch_strategy", %{"strategy" => strategy}, socket) do
     {:noreply, assign(socket, source_fetch_strategy: strategy)}
   end
 
-  def handle_event("set_target_adapter", %{"type" => type}, socket) do
-    {:noreply, assign(socket, target_adapter_type: type, target_fetch_strategy: "fetch_entity")}
+  def handle_event("set_target_connection", %{"connection_id" => id}, socket) do
+    id = if id == "", do: nil, else: id
+    {:noreply, assign(socket, target_connection_id: id, target_fetch_strategy: "fetch_entity")}
   end
 
   def handle_event("set_target_fetch_strategy", %{"strategy" => strategy}, socket) do
@@ -286,9 +299,16 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
     monitor = socket.assigns.selected_monitor
     scope = scope_source(monitor)
     form = if scope, do: source_form_from(scope), else: new_scope_form()
-    adapter = if scope, do: adapter_type_from_scope(scope), else: socket.assigns.scope_adapter_type
+    connection_id = if scope, do: scope.connection_id, else: socket.assigns.scope_connection_id
+    is_manual = if scope, do: is_nil(scope.connection_id), else: socket.assigns.scope_is_manual
 
-    {:noreply, assign(socket, scope_editing: true, scope_form: form, scope_adapter_type: adapter)}
+    {:noreply,
+     assign(socket,
+       scope_editing: true,
+       scope_form: form,
+       scope_connection_id: connection_id,
+       scope_is_manual: is_manual
+     )}
   end
 
   def handle_event("cancel_scope", _params, socket) do
@@ -298,13 +318,13 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
   def handle_event("validate_scope", %{"source" => attrs}, socket) do
     monitor = socket.assigns.selected_monitor
     scope = scope_source(monitor)
-    adapter_attrs = adapter_to_attrs(socket.assigns.scope_adapter_type)
+    connection_id = if socket.assigns.scope_is_manual, do: nil, else: socket.assigns.scope_connection_id
 
     attrs =
       attrs
       |> Map.put("monitor_id", monitor.id)
-      |> Map.put("format", adapter_attrs.format)
-      |> Map.put("fetch_strategy", adapter_attrs.fetch_strategy)
+      |> Map.put("connection_id", connection_id)
+      |> Map.put("fetch_strategy", "fetch_all_entities")
       |> Map.put("mappings", %{})
 
     changeset =
@@ -318,19 +338,18 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
   def handle_event("save_scope", %{"source" => attrs}, socket) do
     instance = socket.assigns.instance
     monitor = socket.assigns.selected_monitor
-    adapter = socket.assigns.scope_adapter_type
-    adapter_attrs = adapter_to_attrs(adapter)
+    is_manual = socket.assigns.scope_is_manual
+    connection_id = if is_manual, do: nil, else: socket.assigns.scope_connection_id
 
     attrs =
       attrs
       |> Map.put("role", "scope")
-      |> Map.put("format", adapter_attrs.format)
-      |> Map.put("fetch_strategy", adapter_attrs.fetch_strategy)
+      |> Map.put("connection_id", connection_id)
+      |> Map.put("fetch_strategy", "fetch_all_entities")
       |> Map.put("mappings", %{})
       |> Map.put_new_lazy("key", fn -> slugify(attrs["name"] || "scope") end)
 
-    # Manual adapter: entity refs come from static_refs, not a URL
-    attrs = if adapter == "manual", do: Map.put(attrs, "url", nil), else: attrs
+    attrs = if is_manual, do: Map.put(attrs, "url", nil), else: attrs
 
     result =
       case scope_source(monitor) do
@@ -471,7 +490,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
      assign(socket,
        source_form_state: :new,
        source_form: new_data_source_form(),
-       source_adapter_type: "http_json",
+       source_connection_id: nil,
        source_fetch_strategy: "fetch_entity",
        source_mapping_rows: rows
      )}
@@ -492,7 +511,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
          assign(socket,
            source_form_state: {:edit, id},
            source_form: source_form_from(source),
-           source_adapter_type: adapter_type_from(source),
+           source_connection_id: source.connection_id,
            source_fetch_strategy: fetch_strategy_from(source),
            source_mapping_rows: rows
          )}
@@ -505,7 +524,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
 
   def handle_event("validate_source", %{"source" => attrs}, socket) do
     monitor = socket.assigns.selected_monitor
-    adapter_attrs = adapter_to_attrs(socket.assigns.source_adapter_type, socket.assigns.source_fetch_strategy)
 
     source =
       case socket.assigns.source_form_state do
@@ -516,8 +534,8 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
     attrs =
       attrs
       |> Map.put("monitor_id", monitor.id)
-      |> Map.put("format", adapter_attrs.format)
-      |> Map.put("fetch_strategy", adapter_attrs.fetch_strategy)
+      |> Map.put("connection_id", socket.assigns.source_connection_id)
+      |> Map.put("fetch_strategy", socket.assigns.source_fetch_strategy)
 
     changeset =
       (source || %Source{})
@@ -530,14 +548,20 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
   def handle_event("save_source", %{"source" => attrs}, socket) do
     instance = socket.assigns.instance
     monitor = socket.assigns.selected_monitor
-    adapter_attrs = adapter_to_attrs(socket.assigns.source_adapter_type, socket.assigns.source_fetch_strategy)
     mappings = mappings_from_rows(socket.assigns.source_mapping_rows)
+
+    effective_strategy =
+      effective_fetch_strategy(
+        socket.assigns.available_connections,
+        socket.assigns.source_connection_id,
+        socket.assigns.source_fetch_strategy
+      )
 
     attrs =
       attrs
       |> Map.put("role", "source")
-      |> Map.put("format", adapter_attrs.format)
-      |> Map.put("fetch_strategy", adapter_attrs.fetch_strategy)
+      |> Map.put("connection_id", socket.assigns.source_connection_id)
+      |> Map.put("fetch_strategy", effective_strategy)
       |> Map.put("mappings", mappings)
       |> Map.put_new_lazy("key", fn -> slugify(attrs["name"] || "source") end)
 
@@ -601,7 +625,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
      assign(socket,
        target_form_state: :new,
        target_form: new_data_source_form(),
-       target_adapter_type: "http_json",
+       target_connection_id: nil,
        target_fetch_strategy: "fetch_entity",
        target_mapping_rows: rows,
        target_profile_rows: profile_rows
@@ -624,7 +648,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
          assign(socket,
            target_form_state: {:edit, id},
            target_form: source_form_from(source),
-           target_adapter_type: adapter_type_from(source),
+           target_connection_id: source.connection_id,
            target_fetch_strategy: fetch_strategy_from(source),
            target_mapping_rows: rows,
            target_profile_rows: profile_rows
@@ -658,7 +682,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
 
   def handle_event("validate_target", %{"source" => attrs}, socket) do
     monitor = socket.assigns.selected_monitor
-    adapter_attrs = adapter_to_attrs(socket.assigns.target_adapter_type, socket.assigns.target_fetch_strategy)
 
     source =
       case socket.assigns.target_form_state do
@@ -669,8 +692,8 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
     attrs =
       attrs
       |> Map.put("monitor_id", monitor.id)
-      |> Map.put("format", adapter_attrs.format)
-      |> Map.put("fetch_strategy", adapter_attrs.fetch_strategy)
+      |> Map.put("connection_id", socket.assigns.target_connection_id)
+      |> Map.put("fetch_strategy", socket.assigns.target_fetch_strategy)
 
     changeset =
       (source || %Source{})
@@ -683,14 +706,20 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
   def handle_event("save_target", %{"source" => attrs}, socket) do
     instance = socket.assigns.instance
     monitor = socket.assigns.selected_monitor
-    adapter_attrs = adapter_to_attrs(socket.assigns.target_adapter_type, socket.assigns.target_fetch_strategy)
     mappings = mappings_from_rows(socket.assigns.target_mapping_rows)
+
+    effective_strategy =
+      effective_fetch_strategy(
+        socket.assigns.available_connections,
+        socket.assigns.target_connection_id,
+        socket.assigns.target_fetch_strategy
+      )
 
     attrs =
       attrs
       |> Map.put("role", "target")
-      |> Map.put("format", adapter_attrs.format)
-      |> Map.put("fetch_strategy", adapter_attrs.fetch_strategy)
+      |> Map.put("connection_id", socket.assigns.target_connection_id)
+      |> Map.put("fetch_strategy", effective_strategy)
       |> Map.put("mappings", mappings)
       |> Map.put_new_lazy("key", fn -> "target_#{:erlang.unique_integer([:positive])}" end)
 
@@ -1108,12 +1137,14 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
             <div :if={scope && !@scope_editing} class="space-y-3">
               <div class="rounded-lg border border-border bg-surface-raised p-4 space-y-1.5">
                 <p class="text-sm font-semibold text-text">{scope.name}</p>
-                <p class="text-xs font-medium text-text-muted">{scope_adapter_label(scope)}</p>
+                <p class="text-xs font-medium text-text-muted">
+                  {connection_name(@available_connections, scope.connection_id)}
+                </p>
                 <p :if={scope.url && scope.url != ""} class="truncate font-mono text-xs text-text-muted">
                   {scope.url}
                 </p>
-                <p :if={scope.format == :manual && scope.static_refs} class="text-xs text-text-muted">
-                  {length(Jason.decode!(scope.static_refs || "[]"))} entity references configured
+                <p :if={is_nil(scope.connection_id) && scope.static_refs} class="text-xs text-text-muted">
+                  {length(Jason.decode!(scope.static_refs))} entity references configured
                 </p>
               </div>
               <.button phx-click="edit_scope" size="sm" variant="soft">Edit</.button>
@@ -1121,21 +1152,50 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
 
             <%!-- No scope yet or editing --%>
             <div :if={!scope || @scope_editing}>
-              <form phx-change="set_scope_adapter" class="mb-4">
-                <label class="mb-1 block text-sm font-medium text-text-muted">Adapter</label>
-                <select
-                  name="type"
-                  class="block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-primary"
+              <%!-- Mode selector: Connected system vs Manual list --%>
+              <div class="mb-4 inline-flex rounded-lg border border-border p-0.5 gap-0.5">
+                <button
+                  type="button"
+                  phx-click="set_scope_manual"
+                  phx-value-manual="false"
+                  class={["rounded-md px-3 py-1.5 text-sm transition-colors",
+                          if(!@scope_is_manual, do: "bg-surface-raised font-medium text-text", else: "text-text-muted hover:text-text")]}
                 >
-                  <option
-                    :for={{label, value} <- scope_adapter_options()}
-                    value={value}
-                    selected={@scope_adapter_type == value}
+                  Connected system
+                </button>
+                <button
+                  type="button"
+                  phx-click="set_scope_manual"
+                  phx-value-manual="true"
+                  class={["rounded-md px-3 py-1.5 text-sm transition-colors",
+                          if(@scope_is_manual, do: "bg-surface-raised font-medium text-text", else: "text-text-muted hover:text-text")]}
+                >
+                  Manual list
+                </button>
+              </div>
+
+              <%!-- Connection picker (connected system mode) --%>
+              <div :if={!@scope_is_manual} class="mb-4">
+                <form phx-change="set_scope_connection">
+                  <label class="mb-1 block text-sm font-medium text-text-muted">Connection</label>
+                  <select
+                    name="connection_id"
+                    class="block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-primary"
                   >
-                    {label}
-                  </option>
-                </select>
-              </form>
+                    <option value="">— select a connection —</option>
+                    <option
+                      :for={conn <- @available_connections}
+                      value={conn.id}
+                      selected={@scope_connection_id == conn.id}
+                    >
+                      {conn.name}
+                    </option>
+                  </select>
+                </form>
+                <a href="/connections" class="mt-1 inline-block text-xs text-primary hover:underline">
+                  Manage connections →
+                </a>
+              </div>
 
               <.form
                 :if={@scope_form}
@@ -1146,7 +1206,8 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
               >
                 <.input field={@scope_form[:name]} label="Name" placeholder="e.g. ERP product list" />
 
-                <div :if={@scope_adapter_type in ["http_json", "http_html"]} class="space-y-3">
+                <%!-- Connected system fields --%>
+                <div :if={!@scope_is_manual && !is_nil(@scope_connection_id)} class="space-y-3">
                   <.input
                     field={@scope_form[:url]}
                     label="URL — returns all entities"
@@ -1164,7 +1225,12 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                   />
                 </div>
 
-                <div :if={@scope_adapter_type == "manual"} class="space-y-3">
+                <p :if={!@scope_is_manual && is_nil(@scope_connection_id)} class="text-sm text-text-muted py-1">
+                  Select a connection to configure the endpoint.
+                </p>
+
+                <%!-- Manual list fields --%>
+                <div :if={@scope_is_manual} class="space-y-3">
                   <.input
                     field={@scope_form[:ref_field]}
                     label="Entity reference field"
@@ -1185,19 +1251,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                       Each object must include the entity reference field. Additional fields serve as lookup keys for sources and targets.
                     </p>
                   </div>
-                </div>
-
-                <div :if={@scope_adapter_type == "csv"} class="space-y-3">
-                  <.input
-                    field={@scope_form[:url]}
-                    label="File URL"
-                    placeholder="http://host/files/products.csv"
-                  />
-                  <.input
-                    field={@scope_form[:ref_field]}
-                    label="Entity reference field"
-                    placeholder="product_id"
-                  />
                 </div>
 
                 <div class="flex items-center gap-3 pt-1">
@@ -1343,24 +1396,29 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                 {if @source_form_state == :new, do: "Add source", else: "Editing: #{@source_form[:name].value}"}
               </h3>
 
-              <form phx-change="set_source_adapter" class="mb-4">
-                <label class="mb-1 block text-sm font-medium text-text-muted">Adapter</label>
+              <%!-- Connection picker --%>
+              <form phx-change="set_source_connection" class="mb-4">
+                <label class="mb-1 block text-sm font-medium text-text-muted">Connection</label>
                 <select
-                  name="type"
+                  name="connection_id"
                   class="block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-primary"
                 >
+                  <option value="">— select a connection —</option>
                   <option
-                    :for={{label, value} <- source_adapter_options()}
-                    value={value}
-                    selected={@source_adapter_type == value}
+                    :for={conn <- @available_connections}
+                    value={conn.id}
+                    selected={@source_connection_id == conn.id}
                   >
-                    {label}
+                    {conn.name}
                   </option>
                 </select>
+                <a href="/connections" class="mt-1 inline-block text-xs text-primary hover:underline">
+                  Manage connections →
+                </a>
               </form>
 
-              <%!-- Fetch strategy toggle — only for HTTP JSON --%>
-              <div :if={@source_adapter_type == "http_json"} class="mb-4">
+              <%!-- Fetch strategy toggle — only for Generic REST API (JSON) connections --%>
+              <div :if={connection_adapter_key(@available_connections, @source_connection_id) == "generic_http_json"} class="mb-4">
                 <label class="mb-1.5 block text-sm font-medium text-text-muted">Fetch strategy</label>
                 <div class="flex flex-col gap-1.5">
                   <label class="flex items-start gap-2 cursor-pointer">
@@ -1400,7 +1458,11 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
               >
                 <.input field={@source_form[:name]} label="Name" />
 
-                <div :if={@source_adapter_type == "http_json" and @source_fetch_strategy == "fetch_entity"}>
+                <p :if={is_nil(@source_connection_id)} class="text-sm text-text-muted py-1">
+                  Select a connection to configure the endpoint.
+                </p>
+
+                <div :if={connection_adapter_key(@available_connections, @source_connection_id) == "generic_http_json" and @source_fetch_strategy == "fetch_entity"}>
                   <.input
                     field={@source_form[:url]}
                     label="URL — use :ref as the entity reference placeholder"
@@ -1408,14 +1470,14 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                   />
                 </div>
 
-                <div :if={@source_adapter_type == "http_json" and @source_fetch_strategy == "fetch_all_entities"} class="space-y-3">
+                <div :if={connection_adapter_key(@available_connections, @source_connection_id) == "generic_http_json" and @source_fetch_strategy == "fetch_all_entities"} class="space-y-3">
                   <.input field={@source_form[:url]} label="URL — returns all entities" placeholder="http://api.example.com/products" />
                   <.input field={@source_form[:array_path]} label="Path to entity array in response" placeholder="e.g. products, response.docs" />
                   <.input field={@source_form[:ref_field]} label="Entity reference field" placeholder="id" />
                   <.input field={@source_form[:scope_ref_field]} label="Match against scope field (optional)" placeholder="Leave blank to use scope's reference field" />
                 </div>
 
-                <div :if={@source_adapter_type == "http_html"}>
+                <div :if={connection_adapter_key(@available_connections, @source_connection_id) == "generic_http_html"}>
                   <.input
                     field={@source_form[:url]}
                     label="URL — use :ref as the entity reference placeholder"
@@ -1423,7 +1485,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                   />
                 </div>
 
-                <div :if={@source_adapter_type == "csv"} class="space-y-3">
+                <div :if={connection_adapter_key(@available_connections, @source_connection_id) == "csv"} class="space-y-3">
                   <.input field={@source_form[:url]} label="File URL" placeholder="http://host/files/products.csv" />
                   <.input field={@source_form[:ref_field]} label="Entity reference field" placeholder="product_id" />
                   <.input field={@source_form[:scope_ref_field]} label="Match against scope field (optional)" placeholder="Leave blank to use scope's reference field" />
@@ -1458,7 +1520,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                       <input
                         type="text"
                         value={path}
-                        placeholder={mapping_placeholder(@source_adapter_type)}
+                        placeholder={mapping_placeholder_for(connection_adapter_key(@available_connections, @source_connection_id))}
                         phx-blur="update_source_mapping"
                         phx-value-key={key}
                         class="flex-1 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -1496,7 +1558,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
             >
               <:row :let={source}>
                 <p class="text-sm font-medium text-text">{source.name}</p>
-                <p class="mt-0.5 text-xs text-text-muted">{source_adapter_label(source)}</p>
+                <p class="mt-0.5 text-xs text-text-muted">{connection_name(@available_connections, source.connection_id)}</p>
                 <p :if={source.url && source.url != ""} class="mt-0.5 truncate font-mono text-xs text-text-muted">
                   {source.url}
                 </p>
@@ -1557,24 +1619,29 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                 {if @target_form_state == :new, do: "Add target", else: "Editing: #{@target_form[:name].value}"}
               </h3>
 
-              <form phx-change="set_target_adapter" class="mb-4">
-                <label class="mb-1 block text-sm font-medium text-text-muted">Adapter</label>
+              <%!-- Connection picker --%>
+              <form phx-change="set_target_connection" class="mb-4">
+                <label class="mb-1 block text-sm font-medium text-text-muted">Connection</label>
                 <select
-                  name="type"
+                  name="connection_id"
                   class="block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-primary"
                 >
+                  <option value="">— select a connection —</option>
                   <option
-                    :for={{label, value} <- source_adapter_options()}
-                    value={value}
-                    selected={@target_adapter_type == value}
+                    :for={conn <- @available_connections}
+                    value={conn.id}
+                    selected={@target_connection_id == conn.id}
                   >
-                    {label}
+                    {conn.name}
                   </option>
                 </select>
+                <a href="/connections" class="mt-1 inline-block text-xs text-primary hover:underline">
+                  Manage connections →
+                </a>
               </form>
 
-              <%!-- Fetch strategy toggle — only for HTTP JSON --%>
-              <div :if={@target_adapter_type == "http_json"} class="mb-4">
+              <%!-- Fetch strategy toggle — only for Generic REST API (JSON) connections --%>
+              <div :if={connection_adapter_key(@available_connections, @target_connection_id) == "generic_http_json"} class="mb-4">
                 <label class="mb-1.5 block text-sm font-medium text-text-muted">Fetch strategy</label>
                 <div class="flex flex-col gap-1.5">
                   <label class="flex items-start gap-2 cursor-pointer">
@@ -1614,7 +1681,11 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
               >
                 <.input field={@target_form[:name]} label="Name" />
 
-                <div :if={@target_adapter_type == "http_json" and @target_fetch_strategy == "fetch_entity"}>
+                <p :if={is_nil(@target_connection_id)} class="text-sm text-text-muted py-1">
+                  Select a connection to configure the endpoint.
+                </p>
+
+                <div :if={connection_adapter_key(@available_connections, @target_connection_id) == "generic_http_json" and @target_fetch_strategy == "fetch_entity"}>
                   <.input
                     field={@target_form[:url]}
                     label="URL — use :ref as the entity reference placeholder"
@@ -1622,14 +1693,14 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                   />
                 </div>
 
-                <div :if={@target_adapter_type == "http_json" and @target_fetch_strategy == "fetch_all_entities"} class="space-y-3">
+                <div :if={connection_adapter_key(@available_connections, @target_connection_id) == "generic_http_json" and @target_fetch_strategy == "fetch_all_entities"} class="space-y-3">
                   <.input field={@target_form[:url]} label="URL — returns all entities" placeholder="http://api.example.com/products" />
                   <.input field={@target_form[:array_path]} label="Path to entity array in response" placeholder="e.g. products, response.docs" />
                   <.input field={@target_form[:ref_field]} label="Entity reference field" placeholder="id" />
                   <.input field={@target_form[:scope_ref_field]} label="Match against scope field (optional)" placeholder="Leave blank to use scope's reference field" />
                 </div>
 
-                <div :if={@target_adapter_type == "http_html"}>
+                <div :if={connection_adapter_key(@available_connections, @target_connection_id) == "generic_http_html"}>
                   <.input
                     field={@target_form[:url]}
                     label="URL — use :ref as the entity reference placeholder"
@@ -1637,7 +1708,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                   />
                 </div>
 
-                <div :if={@target_adapter_type == "csv"} class="space-y-3">
+                <div :if={connection_adapter_key(@available_connections, @target_connection_id) == "csv"} class="space-y-3">
                   <.input field={@target_form[:url]} label="File URL" placeholder="http://host/files/products.csv" />
                   <.input field={@target_form[:ref_field]} label="Entity reference field" placeholder="product_id" />
                   <.input field={@target_form[:scope_ref_field]} label="Match against scope field (optional)" placeholder="Leave blank to use scope's reference field" />
@@ -1672,7 +1743,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                       <input
                         type="text"
                         value={path}
-                        placeholder={mapping_placeholder(@target_adapter_type)}
+                        placeholder={mapping_placeholder_for(connection_adapter_key(@available_connections, @target_connection_id))}
                         phx-blur="update_target_mapping"
                         phx-value-key={key}
                         class="flex-1 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -1769,7 +1840,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
             >
               <:row :let={source}>
                 <p class="text-sm font-medium text-text">{source.name}</p>
-                <p class="mt-0.5 text-xs text-text-muted">{source_adapter_label(source)}</p>
+                <p class="mt-0.5 text-xs text-text-muted">{connection_name(@available_connections, source.connection_id)}</p>
                 <p :if={source.url && source.url != ""} class="mt-0.5 truncate font-mono text-xs text-text-muted">
                   {source.url}
                 </p>
@@ -1961,12 +2032,14 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
     if socket.assigns.scope_form == nil and socket.assigns.selected_monitor do
       monitor = socket.assigns.selected_monitor
       scope = scope_source(monitor)
-      adapter = if scope, do: adapter_type_from_scope(scope), else: "http_json"
       form = if scope, do: source_form_from(scope), else: new_scope_form()
+      connection_id = scope && scope.connection_id
+      is_manual = if scope, do: is_nil(scope.connection_id), else: false
 
       assign(socket,
         scope_form: form,
-        scope_adapter_type: adapter,
+        scope_connection_id: connection_id,
+        scope_is_manual: is_manual,
         scope_editing: is_nil(scope)
       )
     else
@@ -1997,78 +2070,38 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
 
   defp tab_complete?(_monitor, _tab), do: false
 
-  # -- Private: adapter helpers --
-
-  defp adapter_type_from(%{format: :json}), do: "http_json"
-  defp adapter_type_from(%{format: :html}), do: "http_html"
-  defp adapter_type_from(%{format: :manual}), do: "manual"
-  defp adapter_type_from(%{format: :csv}), do: "csv"
-  defp adapter_type_from(_), do: "http_json"
+  # -- Private: connection helpers --
 
   defp fetch_strategy_from(%{fetch_strategy: :fetch_all_entities}), do: "fetch_all_entities"
   defp fetch_strategy_from(_), do: "fetch_entity"
 
-  defp adapter_type_from_scope(%{format: :json}), do: "http_json"
-  defp adapter_type_from_scope(%{format: :html}), do: "http_html"
-  defp adapter_type_from_scope(%{format: :manual}), do: "manual"
-  defp adapter_type_from_scope(%{format: :csv}), do: "csv"
-  defp adapter_type_from_scope(_), do: "http_json"
+  defp connection_name(_connections, nil), do: "Manual list"
 
-  defp adapter_to_attrs("http_json", "fetch_all_entities"),
-    do: %{format: "json", fetch_strategy: "fetch_all_entities"}
-
-  defp adapter_to_attrs("http_json", _),
-    do: %{format: "json", fetch_strategy: "fetch_entity"}
-
-  defp adapter_to_attrs("http_html", _),
-    do: %{format: "html", fetch_strategy: "fetch_entity"}
-
-  defp adapter_to_attrs("csv", _),
-    do: %{format: "csv", fetch_strategy: "fetch_all_entities"}
-
-  defp adapter_to_attrs("manual", _),
-    do: %{format: "manual", fetch_strategy: "fetch_all_entities"}
-
-  defp adapter_to_attrs("http_json"),
-    do: %{format: "json", fetch_strategy: "fetch_all_entities"}
-
-  defp adapter_to_attrs(_),
-    do: %{format: "json", fetch_strategy: "fetch_entity"}
-
-  defp scope_adapter_options do
-    [
-      {"HTTP JSON", "http_json"},
-      {"HTTP HTML", "http_html"},
-      {"Manual list", "manual"},
-      {"CSV file", "csv"}
-    ]
+  defp connection_name(connections, connection_id) do
+    conn = Enum.find(connections, &(&1.id == connection_id))
+    if conn, do: conn.name, else: "Unknown connection"
   end
 
-  defp source_adapter_options do
-    [
-      {"HTTP JSON", "http_json"},
-      {"HTTP HTML", "http_html"},
-      {"CSV", "csv"}
-    ]
+  defp connection_adapter_key(_connections, nil), do: nil
+
+  defp connection_adapter_key(connections, connection_id) do
+    conn = Enum.find(connections, &(&1.id == connection_id))
+    conn && conn.adapter_key
+  end
+
+  defp effective_fetch_strategy(connections, connection_id, fetch_strategy) do
+    case connection_adapter_key(connections, connection_id) do
+      "csv" -> "fetch_all_entities"
+      "generic_http_html" -> "fetch_entity"
+      _ -> fetch_strategy
+    end
   end
 
   # -- Private: display helpers --
 
-  defp scope_adapter_label(%{format: :json}), do: "HTTP JSON"
-  defp scope_adapter_label(%{format: :html}), do: "HTTP HTML"
-  defp scope_adapter_label(%{format: :manual}), do: "Manual list"
-  defp scope_adapter_label(%{format: :csv}), do: "CSV file"
-  defp scope_adapter_label(_), do: "Unknown"
-
-  defp source_adapter_label(%{format: :json, fetch_strategy: :fetch_entity}),
-    do: "HTTP JSON · per entity"
-
-  defp source_adapter_label(%{format: :json, fetch_strategy: :fetch_all_entities}),
-    do: "HTTP JSON · bulk"
-
-  defp source_adapter_label(%{format: :html}), do: "HTTP HTML"
-  defp source_adapter_label(%{format: :csv}), do: "CSV"
-  defp source_adapter_label(_), do: "HTTP JSON"
+  defp mapping_placeholder_for("generic_http_html"), do: "e.g. h1.product-name or [data-field=title]"
+  defp mapping_placeholder_for("csv"), do: "e.g. ProductName (column header)"
+  defp mapping_placeholder_for(_), do: "e.g. data.name or fields.Title.value"
 
   defp comparison_type_options do
     [
@@ -2082,10 +2115,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
     ]
   end
 
-
-  defp mapping_placeholder("http_html"), do: "e.g. h1.product-name or [data-field=title]"
-  defp mapping_placeholder("csv"), do: "e.g. ProductName (column header)"
-  defp mapping_placeholder(_), do: "e.g. data.name or fields.Title.value"
 
   defp tags_from_monitor(monitor) do
     (monitor.entity_type || "")
@@ -2141,7 +2170,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
   defp new_scope_form do
     to_form(
       Source.changeset(%Source{}, %{
-        format: :json,
         fetch_strategy: :fetch_all_entities,
         role: :scope,
         mappings: %{},
@@ -2158,7 +2186,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
   defp new_data_source_form do
     to_form(
       Source.changeset(%Source{}, %{
-        format: :json,
         fetch_strategy: :fetch_entity,
         mappings: %{}
       }),

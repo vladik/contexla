@@ -64,5 +64,25 @@ defmodule Contexla.Platform.ApplicationServices do
     worker.new(args, options) |> Oban.insert()
   end
 
+  def list_connections do
+    alias Contexla.Platform.Connections
+    Connections.list_connections()
+    |> Enum.map(fn conn -> %{id: conn.id, name: conn.name, adapter_key: conn.adapter_key} end)
+  end
+
+  def gateway_fetch(connection_id, path_template, entity_ref) do
+    alias Contexla.Platform.{Connections, Gateway}
+
+    connection = Connections.get_connection!(connection_id)
+
+    url =
+      [String.trim_trailing(connection.base_url, "/"), String.trim_leading(path_template || "", "/")]
+      |> Enum.reject(&(&1 == ""))
+      |> Enum.join("/")
+      |> then(fn u -> if entity_ref, do: String.replace(u, ":ref", entity_ref), else: u end)
+
+    Gateway.fetch(url, connection)
+  end
+
   defp scope!(actor_id), do: Scope.for_user(Repo.get!(User, actor_id))
 end

@@ -27,4 +27,9 @@ defmodule Contexla.Applications.Sdk.PlatformServices do
               {:ok, struct()} | {:error, term()}
   @callback invoke_operation(binary(), binary(), binary(), map(), keyword()) :: term()
   @callback enqueue(module(), map(), keyword()) :: {:ok, struct()} | {:error, term()}
+
+  @callback gateway_fetch(connection_id :: binary(), path_template :: String.t(), entity_ref :: String.t() | nil) ::
+              {:ok, map()} | {:error, term()}
+
+  @callback list_connections() :: [map()]
 end

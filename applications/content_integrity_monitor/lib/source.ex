@@ -12,7 +12,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Source do
     field(:key, :string)
     field(:name, :string)
     field(:role, Ecto.Enum, values: [:scope, :source, :target])
-    field(:format, Ecto.Enum, values: [:json, :html, :csv, :manual])
+    field(:connection_id, :binary_id)
     field(:fetch_strategy, Ecto.Enum, values: [:fetch_entity, :fetch_all_entities], default: :fetch_entity)
     field(:url, :string)
     field(:array_path, :string)
@@ -35,7 +35,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Source do
       :key,
       :name,
       :role,
-      :format,
+      :connection_id,
       :fetch_strategy,
       :url,
       :array_path,
@@ -45,7 +45,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Source do
       :static_refs,
       :sort_order
     ])
-    |> validate_required([:monitor_id, :key, :name, :role, :format, :mappings])
+    |> validate_required([:monitor_id, :key, :name, :role, :mappings])
     |> unique_constraint([:monitor_id, :key])
   end
 end

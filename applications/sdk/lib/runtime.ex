@@ -63,6 +63,16 @@ defmodule Contexla.Applications.Sdk.Runtime do
   @spec enqueue(module(), map(), keyword()) :: {:ok, struct()} | {:error, term()}
   def enqueue(worker, args, options \\ []), do: platform().enqueue(worker, args, options)
 
+  @spec gateway_fetch(binary() | nil, String.t(), String.t() | nil) ::
+          {:ok, map()} | {:error, term()}
+  def gateway_fetch(connection_id, path_template, entity_ref \\ nil)
+  def gateway_fetch(nil, _path_template, _entity_ref), do: {:error, :no_connection}
+  def gateway_fetch(connection_id, path_template, entity_ref),
+    do: platform().gateway_fetch(connection_id, path_template, entity_ref)
+
+  @spec list_connections() :: [map()]
+  def list_connections(), do: platform().list_connections()
+
   defp platform, do: service!(:platform)
 
   defp service!(name) when is_atom(name) do

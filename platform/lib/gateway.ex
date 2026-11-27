@@ -9,13 +9,19 @@ defmodule Contexla.Platform.Gateway do
     "csv" => Contexla.Platform.Gateway.Adapters.Csv
   }
 
-  @doc "Fetch a URL using the adapter declared on the connection."
+  @doc "Fetch a URL using the adapter declared on the connection. Result includes :adapter_key."
   @spec fetch(url :: String.t(), connection :: Connection.t()) ::
           {:ok, map()} | {:error, term()}
   def fetch(url, %Connection{} = connection) do
     case Map.fetch(@adapters, connection.adapter_key) do
-      {:ok, adapter} -> adapter.fetch(url, connection)
-      :error -> {:error, {:unknown_adapter, connection.adapter_key}}
+      {:ok, adapter} ->
+        case adapter.fetch(url, connection) do
+          {:ok, result} -> {:ok, Map.put(result, :adapter_key, connection.adapter_key)}
+          error -> error
+        end
+
+      :error ->
+        {:error, {:unknown_adapter, connection.adapter_key}}
     end
   end
 
