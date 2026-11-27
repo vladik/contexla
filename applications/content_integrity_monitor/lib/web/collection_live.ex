@@ -40,13 +40,15 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
        # Source tab
        source_form: nil,
        source_form_state: nil,
-       source_adapter_type: "http_json_per_entity",
+       source_adapter_type: "http_json",
+       source_fetch_strategy: "fetch_entity",
        source_mapping_rows: [],
        confirm_delete_source_id: nil,
        # Target tab
        target_form_state: nil,
        target_form: nil,
-       target_adapter_type: "http_json_per_entity",
+       target_adapter_type: "http_json",
+       target_fetch_strategy: "fetch_entity",
        target_mapping_rows: [],
        target_profile_rows: [],
        confirm_delete_target_id: nil,
@@ -84,11 +86,13 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
        fact_form: nil,
        source_form: nil,
        source_form_state: nil,
-       source_adapter_type: "http_json_per_entity",
+       source_adapter_type: "http_json",
+       source_fetch_strategy: "fetch_entity",
        source_mapping_rows: [],
        target_form_state: nil,
        target_form: nil,
-       target_adapter_type: "http_json_per_entity",
+       target_adapter_type: "http_json",
+       target_fetch_strategy: "fetch_entity",
        target_mapping_rows: [],
        target_profile_rows: [],
        schedule_form: nil,
@@ -252,11 +256,19 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
   end
 
   def handle_event("set_source_adapter", %{"type" => type}, socket) do
-    {:noreply, assign(socket, source_adapter_type: type)}
+    {:noreply, assign(socket, source_adapter_type: type, source_fetch_strategy: "fetch_entity")}
+  end
+
+  def handle_event("set_source_fetch_strategy", %{"strategy" => strategy}, socket) do
+    {:noreply, assign(socket, source_fetch_strategy: strategy)}
   end
 
   def handle_event("set_target_adapter", %{"type" => type}, socket) do
-    {:noreply, assign(socket, target_adapter_type: type)}
+    {:noreply, assign(socket, target_adapter_type: type, target_fetch_strategy: "fetch_entity")}
+  end
+
+  def handle_event("set_target_fetch_strategy", %{"strategy" => strategy}, socket) do
+    {:noreply, assign(socket, target_fetch_strategy: strategy)}
   end
 
   def handle_event("toggle_source_mapping_json", _params, socket) do
@@ -459,7 +471,8 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
      assign(socket,
        source_form_state: :new,
        source_form: new_data_source_form(),
-       source_adapter_type: "http_json_per_entity",
+       source_adapter_type: "http_json",
+       source_fetch_strategy: "fetch_entity",
        source_mapping_rows: rows
      )}
   end
@@ -474,13 +487,13 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
       source ->
         mappings = source.mappings || %{}
         rows = build_mapping_rows(monitor.facts, mappings)
-        adapter = adapter_type_from(source)
 
         {:noreply,
          assign(socket,
            source_form_state: {:edit, id},
            source_form: source_form_from(source),
-           source_adapter_type: adapter,
+           source_adapter_type: adapter_type_from(source),
+           source_fetch_strategy: fetch_strategy_from(source),
            source_mapping_rows: rows
          )}
     end
@@ -492,7 +505,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
 
   def handle_event("validate_source", %{"source" => attrs}, socket) do
     monitor = socket.assigns.selected_monitor
-    adapter_attrs = adapter_to_attrs(socket.assigns.source_adapter_type)
+    adapter_attrs = adapter_to_attrs(socket.assigns.source_adapter_type, socket.assigns.source_fetch_strategy)
 
     source =
       case socket.assigns.source_form_state do
@@ -517,7 +530,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
   def handle_event("save_source", %{"source" => attrs}, socket) do
     instance = socket.assigns.instance
     monitor = socket.assigns.selected_monitor
-    adapter_attrs = adapter_to_attrs(socket.assigns.source_adapter_type)
+    adapter_attrs = adapter_to_attrs(socket.assigns.source_adapter_type, socket.assigns.source_fetch_strategy)
     mappings = mappings_from_rows(socket.assigns.source_mapping_rows)
 
     attrs =
@@ -588,7 +601,8 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
      assign(socket,
        target_form_state: :new,
        target_form: new_data_source_form(),
-       target_adapter_type: "http_json_per_entity",
+       target_adapter_type: "http_json",
+       target_fetch_strategy: "fetch_entity",
        target_mapping_rows: rows,
        target_profile_rows: profile_rows
      )}
@@ -605,13 +619,13 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
         mappings = source.mappings || %{}
         rows = build_mapping_rows(monitor.facts, mappings)
         profile_rows = build_target_profile_rows(monitor.facts, source.target_fact_profiles)
-        adapter = adapter_type_from(source)
 
         {:noreply,
          assign(socket,
            target_form_state: {:edit, id},
            target_form: source_form_from(source),
-           target_adapter_type: adapter,
+           target_adapter_type: adapter_type_from(source),
+           target_fetch_strategy: fetch_strategy_from(source),
            target_mapping_rows: rows,
            target_profile_rows: profile_rows
          )}
@@ -644,7 +658,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
 
   def handle_event("validate_target", %{"source" => attrs}, socket) do
     monitor = socket.assigns.selected_monitor
-    adapter_attrs = adapter_to_attrs(socket.assigns.target_adapter_type)
+    adapter_attrs = adapter_to_attrs(socket.assigns.target_adapter_type, socket.assigns.target_fetch_strategy)
 
     source =
       case socket.assigns.target_form_state do
@@ -669,7 +683,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
   def handle_event("save_target", %{"source" => attrs}, socket) do
     instance = socket.assigns.instance
     monitor = socket.assigns.selected_monitor
-    adapter_attrs = adapter_to_attrs(socket.assigns.target_adapter_type)
+    adapter_attrs = adapter_to_attrs(socket.assigns.target_adapter_type, socket.assigns.target_fetch_strategy)
     mappings = mappings_from_rows(socket.assigns.target_mapping_rows)
 
     attrs =
@@ -1345,6 +1359,39 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                 </select>
               </form>
 
+              <%!-- Fetch strategy toggle — only for HTTP JSON --%>
+              <div :if={@source_adapter_type == "http_json"} class="mb-4">
+                <label class="mb-1.5 block text-sm font-medium text-text-muted">Fetch strategy</label>
+                <div class="flex flex-col gap-1.5">
+                  <label class="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      phx-click="set_source_fetch_strategy"
+                      phx-value-strategy="fetch_entity"
+                      checked={@source_fetch_strategy == "fetch_entity"}
+                      class="mt-0.5"
+                    />
+                    <span class="text-sm text-text">
+                      Per entity
+                      <span class="ml-1 text-text-muted">— URL called once per entity, use <code class="font-mono">:ref</code> as placeholder</span>
+                    </span>
+                  </label>
+                  <label class="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      phx-click="set_source_fetch_strategy"
+                      phx-value-strategy="fetch_all_entities"
+                      checked={@source_fetch_strategy == "fetch_all_entities"}
+                      class="mt-0.5"
+                    />
+                    <span class="text-sm text-text">
+                      Bulk
+                      <span class="ml-1 text-text-muted">— URL called once, returns all entities in an array</span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
               <.form
                 for={@source_form}
                 phx-change="validate_source"
@@ -1353,7 +1400,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
               >
                 <.input field={@source_form[:name]} label="Name" />
 
-                <div :if={@source_adapter_type == "http_json_per_entity"}>
+                <div :if={@source_adapter_type == "http_json" and @source_fetch_strategy == "fetch_entity"}>
                   <.input
                     field={@source_form[:url]}
                     label="URL — use :ref as the entity reference placeholder"
@@ -1361,10 +1408,10 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                   />
                 </div>
 
-                <div :if={@source_adapter_type == "http_json_bulk"} class="space-y-3">
+                <div :if={@source_adapter_type == "http_json" and @source_fetch_strategy == "fetch_all_entities"} class="space-y-3">
                   <.input field={@source_form[:url]} label="URL — returns all entities" placeholder="http://api.example.com/products" />
                   <.input field={@source_form[:array_path]} label="Path to entity array in response" placeholder="e.g. products, response.docs" />
-                  <.input field={@source_form[:ref_field]} label="Reference field" placeholder="id" />
+                  <.input field={@source_form[:ref_field]} label="Entity reference field" placeholder="id" />
                   <.input field={@source_form[:scope_ref_field]} label="Match against scope field (optional)" placeholder="Leave blank to use scope's reference field" />
                 </div>
 
@@ -1378,7 +1425,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
 
                 <div :if={@source_adapter_type == "csv"} class="space-y-3">
                   <.input field={@source_form[:url]} label="File URL" placeholder="http://host/files/products.csv" />
-                  <.input field={@source_form[:ref_field]} label="Reference column" placeholder="product_id" />
+                  <.input field={@source_form[:ref_field]} label="Entity reference field" placeholder="product_id" />
                   <.input field={@source_form[:scope_ref_field]} label="Match against scope field (optional)" placeholder="Leave blank to use scope's reference field" />
                 </div>
 
@@ -1526,6 +1573,39 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                 </select>
               </form>
 
+              <%!-- Fetch strategy toggle — only for HTTP JSON --%>
+              <div :if={@target_adapter_type == "http_json"} class="mb-4">
+                <label class="mb-1.5 block text-sm font-medium text-text-muted">Fetch strategy</label>
+                <div class="flex flex-col gap-1.5">
+                  <label class="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      phx-click="set_target_fetch_strategy"
+                      phx-value-strategy="fetch_entity"
+                      checked={@target_fetch_strategy == "fetch_entity"}
+                      class="mt-0.5"
+                    />
+                    <span class="text-sm text-text">
+                      Per entity
+                      <span class="ml-1 text-text-muted">— URL called once per entity, use <code class="font-mono">:ref</code> as placeholder</span>
+                    </span>
+                  </label>
+                  <label class="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      phx-click="set_target_fetch_strategy"
+                      phx-value-strategy="fetch_all_entities"
+                      checked={@target_fetch_strategy == "fetch_all_entities"}
+                      class="mt-0.5"
+                    />
+                    <span class="text-sm text-text">
+                      Bulk
+                      <span class="ml-1 text-text-muted">— URL called once, returns all entities in an array</span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
               <.form
                 for={@target_form}
                 phx-change="validate_target"
@@ -1534,7 +1614,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
               >
                 <.input field={@target_form[:name]} label="Name" />
 
-                <div :if={@target_adapter_type == "http_json_per_entity"}>
+                <div :if={@target_adapter_type == "http_json" and @target_fetch_strategy == "fetch_entity"}>
                   <.input
                     field={@target_form[:url]}
                     label="URL — use :ref as the entity reference placeholder"
@@ -1542,10 +1622,10 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                   />
                 </div>
 
-                <div :if={@target_adapter_type == "http_json_bulk"} class="space-y-3">
+                <div :if={@target_adapter_type == "http_json" and @target_fetch_strategy == "fetch_all_entities"} class="space-y-3">
                   <.input field={@target_form[:url]} label="URL — returns all entities" placeholder="http://api.example.com/products" />
                   <.input field={@target_form[:array_path]} label="Path to entity array in response" placeholder="e.g. products, response.docs" />
-                  <.input field={@target_form[:ref_field]} label="Reference field" placeholder="id" />
+                  <.input field={@target_form[:ref_field]} label="Entity reference field" placeholder="id" />
                   <.input field={@target_form[:scope_ref_field]} label="Match against scope field (optional)" placeholder="Leave blank to use scope's reference field" />
                 </div>
 
@@ -1559,7 +1639,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
 
                 <div :if={@target_adapter_type == "csv"} class="space-y-3">
                   <.input field={@target_form[:url]} label="File URL" placeholder="http://host/files/products.csv" />
-                  <.input field={@target_form[:ref_field]} label="Reference column" placeholder="product_id" />
+                  <.input field={@target_form[:ref_field]} label="Entity reference field" placeholder="product_id" />
                   <.input field={@target_form[:scope_ref_field]} label="Match against scope field (optional)" placeholder="Leave blank to use scope's reference field" />
                 </div>
 
@@ -1919,12 +1999,14 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
 
   # -- Private: adapter helpers --
 
-  defp adapter_type_from(%{format: :json, fetch_strategy: :fetch_entity}), do: "http_json_per_entity"
-  defp adapter_type_from(%{format: :json, fetch_strategy: :fetch_all_entities}), do: "http_json_bulk"
+  defp adapter_type_from(%{format: :json}), do: "http_json"
   defp adapter_type_from(%{format: :html}), do: "http_html"
   defp adapter_type_from(%{format: :manual}), do: "manual"
   defp adapter_type_from(%{format: :csv}), do: "csv"
-  defp adapter_type_from(_), do: "http_json_per_entity"
+  defp adapter_type_from(_), do: "http_json"
+
+  defp fetch_strategy_from(%{fetch_strategy: :fetch_all_entities}), do: "fetch_all_entities"
+  defp fetch_strategy_from(_), do: "fetch_entity"
 
   defp adapter_type_from_scope(%{format: :json}), do: "http_json"
   defp adapter_type_from_scope(%{format: :html}), do: "http_html"
@@ -1932,13 +2014,26 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
   defp adapter_type_from_scope(%{format: :csv}), do: "csv"
   defp adapter_type_from_scope(_), do: "http_json"
 
-  defp adapter_to_attrs("http_json_per_entity"), do: %{format: "json", fetch_strategy: "fetch_entity"}
-  defp adapter_to_attrs("http_json_bulk"), do: %{format: "json", fetch_strategy: "fetch_all_entities"}
-  defp adapter_to_attrs("http_html"), do: %{format: "html", fetch_strategy: "fetch_entity"}
-  defp adapter_to_attrs("manual"), do: %{format: "manual", fetch_strategy: "fetch_all_entities"}
-  defp adapter_to_attrs("csv"), do: %{format: "csv", fetch_strategy: "fetch_all_entities"}
-  defp adapter_to_attrs("http_json"), do: %{format: "json", fetch_strategy: "fetch_all_entities"}
-  defp adapter_to_attrs(_), do: %{format: "json", fetch_strategy: "fetch_entity"}
+  defp adapter_to_attrs("http_json", "fetch_all_entities"),
+    do: %{format: "json", fetch_strategy: "fetch_all_entities"}
+
+  defp adapter_to_attrs("http_json", _),
+    do: %{format: "json", fetch_strategy: "fetch_entity"}
+
+  defp adapter_to_attrs("http_html", _),
+    do: %{format: "html", fetch_strategy: "fetch_entity"}
+
+  defp adapter_to_attrs("csv", _),
+    do: %{format: "csv", fetch_strategy: "fetch_all_entities"}
+
+  defp adapter_to_attrs("manual", _),
+    do: %{format: "manual", fetch_strategy: "fetch_all_entities"}
+
+  defp adapter_to_attrs("http_json"),
+    do: %{format: "json", fetch_strategy: "fetch_all_entities"}
+
+  defp adapter_to_attrs(_),
+    do: %{format: "json", fetch_strategy: "fetch_entity"}
 
   defp scope_adapter_options do
     [
@@ -1951,10 +2046,9 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
 
   defp source_adapter_options do
     [
-      {"HTTP JSON (per entity)", "http_json_per_entity"},
-      {"HTTP JSON (all at once)", "http_json_bulk"},
+      {"HTTP JSON", "http_json"},
       {"HTTP HTML", "http_html"},
-      {"CSV file", "csv"}
+      {"CSV", "csv"}
     ]
   end
 
@@ -1967,14 +2061,14 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
   defp scope_adapter_label(_), do: "Unknown"
 
   defp source_adapter_label(%{format: :json, fetch_strategy: :fetch_entity}),
-    do: "HTTP JSON (per entity)"
+    do: "HTTP JSON · per entity"
 
   defp source_adapter_label(%{format: :json, fetch_strategy: :fetch_all_entities}),
-    do: "HTTP JSON (all at once)"
+    do: "HTTP JSON · bulk"
 
   defp source_adapter_label(%{format: :html}), do: "HTTP HTML"
-  defp source_adapter_label(%{format: :csv}), do: "CSV file"
-  defp source_adapter_label(_), do: "HTTP JSON (per entity)"
+  defp source_adapter_label(%{format: :csv}), do: "CSV"
+  defp source_adapter_label(_), do: "HTTP JSON"
 
   defp comparison_type_options do
     [
@@ -1988,14 +2082,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
     ]
   end
 
-  defp comparison_type_label(:exists), do: "exists"
-  defp comparison_type_label(:text), do: "text"
-  defp comparison_type_label(:text_case_insensitive), do: "text (ignore case)"
-  defp comparison_type_label(:text_prefix), do: "text (prefix)"
-  defp comparison_type_label(:numeric), do: "numeric"
-  defp comparison_type_label(:date), do: "date"
-  defp comparison_type_label(:regex), do: "regex"
-  defp comparison_type_label(_), do: "text"
 
   defp mapping_placeholder("http_html"), do: "e.g. h1.product-name or [data-field=title]"
   defp mapping_placeholder("csv"), do: "e.g. ProductName (column header)"
