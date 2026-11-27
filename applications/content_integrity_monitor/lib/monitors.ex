@@ -13,7 +13,8 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
     Run,
     ScheduleWindow,
     Source,
-    SourceCheck
+    SourceCheck,
+    TargetProfile
   }
 
   alias Contexla.Applications.ContentIntegrityMonitor.Workers.RunWorker
@@ -360,6 +361,30 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
     end
   end
 
+  def upsert_target_profiles(%Instance{} = instance, target_id, profiles) do
+    with :ok <- ensure_instance(instance) do
+      repo().transaction(fn ->
+        Enum.each(profiles, fn {fact_id, expected, comparison_type} ->
+          attrs = %{
+            source_id: target_id,
+            fact_id: fact_id,
+            expected: expected,
+            comparison_type: if(comparison_type == "" or is_nil(comparison_type), do: nil, else: comparison_type)
+          }
+
+          %TargetProfile{}
+          |> TargetProfile.changeset(attrs)
+          |> repo().insert!(
+            on_conflict: {:replace, [:expected, :comparison_type, :updated_at]},
+            conflict_target: [:source_id, :fact_id]
+          )
+        end)
+      end)
+
+      :ok
+    end
+  end
+
   def move_source(%Instance{} = instance, source_id, direction) when direction in [:up, :down] do
     with :ok <- ensure_instance(instance) do
       case scoped_source(instance.id, source_id) do
@@ -615,7 +640,9 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
     |> repo().one()
   end
 
-  defp sorted_sources_query, do: from(s in Source, order_by: [asc: s.sort_order])
+  defp sorted_sources_query do
+    from(s in Source, order_by: [asc: s.sort_order], preload: [:target_profiles])
+  end
 
   defp normalize_source_attrs(attrs) do
     case Map.get(attrs, "mappings") do

@@ -16,11 +16,15 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Source do
     field(:fetch_strategy, Ecto.Enum, values: [:fetch_entity, :fetch_all_entities], default: :fetch_entity)
     field(:url, :string)
     field(:array_path, :string)
-    field(:id_field, :string, default: "id")
+    field(:ref_field, :string, default: "id")
+    field(:scope_ref_field, :string)
     field(:mappings, :map, default: %{})
-    field(:static_ids, :string)
+    field(:static_refs, :string)
     field(:sort_order, :integer, default: 0)
     belongs_to(:monitor, Contexla.Applications.ContentIntegrityMonitor.Monitor)
+    has_many(:target_profiles, Contexla.Applications.ContentIntegrityMonitor.TargetProfile,
+      foreign_key: :source_id
+    )
     timestamps(type: :utc_datetime)
   end
 
@@ -35,9 +39,10 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Source do
       :fetch_strategy,
       :url,
       :array_path,
-      :id_field,
+      :ref_field,
+      :scope_ref_field,
       :mappings,
-      :static_ids,
+      :static_refs,
       :sort_order
     ])
     |> validate_required([:monitor_id, :key, :name, :role, :format, :mappings])

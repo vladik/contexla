@@ -7,7 +7,8 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
     Fact,
     Monitor,
     ScheduleWindow,
-    Source
+    Source,
+    TargetProfile
   }
 
   alias Contexla.Applications.ContentIntegrityMonitor.Monitors
@@ -48,6 +49,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
        target_form: nil,
        target_adapter_type: "http_json_per_entity",
        target_mapping_rows: [],
+       target_profile_rows: [],
        confirm_delete_target_id: nil,
        # Schedule tab
        schedule_form: nil,
@@ -89,6 +91,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
        target_form: nil,
        target_adapter_type: "http_json_per_entity",
        target_mapping_rows: [],
+       target_profile_rows: [],
        schedule_form: nil,
        window_form_state: nil,
        window_form: nil,
@@ -580,13 +583,15 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
   def handle_event("new_target", _params, socket) do
     monitor = socket.assigns.selected_monitor
     rows = build_mapping_rows(monitor.facts, %{})
+    profile_rows = build_target_profile_rows(monitor.facts, [])
 
     {:noreply,
      assign(socket,
        target_form_state: :new,
        target_form: new_data_source_form(),
        target_adapter_type: "http_json_per_entity",
-       target_mapping_rows: rows
+       target_mapping_rows: rows,
+       target_profile_rows: profile_rows
      )}
   end
 
@@ -600,6 +605,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
       source ->
         mappings = source.mappings || %{}
         rows = build_mapping_rows(monitor.facts, mappings)
+        profile_rows = build_target_profile_rows(monitor.facts, source.target_profiles)
         adapter = adapter_type_from(source)
 
         {:noreply,
@@ -607,13 +613,32 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
            target_form_state: {:edit, id},
            target_form: source_form_from(source),
            target_adapter_type: adapter,
-           target_mapping_rows: rows
+           target_mapping_rows: rows,
+           target_profile_rows: profile_rows
          )}
     end
   end
 
   def handle_event("cancel_target", _params, socket) do
-    {:noreply, assign(socket, target_form_state: nil, target_form: nil)}
+    {:noreply, assign(socket, target_form_state: nil, target_form: nil, target_profile_rows: [])}
+  end
+
+  def handle_event("update_target_profile", params, socket) do
+    fact_id = params["fact_id"]
+    expected = params["expected"]
+    comparison_type = params["comparison_type"]
+
+    updated =
+      Enum.map(socket.assigns.target_profile_rows, fn
+        {^fact_id, key, name, _exp, _comp} ->
+          exp = if expected, do: String.to_existing_atom(expected), else: :required
+          comp = if comparison_type && comparison_type != "", do: String.to_existing_atom(comparison_type), else: nil
+          {fact_id, key, name, exp, comp}
+        row ->
+          row
+      end)
+
+    {:noreply, assign(socket, target_profile_rows: updated)}
   end
 
   def handle_event("validate_target", %{"source" => attrs}, socket) do
@@ -661,13 +686,19 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
       end
 
     case result do
-      {:ok, _source} ->
+      {:ok, saved_source} ->
+        profiles = Enum.map(socket.assigns.target_profile_rows, fn {fact_id, _key, _name, expected, comparison_type} ->
+          {fact_id, expected, comparison_type}
+        end)
+
+        Monitors.upsert_target_profiles(instance, saved_source.id, profiles)
+
         {:ok, refreshed} = Monitors.get_monitor(instance, monitor.id)
 
         {:noreply,
          socket
          |> put_flash(:info, "Target saved.")
-         |> assign(selected_monitor: refreshed, target_form_state: nil, target_form: nil)}
+         |> assign(selected_monitor: refreshed, target_form_state: nil, target_form: nil, target_profile_rows: [])}
 
       {:error, %Ecto.Changeset{} = cs} ->
         {:noreply, assign(socket, target_form: to_form(cs, as: :source))}
@@ -1056,7 +1087,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
           <% scope = scope_source(@selected_monitor) %>
           <.panel
             title="Scope"
-            description="Discovers the list of entities this monitor checks."
+            description="Provides the list of entity references this monitor checks. Each entity reference must exist in every source and target."
           >
             <%!-- Scope exists, show summary --%>
             <div :if={scope && !@scope_editing} class="space-y-3">
@@ -1066,11 +1097,8 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                 <p :if={scope.url && scope.url != ""} class="truncate font-mono text-xs text-text-muted">
                   {scope.url}
                 </p>
-                <p :if={scope.format == :manual && scope.static_ids} class="text-xs text-text-muted">
-                  {scope.static_ids
-                   |> String.split(~r/[,\n]/)
-                   |> Enum.reject(&(String.trim(&1) == ""))
-                   |> length()} entity IDs configured
+                <p :if={scope.format == :manual && scope.static_refs} class="text-xs text-text-muted">
+                  {length(Jason.decode!(scope.static_refs || "[]"))} entity references configured
                 </p>
               </div>
               <.button phx-click="edit_scope" size="sm" variant="soft">Edit</.button>
@@ -1115,23 +1143,26 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                     placeholder="e.g. products, response.docs"
                   />
                   <.input
-                    field={@scope_form[:id_field]}
-                    label="Entity ID field name"
+                    field={@scope_form[:ref_field]}
+                    label="Entity reference field"
                     placeholder="id"
                   />
                 </div>
 
                 <div :if={@scope_adapter_type == "manual"}>
                   <label class="block text-sm font-medium text-text">
-                    Entity IDs
-                    <span class="ml-1 font-normal text-text-muted">— one per line or comma-separated</span>
+                    Entity references
+                    <span class="ml-1 font-normal text-text-muted">— JSON array of objects</span>
                   </label>
                   <textarea
-                    name="source[static_ids]"
-                    rows="6"
-                    placeholder={"PN100\nPN101\nPN102"}
+                    name="source[static_refs]"
+                    rows="8"
+                    placeholder={"[\n  {\"ref\": \"BCS\", \"lms_id\": \"LMS-BCS-2024\"},\n  {\"ref\": \"MCS\", \"lms_id\": \"LMS-MCS-2024\"}\n]"}
                     class="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  >{@scope_form[:static_ids].value}</textarea>
+                  >{@scope_form[:static_refs].value}</textarea>
+                  <p class="mt-1 text-xs text-text-muted">
+                    Each object must include the entity reference field. Additional fields are used as source/target lookup keys.
+                  </p>
                 </div>
 
                 <div :if={@scope_adapter_type == "csv"} class="space-y-3">
@@ -1141,8 +1172,8 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                     placeholder="http://host/files/products.csv"
                   />
                   <.input
-                    field={@scope_form[:id_field]}
-                    label="ID column"
+                    field={@scope_form[:ref_field]}
+                    label="Reference column"
                     placeholder="product_id"
                   />
                 </div>
@@ -1168,7 +1199,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
         <div :if={@active_tab == :facts && @selected_monitor}>
           <.panel
             title="Facts"
-            description="The values that must be consistent across all sources for every entity."
+            description="Define the facts this monitor tracks. Configure which facts each target must carry in the Targets tab."
           >
             <:actions>
               <.button
@@ -1198,37 +1229,31 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                   placeholder={slugify(@fact_form[:name].value || "")}
                 />
                 <p class="-mt-2 mb-3 text-xs text-text-muted">
-                  Auto-generated from name. Used in source mappings. Lowercase letters, numbers, hyphens, underscores only.
+                  Auto-generated from name. Used in source and target field mappings.
                 </p>
+                <div>
+                  <label class="mb-1 block text-sm font-medium text-text-muted">
+                    Description
+                    <span class="ml-1 font-normal text-text-muted">(optional)</span>
+                  </label>
+                  <textarea
+                    name="fact[description]"
+                    rows="2"
+                    placeholder="What does this fact represent?"
+                    class="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >{@fact_form[:description].value}</textarea>
+                </div>
                 <.input
                   field={@fact_form[:comparison_type]}
                   type="select"
-                  label="Comparison type"
+                  label="Default comparison"
                   options={[
-                    {"Text", "text"},
+                    {"Text (exact)", "text"},
                     {"Text (ignore case)", "text_case_insensitive"},
                     {"Numeric", "numeric"},
                     {"Date", "date"}
                   ]}
                 />
-                <div class="mb-3">
-                  <label for={@fact_form[:required].id} class="mb-1 block text-sm font-medium text-text-muted">
-                    Presence
-                  </label>
-                  <select
-                    id={@fact_form[:required].id}
-                    name={@fact_form[:required].name}
-                    class="block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-primary"
-                  >
-                    <option value="true" selected={@fact_form[:required].value == true || to_string(@fact_form[:required].value) == "true"}>
-                      Mandatory
-                    </option>
-                    <option value="false" selected={@fact_form[:required].value == false || to_string(@fact_form[:required].value) == "false"}>
-                      Optional
-                    </option>
-                  </select>
-                  <p class="mt-1 text-xs text-text-muted">Flag as issue if missing when set to Mandatory</p>
-                </div>
                 <div class="flex items-center gap-3 pt-1">
                   <.button type="submit" variant="primary" size="sm">Save</.button>
                   <.button type="button" phx-click="cancel_fact" variant="ghost" size="sm">Cancel</.button>
@@ -1252,13 +1277,8 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
             >
               <:row :let={fact}>
                 <p class="text-sm font-medium text-text">{fact.name}</p>
+                <p :if={fact.description} class="mt-0.5 text-xs text-text-muted">{fact.description}</p>
                 <div class="mt-1 flex flex-wrap items-center gap-1.5">
-                  <span
-                    :if={fact.required}
-                    class="rounded bg-primary-subtle px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary"
-                  >
-                    Issues if missing
-                  </span>
                   <span class="rounded bg-surface-raised px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-text-muted">
                     {comparison_type_label(fact.comparison_type)}
                   </span>
@@ -1344,28 +1364,30 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                 <div :if={@source_adapter_type == "http_json_per_entity"}>
                   <.input
                     field={@source_form[:url]}
-                    label="URL — use :id as the entity ID placeholder"
-                    placeholder="http://api.example.com/products/:id"
+                    label="URL — use :ref as the entity reference placeholder"
+                    placeholder="http://api.example.com/products/:ref"
                   />
                 </div>
 
                 <div :if={@source_adapter_type == "http_json_bulk"} class="space-y-3">
                   <.input field={@source_form[:url]} label="URL — returns all entities" placeholder="http://api.example.com/products" />
                   <.input field={@source_form[:array_path]} label="Path to entity array in response" placeholder="e.g. products, response.docs" />
-                  <.input field={@source_form[:id_field]} label="Entity ID field" placeholder="id" />
+                  <.input field={@source_form[:ref_field]} label="Reference field" placeholder="id" />
+                  <.input field={@source_form[:scope_ref_field]} label="Match against scope field (optional)" placeholder="Leave blank to use scope's reference field" />
                 </div>
 
                 <div :if={@source_adapter_type == "http_html"}>
                   <.input
                     field={@source_form[:url]}
-                    label="URL — use :id as placeholder"
-                    placeholder="http://www.example.com/products/:id"
+                    label="URL — use :ref as the entity reference placeholder"
+                    placeholder="http://www.example.com/products/:ref"
                   />
                 </div>
 
                 <div :if={@source_adapter_type == "csv"} class="space-y-3">
                   <.input field={@source_form[:url]} label="File URL" placeholder="http://host/files/products.csv" />
-                  <.input field={@source_form[:id_field]} label="ID column" placeholder="product_id" />
+                  <.input field={@source_form[:ref_field]} label="Reference column" placeholder="product_id" />
+                  <.input field={@source_form[:scope_ref_field]} label="Match against scope field (optional)" placeholder="Leave blank to use scope's reference field" />
                 </div>
 
                 <div>
@@ -1523,28 +1545,30 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                 <div :if={@target_adapter_type == "http_json_per_entity"}>
                   <.input
                     field={@target_form[:url]}
-                    label="URL — use :id as the entity ID placeholder"
-                    placeholder="http://api.example.com/products/:id"
+                    label="URL — use :ref as the entity reference placeholder"
+                    placeholder="http://api.example.com/products/:ref"
                   />
                 </div>
 
                 <div :if={@target_adapter_type == "http_json_bulk"} class="space-y-3">
                   <.input field={@target_form[:url]} label="URL — returns all entities" placeholder="http://api.example.com/products" />
                   <.input field={@target_form[:array_path]} label="Path to entity array in response" placeholder="e.g. products, response.docs" />
-                  <.input field={@target_form[:id_field]} label="Entity ID field" placeholder="id" />
+                  <.input field={@target_form[:ref_field]} label="Reference field" placeholder="id" />
+                  <.input field={@target_form[:scope_ref_field]} label="Match against scope field (optional)" placeholder="Leave blank to use scope's reference field" />
                 </div>
 
                 <div :if={@target_adapter_type == "http_html"}>
                   <.input
                     field={@target_form[:url]}
-                    label="URL — use :id as placeholder"
-                    placeholder="http://www.example.com/products/:id"
+                    label="URL — use :ref as the entity reference placeholder"
+                    placeholder="http://www.example.com/products/:ref"
                   />
                 </div>
 
                 <div :if={@target_adapter_type == "csv"} class="space-y-3">
                   <.input field={@target_form[:url]} label="File URL" placeholder="http://host/files/products.csv" />
-                  <.input field={@target_form[:id_field]} label="ID column" placeholder="product_id" />
+                  <.input field={@target_form[:ref_field]} label="Reference column" placeholder="product_id" />
+                  <.input field={@target_form[:scope_ref_field]} label="Match against scope field (optional)" placeholder="Leave blank to use scope's reference field" />
                 </div>
 
                 <div>
@@ -1594,6 +1618,48 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                   <.button type="button" phx-click="cancel_target" variant="ghost" size="sm">Cancel</.button>
                 </div>
               </.form>
+
+              <%!-- Fact profile — separate from the source form, below it --%>
+              <div :if={@target_profile_rows != []} class="mt-5">
+                <p class="mb-1 text-sm font-medium text-text">Fact profile</p>
+                <p class="mb-3 text-xs text-text-muted">
+                  Which facts this target is expected to carry and how to compare them.
+                </p>
+                <div class="rounded-lg border border-border divide-y divide-border">
+                  <div
+                    :for={{fact_id, _key, fact_name, expected, comparison_type} <- @target_profile_rows}
+                    class="flex items-center gap-3 px-3 py-2"
+                  >
+                    <span class="flex-1 min-w-0 truncate text-sm text-text">{fact_name}</span>
+                    <form
+                      phx-change="update_target_profile"
+                      id={"profile-#{fact_id}"}
+                      class="flex items-center gap-2 shrink-0"
+                    >
+                      <input type="hidden" name="fact_id" value={fact_id} />
+                      <select
+                        name="expected"
+                        class="rounded border border-border bg-surface px-2 py-1 text-xs text-text outline-none focus:border-primary"
+                      >
+                        <option value="required" selected={expected == :required}>Required</option>
+                        <option value="optional" selected={expected == :optional}>Optional</option>
+                        <option value="excluded" selected={expected == :excluded}>Not checked</option>
+                      </select>
+                      <select
+                        :if={expected != :excluded}
+                        name="comparison_type"
+                        class="rounded border border-border bg-surface px-2 py-1 text-xs text-text outline-none focus:border-primary"
+                      >
+                        <option value="" selected={is_nil(comparison_type)}>Default</option>
+                        <option value="text" selected={comparison_type == :text}>Text</option>
+                        <option value="text_case_insensitive" selected={comparison_type == :text_case_insensitive}>Ignore case</option>
+                        <option value="numeric" selected={comparison_type == :numeric}>Numeric</option>
+                        <option value="date" selected={comparison_type == :date}>Date</option>
+                      </select>
+                    </form>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div
@@ -1932,6 +1998,17 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
     end)
   end
 
+  defp build_target_profile_rows(facts, existing_profiles) do
+    profiles_by_fact_id = Map.new(existing_profiles, &{&1.fact_id, &1})
+
+    Enum.map(facts, fn fact ->
+      profile = Map.get(profiles_by_fact_id, fact.id)
+      expected = (profile && profile.expected) || :required
+      comparison_type = profile && profile.comparison_type
+      {fact.id, fact.key, fact.name, expected, comparison_type}
+    end)
+  end
+
   # -- Private: form helpers --
 
   defp slugify(name) do
@@ -1957,7 +2034,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
         fetch_strategy: :fetch_all_entities,
         role: :scope,
         mappings: %{},
-        id_field: "id"
+        ref_field: "id"
       }),
       as: :source
     )
@@ -1979,7 +2056,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
   end
 
   defp new_fact_form do
-    to_form(Fact.changeset(%Fact{}, %{required: true, comparison_type: :text}), as: :fact)
+    to_form(Fact.changeset(%Fact{}, %{comparison_type: :text}), as: :fact)
   end
 
   defp fact_form_from(fact) do

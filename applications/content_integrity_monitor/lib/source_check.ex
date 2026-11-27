@@ -9,7 +9,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.SourceCheck do
   @schema_prefix "contexla_integrity"
 
   schema "integrity_source_checks" do
-    field(:entity_id, :string)
+    field(:ref_id, :string)
     field(:status, Ecto.Enum, values: [:pending, :waiting_tool, :completed, :failed])
     field(:tool_invocation_id, :binary_id)
     field(:http_status, :integer)
@@ -28,7 +28,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.SourceCheck do
     |> cast(attrs, [
       :run_id,
       :source_id,
-      :entity_id,
+      :ref_id,
       :status,
       :tool_invocation_id,
       :http_status,
@@ -39,6 +39,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.SourceCheck do
       :error
     ])
     |> validate_required([:run_id, :source_id, :status])
-    |> unique_constraint([:run_id, :source_id, :entity_id])
+    |> unique_constraint([:run_id, :source_id, :ref_id])
   end
 end

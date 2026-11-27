@@ -9,7 +9,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Evidence do
   @schema_prefix "contexla_integrity"
 
   schema "integrity_evidence" do
-    field(:entity_id, :string)
+    field(:ref_id, :string)
     field(:tool_invocation_id, :binary_id)
     field(:response_sha256, :string)
     field(:media_type, :string)
@@ -26,7 +26,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Evidence do
     |> cast(attrs, [
       :run_id,
       :source_id,
-      :entity_id,
+      :ref_id,
       :tool_invocation_id,
       :response_sha256,
       :media_type,
@@ -44,6 +44,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Evidence do
       :observed_at
     ])
     |> validate_format(:response_sha256, ~r/^[0-9a-f]{64}$/)
-    |> unique_constraint([:run_id, :source_id, :entity_id])
+    |> unique_constraint([:run_id, :source_id, :ref_id])
   end
 end

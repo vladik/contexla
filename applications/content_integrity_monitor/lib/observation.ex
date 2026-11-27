@@ -9,7 +9,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Observation do
   @schema_prefix "contexla_integrity"
 
   schema "integrity_observations" do
-    field(:entity_id, :string)
+    field(:ref_id, :string)
     field(:raw_value, :string)
     field(:normalized_value, :string)
 
@@ -33,7 +33,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Observation do
       :source_id,
       :fact_id,
       :evidence_id,
-      :entity_id,
+      :ref_id,
       :raw_value,
       :normalized_value,
       :state,
@@ -47,6 +47,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Observation do
       :state,
       :observed_at
     ])
-    |> unique_constraint([:run_id, :source_id, :fact_id, :entity_id])
+    |> unique_constraint([:run_id, :source_id, :fact_id, :ref_id])
   end
 end
