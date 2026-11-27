@@ -22,7 +22,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Source do
     field(:static_refs, :string)
     field(:sort_order, :integer, default: 0)
     belongs_to(:monitor, Contexla.Applications.ContentIntegrityMonitor.Monitor)
-    has_many(:target_profiles, Contexla.Applications.ContentIntegrityMonitor.TargetProfile,
+    has_many(:target_fact_profiles, Contexla.Applications.ContentIntegrityMonitor.TargetFactProfile,
       foreign_key: :source_id
     )
     timestamps(type: :utc_datetime)

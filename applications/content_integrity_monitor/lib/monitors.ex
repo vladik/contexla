@@ -14,7 +14,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
     ScheduleWindow,
     Source,
     SourceCheck,
-    TargetProfile
+    TargetFactProfile
   }
 
   alias Contexla.Applications.ContentIntegrityMonitor.Workers.RunWorker
@@ -361,7 +361,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
     end
   end
 
-  def upsert_target_profiles(%Instance{} = instance, target_id, profiles) do
+  def upsert_target_fact_profiles(%Instance{} = instance, target_id, profiles) do
     with :ok <- ensure_instance(instance) do
       repo().transaction(fn ->
         Enum.each(profiles, fn {fact_id, expected, comparison_type} ->
@@ -372,8 +372,8 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
             comparison_type: if(comparison_type == "" or is_nil(comparison_type), do: nil, else: comparison_type)
           }
 
-          %TargetProfile{}
-          |> TargetProfile.changeset(attrs)
+          %TargetFactProfile{}
+          |> TargetFactProfile.changeset(attrs)
           |> repo().insert!(
             on_conflict: {:replace, [:expected, :comparison_type, :updated_at]},
             conflict_target: [:source_id, :fact_id]
@@ -525,7 +525,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
           fetch_strategy: :fetch_all_entities,
           url: base_url <> "/scope/programs",
           array_path: "programs",
-          id_field: "id",
+          ref_field: "id",
           mappings: %{}
         })
         |> repo().insert!()
@@ -546,9 +546,9 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
 
   defp demo_facts do
     [
-      %{key: "program_name", name: "Program name", required: true},
-      %{key: "credential", name: "Credential", required: true},
-      %{key: "duration", name: "Duration", required: true}
+      %{key: "program_name", name: "Program name"},
+      %{key: "credential", name: "Credential"},
+      %{key: "duration", name: "Duration"}
     ]
   end
 
@@ -641,7 +641,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
   end
 
   defp sorted_sources_query do
-    from(s in Source, order_by: [asc: s.sort_order], preload: [:target_profiles])
+    from(s in Source, order_by: [asc: s.sort_order], preload: [:target_fact_profiles])
   end
 
   defp normalize_source_attrs(attrs) do
@@ -688,14 +688,14 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
           |> preload(:evidence)
           |> repo().all()
       end
-      |> Map.new(&{{&1.run_id, &1.fact_id, &1.entity_id}, &1})
+      |> Map.new(&{{&1.run_id, &1.fact_id, &1.ref_id}, &1})
 
     Map.new(issues, fn issue ->
       current = issue.current_observation
 
       authority =
         current &&
-          authority_observations[{current.run_id, current.fact_id, current.entity_id}]
+          authority_observations[{current.run_id, current.fact_id, current.ref_id}]
 
 
       {issue.id,

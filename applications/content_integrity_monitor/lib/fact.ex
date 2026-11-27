@@ -14,7 +14,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Fact do
     field(:description, :string)
     field(:comparison_type, Ecto.Enum, values: [:text, :text_case_insensitive, :numeric, :date], default: :text)
     belongs_to(:monitor, Contexla.Applications.ContentIntegrityMonitor.Monitor)
-    has_many(:target_profiles, Contexla.Applications.ContentIntegrityMonitor.TargetProfile)
+    has_many(:target_fact_profiles, Contexla.Applications.ContentIntegrityMonitor.TargetFactProfile)
     timestamps(type: :utc_datetime)
   end
 

@@ -231,7 +231,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.OverviewLive do
                   <p class="text-sm font-medium text-text">{issue.fact.name}</p>
                   <p class="mt-0.5 text-xs text-text-muted">
                     {issue.source.name} · {issue.monitor.name}
-                    <span :if={issue.entity_id} class="ml-1 font-mono">[{issue.entity_id}]</span>
+                    <span :if={issue.ref_id} class="ml-1 font-mono">[{issue.ref_id}]</span>
                   </p>
                 </div>
                 <.integrity_badge state={issue.kind} />

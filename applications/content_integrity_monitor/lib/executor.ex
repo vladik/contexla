@@ -152,13 +152,21 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
   end
 
   defp discover_entity_ids(%{format: :manual} = scope_source) do
-    ids =
-      (scope_source.static_ids || "")
-      |> String.split(~r/[,\n]/)
-      |> Enum.map(&String.trim/1)
-      |> Enum.reject(&(&1 == ""))
+    ref_field = scope_source.ref_field || "ref"
+    raw = scope_source.static_refs || "[]"
 
-    {:ok, ids}
+    case Jason.decode(raw) do
+      {:ok, list} when is_list(list) ->
+        ids =
+          list
+          |> Enum.map(fn item -> item[ref_field] end)
+          |> Enum.reject(&is_nil/1)
+          |> Enum.map(&to_string/1)
+
+        {:ok, ids}
+
+      _ ->
+        {:error, :invalid_static_refs}
   end
 
   defp discover_entity_ids(scope_source) do
@@ -177,7 +185,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
 
   defp extract_entity_ids(document, scope_source) do
     array_path = scope_source.array_path
-    id_field = scope_source.id_field || "id"
+    ref_field = scope_source.ref_field || "id"
 
     items =
       if array_path && array_path != "" do
@@ -190,7 +198,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
       list when is_list(list) ->
         ids =
           list
-          |> Enum.map(fn item -> item[id_field] end)
+          |> Enum.map(fn item -> item[ref_field] end)
           |> Enum.reject(&is_nil/1)
           |> Enum.map(&to_string/1)
 
@@ -220,7 +228,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
         |> SourceCheck.changeset(%{
           run_id: run.id,
           source_id: source.id,
-          entity_id: entity_id,
+          ref_id: entity_id,
           status: :pending
         })
         |> repo().insert!()
@@ -228,7 +236,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
     end)
 
     run = load_run(run.id)
-    entity_checks = Enum.filter(run.source_checks, & &1.entity_id)
+    entity_checks = Enum.filter(run.source_checks, & &1.ref_id)
     checks_by_source = Enum.group_by(entity_checks, & &1.source_id)
 
     Enum.each(data_sources, fn source ->
@@ -241,7 +249,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
     end)
 
     run = load_run(run.id)
-    entity_checks = Enum.filter(run.source_checks, & &1.entity_id)
+    entity_checks = Enum.filter(run.source_checks, & &1.ref_id)
     Enum.each(entity_checks, &complete_source_check(run, &1))
 
     run = load_run(run.id)
@@ -253,7 +261,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
   defp start_bulk_source_checks(run, source, checks) do
     case SourceClient.fetch(source) do
       {:ok, acquisition} ->
-        id_field = source.id_field || "id"
+        ref_field = source.ref_field || "id"
 
         items =
           if source.array_path && source.array_path != "" do
@@ -266,7 +274,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
           case items do
             list when is_list(list) ->
               Map.new(list, fn item ->
-                id = item[id_field]
+                id = item[ref_field]
                 {to_string(id), item}
               end)
 
@@ -275,7 +283,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
           end
 
         Enum.each(checks, fn check ->
-          case Map.get(index, check.entity_id) do
+          case Map.get(index, check.ref_id) do
             nil -> fail_check(check, :entity_not_found_in_bulk_response)
             entity_data -> request_extraction(run, check, %{acquisition | document: entity_data})
           end
@@ -287,7 +295,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
   end
 
   defp continue_collection(run, entity_ids) do
-    waiting = Enum.filter(run.source_checks, &(&1.entity_id && &1.status == :waiting_tool))
+    waiting = Enum.filter(run.source_checks, &(&1.ref_id && &1.status == :waiting_tool))
     Enum.each(waiting, &complete_source_check(run, &1))
 
     run = load_run(run.id)
@@ -295,7 +303,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
   end
 
   defp check_continuation_or_evaluate(run, entity_ids) do
-    entity_checks = Enum.filter(run.source_checks, & &1.entity_id)
+    entity_checks = Enum.filter(run.source_checks, & &1.ref_id)
 
     if Enum.any?(entity_checks, &(&1.status in [:pending, :waiting_tool])) do
       wait_for_tools(run)
@@ -308,7 +316,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
 
   defp start_entity_check(run, %SourceCheck{} = check) do
     source = Enum.find(run.monitor.sources, &(&1.id == check.source_id))
-    url = entity_url(source, check.entity_id)
+    url = entity_url(source, check.ref_id)
 
     case SourceClient.fetch(%{source | url: url}) do
       {:ok, acquisition} -> request_extraction(run, check, acquisition)
@@ -317,7 +325,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
   end
 
   defp entity_url(%{fetch_strategy: :fetch_entity, url: url}, entity_id) when is_binary(url) do
-    String.replace(url, ":id", entity_id)
+    String.replace(url, ":ref", entity_id)
   end
 
   defp entity_url(%{url: url}, _entity_id), do: url
@@ -328,7 +336,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
         Evidence
         |> where([e], e.run_id == ^run.id)
         |> repo().all()
-        |> Map.new(&{{&1.source_id, &1.entity_id}, &1})
+        |> Map.new(&{{&1.source_id, &1.ref_id}, &1})
 
       data_sources = Enum.reject(run.monitor.sources, &(&1.id == run.monitor.scope_source_id))
       primary_sources = Enum.filter(data_sources, &(&1.role == :source))
@@ -362,7 +370,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
                 source_id: source.id,
                 fact_id: fact.id,
                 evidence_id: source_evidence && source_evidence.id,
-                entity_id: entity_id,
+                ref_id: entity_id,
                 raw_value: scalar(raw_value),
                 normalized_value: normalized_value,
                 state: state,
@@ -450,7 +458,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
           |> Evidence.changeset(%{
             run_id: run.id,
             source_id: check.source_id,
-            entity_id: check.entity_id,
+            ref_id: check.ref_id,
             tool_invocation_id: check.tool_invocation_id,
             response_sha256: check.response_sha256,
             media_type: check.media_type,
@@ -529,7 +537,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
           source_id: source.id,
           fact_id: fact.id,
           current_observation_id: observation.id,
-          entity_id: entity_id,
+          ref_id: entity_id,
           kind: observation.state,
           status: :open,
           summary:
@@ -547,7 +555,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
     |> where(
       [i],
       i.monitor_id == ^monitor_id and i.source_id == ^source_id and
-        i.fact_id == ^fact_id and is_nil(i.entity_id) and
+        i.fact_id == ^fact_id and is_nil(i.ref_id) and
         i.status in [:open, :acknowledged]
     )
     |> repo().all()
@@ -558,7 +566,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
     |> where(
       [i],
       i.monitor_id == ^monitor_id and i.source_id == ^source_id and
-        i.fact_id == ^fact_id and i.entity_id == ^entity_id and
+        i.fact_id == ^fact_id and i.ref_id == ^entity_id and
         i.status in [:open, :acknowledged]
     )
     |> repo().all()
@@ -597,7 +605,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
   end
 
   defp find_entity_check(source_checks, source_id, entity_id) do
-    Enum.find(source_checks, &(&1.source_id == source_id && &1.entity_id == entity_id))
+    Enum.find(source_checks, &(&1.source_id == source_id && &1.ref_id == entity_id))
   end
 
   defp scalar(value) when is_binary(value), do: value

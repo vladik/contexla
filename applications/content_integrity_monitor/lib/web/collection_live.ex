@@ -7,8 +7,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
     Fact,
     Monitor,
     ScheduleWindow,
-    Source,
-    TargetProfile
+    Source
   }
 
   alias Contexla.Applications.ContentIntegrityMonitor.Monitors
@@ -318,7 +317,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
       |> Map.put("mappings", %{})
       |> Map.put_new_lazy("key", fn -> slugify(attrs["name"] || "scope") end)
 
-    # Manual adapter: entity IDs come from static_ids, not a URL
+    # Manual adapter: entity refs come from static_refs, not a URL
     attrs = if adapter == "manual", do: Map.put(attrs, "url", nil), else: attrs
 
     result =
@@ -605,7 +604,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
       source ->
         mappings = source.mappings || %{}
         rows = build_mapping_rows(monitor.facts, mappings)
-        profile_rows = build_target_profile_rows(monitor.facts, source.target_profiles)
+        profile_rows = build_target_profile_rows(monitor.facts, source.target_fact_profiles)
         adapter = adapter_type_from(source)
 
         {:noreply,
@@ -691,7 +690,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
           {fact_id, expected, comparison_type}
         end)
 
-        Monitors.upsert_target_profiles(instance, saved_source.id, profiles)
+        Monitors.upsert_target_fact_profiles(instance, saved_source.id, profiles)
 
         {:ok, refreshed} = Monitors.get_monitor(instance, monitor.id)
 
