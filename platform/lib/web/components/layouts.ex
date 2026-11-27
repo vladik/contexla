@@ -120,6 +120,18 @@ defmodule Contexla.Platform.Web.Layouts do
           </p>
 
           <a
+            href="/connections"
+            data-sidebar-row
+            data-tooltip="Connections"
+            data-tooltip-position="side"
+            aria-current={if @current_path == "/connections", do: "page"}
+            class={nav_item_class(@current_path == "/connections")}
+          >
+            <.icon name="hero-link" class="size-4 shrink-0" />
+            <span data-sidebar-expanded class="min-w-0 flex-1 truncate">Connections</span>
+          </a>
+
+          <a
             href="/applications"
             data-sidebar-row
             data-tooltip="Applications"
@@ -528,6 +540,9 @@ defmodule Contexla.Platform.Web.Layouts do
       instance ->
         [%{label: "Applications", href: "/applications"}, %{label: instance.name, href: nil}]
 
+      current_path == "/connections" ->
+        [%{label: "Connections", href: nil}]
+
       current_path == "/settings" ->
         [%{label: "Settings", href: nil}]
 
@@ -567,6 +582,9 @@ defmodule Contexla.Platform.Web.Layouts do
       cond do
         String.starts_with?(current_path, "/applications/new") ->
           {"New Application Instance", "Application setup", "hero-plus"}
+
+        current_path == "/connections" ->
+          {"Connections", "External system connections", "hero-link"}
 
         current_path == "/settings" ->
           {"Platform settings", "Installation configuration", "hero-cog-6-tooth"}
