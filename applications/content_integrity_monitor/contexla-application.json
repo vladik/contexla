@@ -1,5 +1,5 @@
 {
-  "manifestVersion": 1,
+  "manifestVersion": 2,
   "applicationId": "com.contexla.application.content-integrity-monitor",
   "name": "Content Integrity Monitor",
   "icon": "hero-shield-check",
@@ -8,16 +8,75 @@
   "entryModule": "Contexla.Applications.ContentIntegrityMonitor.Package",
   "sdkRequirement": "~> 0.1",
   "databaseSchema": "contexla_integrity",
+  "description": "Detect missing, delayed, unavailable, or inconsistent facts across digital representations.",
+  "configSchema": {
+    "purpose": {"type": "string", "required": true}
+  },
+  "queues": [
+    {"name": "default", "concurrency": 10}
+  ],
   "surfaces": [
-    {"id": "new", "path": "new", "module": "Contexla.Applications.ContentIntegrityMonitor.Web.NewLive", "role": "new"},
-    {"id": "overview", "path": "overview", "module": "Contexla.Applications.ContentIntegrityMonitor.Web.OverviewLive", "role": "instance", "default": true},
-    {"id": "collection", "path": "monitors", "module": "Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive", "role": "instance"},
-    {"id": "settings", "path": "configuration", "module": "Contexla.Applications.ContentIntegrityMonitor.Web.SettingsLive", "role": "instance", "kind": "settings"}
+    {"id": "new", "path": "new", "label": "New Instance", "module": "Contexla.Applications.ContentIntegrityMonitor.Web.NewLive", "role": "new"},
+    {"id": "overview", "path": "overview", "label": "Overview", "module": "Contexla.Applications.ContentIntegrityMonitor.Web.OverviewLive", "role": "instance", "default": true},
+    {"id": "collection", "path": "monitors", "label": "Monitors", "module": "Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive", "role": "instance"},
+    {"id": "settings", "path": "configuration", "label": "Application settings", "module": "Contexla.Applications.ContentIntegrityMonitor.Web.SettingsLive", "role": "instance", "kind": "settings"}
   ],
   "operations": [
-    "integrity.demo_setup",
-    "integrity.run",
-    "integrity.issue.acknowledge",
-    "integrity.issue.resolve"
+    {
+      "id": "integrity.demo_setup",
+      "name": "Create demonstration monitor",
+      "description": "Create the deterministic program-content integrity demonstration.",
+      "queue": "default",
+      "maxAttempts": 1,
+      "timeoutSeconds": 60,
+      "requiresApproval": true,
+      "inputSchema": {"type": "object", "properties": {}}
+    },
+    {
+      "id": "integrity.run",
+      "name": "Run monitor",
+      "description": "Acquire configured sources and evaluate content integrity.",
+      "queue": "default",
+      "maxAttempts": 3,
+      "timeoutSeconds": 300,
+      "inputSchema": {
+        "type": "object",
+        "required": ["monitor_id"],
+        "additionalProperties": false,
+        "properties": {"monitor_id": {"type": "string"}}
+      },
+      "requiredTools": [
+        {"toolId": "com.contexla.extract.json-values", "version": "1.0.0"},
+        {"toolId": "com.contexla.extract.html-values", "version": "1.0.0"}
+      ]
+    },
+    {
+      "id": "integrity.issue.acknowledge",
+      "name": "Acknowledge issue",
+      "description": "Mark an open integrity Issue as acknowledged.",
+      "queue": "default",
+      "maxAttempts": 3,
+      "timeoutSeconds": 30,
+      "inputSchema": {
+        "type": "object",
+        "required": ["issue_id"],
+        "additionalProperties": false,
+        "properties": {"issue_id": {"type": "string"}}
+      }
+    },
+    {
+      "id": "integrity.issue.resolve",
+      "name": "Resolve issue",
+      "description": "Mark an open or acknowledged integrity Issue as resolved.",
+      "queue": "default",
+      "maxAttempts": 3,
+      "timeoutSeconds": 30,
+      "inputSchema": {
+        "type": "object",
+        "required": ["issue_id"],
+        "additionalProperties": false,
+        "properties": {"issue_id": {"type": "string"}}
+      }
+    }
   ]
 }

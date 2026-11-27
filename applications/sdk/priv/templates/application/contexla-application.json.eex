@@ -1,5 +1,5 @@
 {
-  "manifestVersion": 1,
+  "manifestVersion": 2,
   "applicationId": "<%= id %>",
   "name": "<%= name %>",
   "icon": "hero-squares-2x2",
@@ -7,11 +7,18 @@
   "otpApplication": "<%= project %>",
   "entryModule": "<%= package_module %>",
   "sdkRequirement": "~> 0.1",
+  "description": "Replace with the independently useful business outcome.",
+  "configSchema": {
+    "purpose": {"type": "string", "required": true}
+  },
+  "queues": [
+    {"name": "default", "concurrency": 10}
+  ],
   "surfaces": [
-    {"id": "new", "path": "new", "module": "<%= web_module %>.NewLive", "role": "new"},
-    {"id": "overview", "path": "overview", "module": "<%= web_module %>.OverviewLive", "role": "instance", "default": true},
-    {"id": "collection", "path": "collection", "module": "<%= web_module %>.CollectionLive", "role": "instance"},
-    {"id": "settings", "path": "configuration", "module": "<%= web_module %>.SettingsLive", "role": "instance", "kind": "settings"}
+    {"id": "new", "path": "new", "label": "New Instance", "module": "<%= web_module %>.NewLive", "role": "new"},
+    {"id": "overview", "path": "overview", "label": "Overview", "module": "<%= web_module %>.OverviewLive", "role": "instance", "default": true},
+    {"id": "collection", "path": "collection", "label": "Records", "module": "<%= web_module %>.CollectionLive", "role": "instance"},
+    {"id": "settings", "path": "configuration", "label": "Application settings", "module": "<%= web_module %>.SettingsLive", "role": "instance", "kind": "settings"}
   ],
   "operations": []
 }

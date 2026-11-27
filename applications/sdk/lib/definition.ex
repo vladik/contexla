@@ -1,9 +1,10 @@
 defmodule Contexla.Applications.Sdk.Definition do
   @moduledoc """
   Declarative identity and contract for a trusted Application package.
+  Derived at runtime from the application's contexla-application.json manifest.
   """
 
-  alias Contexla.Applications.Sdk.{Operation, Surface}
+  alias Contexla.Applications.Sdk.{Operation, Queue, Surface}
 
   @enforce_keys [:id, :name, :icon, :version, :otp_application, :entry_module]
   defstruct [
@@ -16,6 +17,7 @@ defmodule Contexla.Applications.Sdk.Definition do
     :database_schema,
     description: "",
     config_schema: %{},
+    queues: [],
     operations: [],
     surfaces: [],
     required_adapter_contracts: []
@@ -31,6 +33,7 @@ defmodule Contexla.Applications.Sdk.Definition do
           database_schema: String.t() | nil,
           description: String.t(),
           config_schema: map(),
+          queues: [Queue.t()],
           operations: [Operation.t()],
           surfaces: [Surface.t()],
           required_adapter_contracts: [String.t()]
@@ -48,6 +51,7 @@ defmodule Contexla.Applications.Sdk.Definition do
       {:database_schema, definition.database_schema, &optional_identifier?/1},
       {:description, definition.description, &is_binary/1},
       {:config_schema, definition.config_schema, &is_map/1},
+      {:queues, definition.queues, &queues?/1},
       {:operations, definition.operations, &operations?/1},
       {:surfaces, definition.surfaces, &surfaces?/1},
       {:required_adapter_contracts, definition.required_adapter_contracts, &string_list?/1}
@@ -89,6 +93,11 @@ defmodule Contexla.Applications.Sdk.Definition do
 
   defp icon?(value),
     do: non_empty_string?(value) and value =~ ~r/^hero-[a-z0-9-]+$/
+
+  defp queues?(value),
+    do:
+      is_list(value) and
+        Enum.all?(value, &(match?(%Queue{}, &1) and Queue.validate(&1) == :ok))
 
   defp operations?(value),
     do:

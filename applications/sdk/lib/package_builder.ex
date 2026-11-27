@@ -2,6 +2,7 @@ defmodule Contexla.Applications.Sdk.PackageBuilder do
   @moduledoc "Builds deterministic trusted Application package archives."
 
   @manifest "contexla-application.json"
+  @manifest_version 2
 
   alias Contexla.Applications.Sdk.Validator, as: ApplicationSDK
 
@@ -10,7 +11,7 @@ defmodule Contexla.Applications.Sdk.PackageBuilder do
          {:ok, manifest} <- Jason.decode(manifest_bytes),
          :ok <- validate_manifest(manifest),
          {:ok, definition} <- compiled_definition(manifest),
-         :ok <- validate_definition_identity(manifest, definition),
+         :ok <- validate_entry_module(manifest, definition),
          {:ok, app_files} <- collect_app_files(app_path, manifest),
          files <- [{@manifest, manifest_bytes} | app_files] |> Enum.sort_by(&elem(&1, 0)),
          checksums <- checksums(files),
@@ -28,7 +29,7 @@ defmodule Contexla.Applications.Sdk.PackageBuilder do
   end
 
   defp validate_manifest(%{
-         "manifestVersion" => 1,
+         "manifestVersion" => @manifest_version,
          "applicationId" => id,
          "name" => name,
          "icon" => icon,
@@ -36,111 +37,58 @@ defmodule Contexla.Applications.Sdk.PackageBuilder do
          "otpApplication" => application,
          "entryModule" => entry_module,
          "sdkRequirement" => sdk_requirement,
-         "operations" => operations,
-         "surfaces" => surfaces
-       })
+         "surfaces" => surfaces,
+         "operations" => operations
+       } = manifest)
        when is_binary(id) and is_binary(name) and is_binary(version) and
               is_binary(application) and is_binary(entry_module) and is_binary(icon) and
-              is_binary(sdk_requirement) and is_list(operations) and is_list(surfaces) do
-    valid_surfaces? = Enum.all?(surfaces, &valid_surface?/1)
+              is_binary(sdk_requirement) and is_list(surfaces) and is_list(operations) do
+    queues = Map.get(manifest, "queues", [])
 
-    default_instances =
-      Enum.count(surfaces, fn surface ->
-        is_map(surface) and surface["role"] == "instance" and surface["default"] == true
-      end)
-
-    new_surfaces = Enum.count(surfaces, &(is_map(&1) and &1["role"] == "new"))
-
-    settings_surfaces =
-      Enum.count(surfaces, fn surface ->
-        is_map(surface) and surface["role"] == "instance" and surface["kind"] == "settings"
-      end)
-
-    ids = Enum.map(surfaces, fn surface -> is_map(surface) && surface["id"] end)
-    paths = Enum.map(surfaces, fn surface -> is_map(surface) && surface["path"] end)
-
-    if String.trim(id) != "" and String.trim(name) != "" and
-         Version.match?(sdk_version(), sdk_requirement) and
-         Enum.all?(operations, &(is_binary(&1) and String.trim(&1) != "")) and
-         icon =~ ~r/^hero-[a-z0-9-]+$/ and valid_surfaces? and default_instances == 1 and
-         new_surfaces == 1 and settings_surfaces == 1 and Enum.uniq(ids) == ids and
-         Enum.uniq(paths) == paths,
-       do: :ok,
-       else: {:error, :invalid_manifest}
+    with true <- String.trim(id) != "",
+         true <- String.trim(name) != "",
+         true <- Version.match?(sdk_version(), sdk_requirement),
+         true <- icon =~ ~r/^hero-[a-z0-9-]+$/,
+         true <- Enum.all?(operations, &valid_operation?/1),
+         true <- Enum.all?(surfaces, &valid_surface?/1),
+         true <- Enum.all?(queues, &valid_queue?/1),
+         true <- unique_ids?(operations, "id"),
+         true <- unique_ids?(surfaces, "id"),
+         true <- unique_ids?(surfaces, "path"),
+         true <- surface_roles_valid?(surfaces) do
+      :ok
+    else
+      _ -> {:error, :invalid_manifest}
+    end
   rescue
     Version.InvalidRequirementError -> {:error, :invalid_manifest}
   end
 
+  defp validate_manifest(%{"manifestVersion" => v}) when v != @manifest_version,
+    do: {:error, {:unsupported_manifest_version, v}}
+
   defp validate_manifest(_manifest), do: {:error, :invalid_manifest}
 
-  defp compiled_definition(manifest) do
-    manifest["entryModule"]
-    |> then(&Module.concat([&1]))
-    |> ApplicationSDK.validate_module()
+  defp valid_operation?(op) when is_map(op) do
+    is_binary(op["id"]) and op["id"] != "" and
+      (not Map.has_key?(op, "name") or is_binary(op["name"])) and
+      (not Map.has_key?(op, "queue") or is_binary(op["queue"])) and
+      (not Map.has_key?(op, "maxAttempts") or
+         (is_integer(op["maxAttempts"]) and op["maxAttempts"] > 0)) and
+      (not Map.has_key?(op, "timeoutSeconds") or
+         (is_integer(op["timeoutSeconds"]) and op["timeoutSeconds"] > 0)) and
+      (not Map.has_key?(op, "requiresApproval") or is_boolean(op["requiresApproval"])) and
+      (not Map.has_key?(op, "inputSchema") or is_map(op["inputSchema"])) and
+      (not Map.has_key?(op, "requiredTools") or valid_required_tools?(op["requiredTools"])) and
+      (not Map.has_key?(op, "kind") or op["kind"] in ["command", "read"])
   end
 
-  defp validate_definition_identity(manifest, definition) do
-    checks = [
-      {:application_id, manifest["applicationId"], definition.id},
-      {:name, manifest["name"], definition.name},
-      {:icon, manifest["icon"], definition.icon},
-      {:version, manifest["version"], definition.version},
-      {:otp_application, manifest["otpApplication"], Atom.to_string(definition.otp_application)},
-      {:entry_module, manifest["entryModule"], module_name(definition.entry_module)},
-      {:database_schema, manifest["databaseSchema"], definition.database_schema},
-      {:operations, Enum.sort(manifest["operations"]), operation_ids(definition)},
-      {:surfaces, manifest_surfaces(manifest), definition_surfaces(definition)}
-    ]
+  defp valid_operation?(_), do: false
 
-    case Enum.find(checks, fn {_field, declared, compiled} -> declared != compiled end) do
-      nil ->
-        :ok
+  defp valid_required_tools?(tools) when is_list(tools),
+    do: Enum.all?(tools, &(is_map(&1) and is_binary(&1["toolId"]) and is_binary(&1["version"])))
 
-      {field, declared, compiled} ->
-        {:error, {:manifest_definition_mismatch, field, declared, compiled}}
-    end
-  end
-
-  defp operation_ids(definition),
-    do: definition.operations |> Enum.map(& &1.id) |> Enum.sort()
-
-  defp manifest_surfaces(manifest) do
-    manifest["surfaces"]
-    |> Enum.map(fn surface ->
-      %{
-        id: surface["id"],
-        path: surface["path"],
-        module: surface["module"],
-        role: surface["role"],
-        default: Map.get(surface, "default", false),
-        kind: Map.get(surface, "kind", "page")
-      }
-    end)
-    |> Enum.sort_by(& &1.id)
-  end
-
-  defp definition_surfaces(definition) do
-    definition.surfaces
-    |> Enum.map(fn surface ->
-      %{
-        id: Atom.to_string(surface.id),
-        path: surface.path,
-        module: module_name(surface.module),
-        role: Atom.to_string(surface.role),
-        default: surface.default,
-        kind: Atom.to_string(surface.kind)
-      }
-    end)
-    |> Enum.sort_by(& &1.id)
-  end
-
-  defp module_name(module), do: module |> Module.split() |> Enum.join(".")
-
-  defp sdk_version do
-    :contexla_application_sdk
-    |> Application.spec(:vsn)
-    |> to_string()
-  end
+  defp valid_required_tools?(_), do: false
 
   defp valid_surface?(surface) when is_map(surface) do
     is_binary(surface["id"]) and surface["id"] != "" and
@@ -148,13 +96,46 @@ defmodule Contexla.Applications.Sdk.PackageBuilder do
       not String.contains?(surface["path"], ["/", "..", "\\"]) and
       is_binary(surface["module"]) and surface["module"] != "" and
       surface["role"] in ["new", "instance"] and
+      (not Map.has_key?(surface, "label") or is_binary(surface["label"])) and
       (not Map.has_key?(surface, "kind") or surface["kind"] in ["page", "settings"]) and
       (not Map.has_key?(surface, "default") or is_boolean(surface["default"])) and
       (surface["default"] != true or surface["role"] == "instance") and
-      (surface["default"] != true or surface["kind"] != "settings")
+      (surface["default"] != true or Map.get(surface, "kind", "page") != "settings")
   end
 
-  defp valid_surface?(_surface), do: false
+  defp valid_surface?(_), do: false
+
+  defp valid_queue?(q) when is_map(q),
+    do: is_binary(q["name"]) and q["name"] != "" and is_integer(q["concurrency"]) and q["concurrency"] > 0
+
+  defp valid_queue?(_), do: false
+
+  defp unique_ids?(items, key) do
+    ids = Enum.map(items, &(is_map(&1) && &1[key]))
+    Enum.uniq(ids) == ids
+  end
+
+  defp surface_roles_valid?(surfaces) do
+    default_instances = Enum.count(surfaces, &(is_map(&1) and &1["role"] == "instance" and &1["default"] == true))
+    new_surfaces = Enum.count(surfaces, &(is_map(&1) and &1["role"] == "new"))
+    settings_surfaces = Enum.count(surfaces, &(is_map(&1) and &1["role"] == "instance" and Map.get(&1, "kind") == "settings"))
+    default_instances == 1 and new_surfaces == 1 and settings_surfaces == 1
+  end
+
+  defp compiled_definition(manifest) do
+    manifest["entryModule"]
+    |> then(&Module.concat([&1]))
+    |> ApplicationSDK.validate_module()
+  end
+
+  defp validate_entry_module(manifest, definition) do
+    declared = manifest["entryModule"]
+    compiled = definition.entry_module |> Module.split() |> Enum.join(".")
+
+    if declared == compiled,
+      do: :ok,
+      else: {:error, {:manifest_definition_mismatch, :entry_module, declared, compiled}}
+  end
 
   defp collect_app_files(app_path, manifest) do
     application = manifest["otpApplication"]
@@ -195,6 +176,12 @@ defmodule Contexla.Applications.Sdk.PackageBuilder do
 
   defp sha256(bytes),
     do: :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower)
+
+  defp sdk_version do
+    :contexla_application_sdk
+    |> Application.spec(:vsn)
+    |> to_string()
+  end
 
   defp zip(files) do
     {locals, central, offset} =

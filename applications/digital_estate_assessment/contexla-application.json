@@ -1,5 +1,5 @@
 {
-  "manifestVersion": 1,
+  "manifestVersion": 2,
   "applicationId": "com.contexla.application.digital-estate-assessment",
   "name": "Digital Estate Assessment",
   "icon": "hero-clipboard-document-check",
@@ -8,11 +8,57 @@
   "entryModule": "Contexla.Applications.DigitalEstateAssessment.Package",
   "sdkRequirement": "~> 0.1",
   "databaseSchema": "contexla_estate",
-  "surfaces": [
-    {"id": "new", "path": "new", "module": "Contexla.Applications.DigitalEstateAssessment.Web.NewLive", "role": "new"},
-    {"id": "overview", "path": "overview", "module": "Contexla.Applications.DigitalEstateAssessment.Web.OverviewLive", "role": "instance", "default": true},
-    {"id": "report", "path": "report", "module": "Contexla.Applications.DigitalEstateAssessment.Web.ReportLive", "role": "instance"},
-    {"id": "settings", "path": "configuration", "module": "Contexla.Applications.DigitalEstateAssessment.Web.SettingsLive", "role": "instance", "kind": "settings"}
+  "description": "Inventory and assess a digital content estate from traceable evidence.",
+  "configSchema": {
+    "decision": {"type": "string", "required": true},
+    "scope": {"type": "object", "required": true}
+  },
+  "queues": [
+    {"name": "default", "concurrency": 5}
   ],
-  "operations": ["assessment.run", "assessment.report"]
+  "requiredAdapterContracts": ["contexla.estate.source.v1"],
+  "surfaces": [
+    {"id": "new", "path": "new", "label": "New assessment", "module": "Contexla.Applications.DigitalEstateAssessment.Web.NewLive", "role": "new"},
+    {"id": "overview", "path": "overview", "label": "Assessment overview", "module": "Contexla.Applications.DigitalEstateAssessment.Web.OverviewLive", "role": "instance", "default": true},
+    {"id": "report", "path": "report", "label": "Assessment report", "module": "Contexla.Applications.DigitalEstateAssessment.Web.ReportLive", "role": "instance"},
+    {"id": "settings", "path": "configuration", "label": "Application settings", "module": "Contexla.Applications.DigitalEstateAssessment.Web.SettingsLive", "role": "instance", "kind": "settings"}
+  ],
+  "operations": [
+    {
+      "id": "assessment.run",
+      "name": "Run assessment",
+      "description": "Analyze approved evidence and produce draft findings.",
+      "queue": "default",
+      "maxAttempts": 1,
+      "timeoutSeconds": 600,
+      "requiresApproval": true,
+      "inputSchema": {
+        "type": "object",
+        "required": ["artifact_id"],
+        "additionalProperties": false,
+        "properties": {"artifact_id": {"type": "string"}}
+      },
+      "requiredTools": [
+        {"toolId": "com.contexla.dependencies.parse-composer", "version": "2.0.0"}
+      ]
+    },
+    {
+      "id": "assessment.report",
+      "name": "Generate report",
+      "description": "Render an evidence-linked assessment report.",
+      "kind": "read",
+      "queue": "default",
+      "maxAttempts": 1,
+      "timeoutSeconds": 30,
+      "inputSchema": {
+        "type": "object",
+        "required": ["run_id"],
+        "additionalProperties": false,
+        "properties": {
+          "run_id": {"type": "string"},
+          "download": {"type": "string"}
+        }
+      }
+    }
+  ]
 }

@@ -11,8 +11,11 @@ defmodule Contexla.Applications.Sdk.Operation do
     :name,
     description: "",
     kind: :command,
-    input_schema: %{"type" => "object", "properties" => %{}},
+    queue: :default,
+    max_attempts: 3,
+    timeout_seconds: 60,
     requires_approval: false,
+    input_schema: %{"type" => "object", "properties" => %{}},
     required_tools: []
   ]
 
@@ -21,8 +24,11 @@ defmodule Contexla.Applications.Sdk.Operation do
           name: String.t(),
           description: String.t(),
           kind: :command | :read,
-          input_schema: map(),
+          queue: atom(),
+          max_attempts: pos_integer(),
+          timeout_seconds: pos_integer(),
           requires_approval: boolean(),
+          input_schema: map(),
           required_tools: [Requirement.t()]
         }
 
@@ -33,8 +39,11 @@ defmodule Contexla.Applications.Sdk.Operation do
         non_empty?(operation.name) and
         is_binary(operation.description) and
         operation.kind in [:command, :read] and
-        is_map(operation.input_schema) and
+        is_atom(operation.queue) and
+        is_integer(operation.max_attempts) and operation.max_attempts > 0 and
+        is_integer(operation.timeout_seconds) and operation.timeout_seconds > 0 and
         is_boolean(operation.requires_approval) and
+        is_map(operation.input_schema) and
         is_list(operation.required_tools) and
         Enum.all?(operation.required_tools, &(Requirement.validate(&1) == :ok))
 
