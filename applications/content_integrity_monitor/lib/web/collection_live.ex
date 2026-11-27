@@ -1148,20 +1148,27 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                   />
                 </div>
 
-                <div :if={@scope_adapter_type == "manual"}>
-                  <label class="block text-sm font-medium text-text">
-                    Entity references
-                    <span class="ml-1 font-normal text-text-muted">— JSON array of objects</span>
-                  </label>
-                  <textarea
-                    name="source[static_refs]"
-                    rows="8"
-                    placeholder={"[\n  {\"ref\": \"BCS\", \"lms_id\": \"LMS-BCS-2024\"},\n  {\"ref\": \"MCS\", \"lms_id\": \"LMS-MCS-2024\"}\n]"}
-                    class="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  >{@scope_form[:static_refs].value}</textarea>
-                  <p class="mt-1 text-xs text-text-muted">
-                    Each object must include the entity reference field. Additional fields are used as source/target lookup keys.
-                  </p>
+                <div :if={@scope_adapter_type == "manual"} class="space-y-3">
+                  <.input
+                    field={@scope_form[:ref_field]}
+                    label="Entity reference field"
+                    placeholder="ref"
+                  />
+                  <div>
+                    <label class="block text-sm font-medium text-text">
+                      Entity references
+                      <span class="ml-1 font-normal text-text-muted">— JSON array of objects</span>
+                    </label>
+                    <textarea
+                      name="source[static_refs]"
+                      rows="8"
+                      placeholder={"[\n  {\"ref\": \"BCS\", \"lms_id\": \"LMS-BCS-2024\"},\n  {\"ref\": \"MCS\", \"lms_id\": \"LMS-MCS-2024\"}\n]"}
+                      class="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    >{@scope_form[:static_refs].value}</textarea>
+                    <p class="mt-1 text-xs text-text-muted">
+                      Each object must include the entity reference field. Additional fields serve as lookup keys for sources and targets.
+                    </p>
+                  </div>
                 </div>
 
                 <div :if={@scope_adapter_type == "csv"} class="space-y-3">
@@ -1172,7 +1179,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                   />
                   <.input
                     field={@scope_form[:ref_field]}
-                    label="Reference column"
+                    label="Entity reference field"
                     placeholder="product_id"
                   />
                 </div>
