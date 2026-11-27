@@ -10,7 +10,10 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.TargetFactProfile do
 
   schema "integrity_target_fact_profiles" do
     field(:expected, Ecto.Enum, values: [:required, :optional, :excluded], default: :required)
-    field(:comparison_type, Ecto.Enum, values: [:text, :text_case_insensitive, :numeric, :date])
+    field(:comparison_type, Ecto.Enum,
+      values: [:exists, :text, :text_case_insensitive, :text_prefix, :numeric, :date, :regex]
+    )
+    field(:pattern, :string)
     belongs_to(:source, Contexla.Applications.ContentIntegrityMonitor.Source)
     belongs_to(:fact, Contexla.Applications.ContentIntegrityMonitor.Fact)
     timestamps(type: :utc_datetime)
@@ -18,7 +21,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.TargetFactProfile do
 
   def changeset(profile, attrs) do
     profile
-    |> cast(attrs, [:source_id, :fact_id, :expected, :comparison_type])
+    |> cast(attrs, [:source_id, :fact_id, :expected, :comparison_type, :pattern])
     |> validate_required([:source_id, :fact_id, :expected])
     |> unique_constraint([:source_id, :fact_id])
   end

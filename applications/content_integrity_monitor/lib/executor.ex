@@ -346,13 +346,17 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
       all_observations =
         Enum.flat_map(entity_ids, fn entity_id ->
           for source <- data_sources, fact <- run.monitor.facts do
+            profile = Enum.find(source.target_fact_profiles, &(&1.fact_id == fact.id))
+            comparison_type = (profile && profile.comparison_type) || fact.comparison_type
+            pattern = profile && profile.pattern
+
             source_check = find_entity_check(run.source_checks, source.id, entity_id)
             source_evidence = evidence[{source.id, entity_id}]
             raw_value = source_evidence && source_evidence.values[fact.key]
-            normalized_value = ComparisonPolicy.normalize(raw_value, fact.comparison_type)
+            normalized_value = ComparisonPolicy.normalize(raw_value, comparison_type)
 
             {authority_value, authority_status} =
-              resolve_authority(primary_sources, evidence, entity_id, run.source_checks, fact)
+              resolve_authority(primary_sources, evidence, entity_id, run.source_checks, fact, comparison_type)
 
             state =
               ComparisonPolicy.evaluate(%{
@@ -361,7 +365,9 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
                 required: fact.required,
                 value: normalized_value,
                 authority_status: authority_status,
-                authority_value: authority_value
+                authority_value: authority_value,
+                comparison_type: comparison_type,
+                pattern: pattern
               })
 
             observation =
@@ -653,11 +659,15 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
         nil
 
       run ->
-        repo().preload(run, [monitor: [:sources, :facts], source_checks: [:source]], force: true)
+        repo().preload(
+          run,
+          [monitor: [:facts, sources: :target_fact_profiles], source_checks: [:source]],
+          force: true
+        )
     end
   end
 
-  defp resolve_authority(primary_sources, evidence, entity_id, source_checks, fact) do
+  defp resolve_authority(primary_sources, evidence, entity_id, source_checks, fact, comparison_type \\ :text) do
     owner = Enum.find(primary_sources, fn p ->
       Map.get(p.mappings || %{}, fact.key) not in [nil, ""]
     end)
@@ -678,7 +688,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
             else: evidence[primary.id]
 
         raw_value = ev && ev.values[fact.key]
-        normalized = ComparisonPolicy.normalize(raw_value, fact.comparison_type)
+        normalized = ComparisonPolicy.normalize(raw_value, comparison_type)
         status = (check && check.status) || :failed
         {normalized, status}
     end

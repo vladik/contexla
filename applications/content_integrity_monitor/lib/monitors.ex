@@ -364,18 +364,19 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
   def upsert_target_fact_profiles(%Instance{} = instance, target_id, profiles) do
     with :ok <- ensure_instance(instance) do
       repo().transaction(fn ->
-        Enum.each(profiles, fn {fact_id, expected, comparison_type} ->
+        Enum.each(profiles, fn {fact_id, expected, comparison_type, pattern} ->
           attrs = %{
             source_id: target_id,
             fact_id: fact_id,
             expected: expected,
-            comparison_type: if(comparison_type == "" or is_nil(comparison_type), do: nil, else: comparison_type)
+            comparison_type: if(comparison_type == "" or is_nil(comparison_type), do: nil, else: comparison_type),
+            pattern: if(pattern == "" or is_nil(pattern), do: nil, else: pattern)
           }
 
           %TargetFactProfile{}
           |> TargetFactProfile.changeset(attrs)
           |> repo().insert!(
-            on_conflict: {:replace, [:expected, :comparison_type, :updated_at]},
+            on_conflict: {:replace, [:expected, :comparison_type, :pattern, :updated_at]},
             conflict_target: [:source_id, :fact_id]
           )
         end)

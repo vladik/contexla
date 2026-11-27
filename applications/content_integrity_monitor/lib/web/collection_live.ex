@@ -626,13 +626,15 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
     fact_id = params["fact_id"]
     expected = params["expected"]
     comparison_type = params["comparison_type"]
+    pattern = params["pattern"]
 
     updated =
       Enum.map(socket.assigns.target_profile_rows, fn
-        {^fact_id, key, name, _exp, _comp} ->
+        {^fact_id, key, name, _exp, _comp, _pat} ->
           exp = if expected, do: String.to_existing_atom(expected), else: :required
           comp = if comparison_type && comparison_type != "", do: String.to_existing_atom(comparison_type), else: nil
-          {fact_id, key, name, exp, comp}
+          pat = if pattern && pattern != "", do: pattern, else: nil
+          {fact_id, key, name, exp, comp, pat}
         row ->
           row
       end)
@@ -686,8 +688,8 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
 
     case result do
       {:ok, saved_source} ->
-        profiles = Enum.map(socket.assigns.target_profile_rows, fn {fact_id, _key, _name, expected, comparison_type} ->
-          {fact_id, expected, comparison_type}
+        profiles = Enum.map(socket.assigns.target_profile_rows, fn {fact_id, _key, _name, expected, comparison_type, pattern} ->
+          {fact_id, expected, comparison_type, pattern}
         end)
 
         Monitors.upsert_target_fact_profiles(instance, saved_source.id, profiles)
@@ -1253,12 +1255,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                   field={@fact_form[:comparison_type]}
                   type="select"
                   label="Default comparison"
-                  options={[
-                    {"Text (exact)", "text"},
-                    {"Text (ignore case)", "text_case_insensitive"},
-                    {"Numeric", "numeric"},
-                    {"Date", "date"}
-                  ]}
+                  options={comparison_type_options()}
                 />
                 <div class="flex items-center gap-3 pt-1">
                   <.button type="submit" variant="primary" size="sm">Save</.button>
@@ -1633,35 +1630,53 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                 </p>
                 <div class="rounded-lg border border-border divide-y divide-border">
                   <div
-                    :for={{fact_id, _key, fact_name, expected, comparison_type} <- @target_profile_rows}
-                    class="flex items-center gap-3 px-3 py-2"
+                    :for={{fact_id, _key, fact_name, expected, comparison_type, pattern} <- @target_profile_rows}
+                    class="px-3 py-2 space-y-1.5"
                   >
-                    <span class="flex-1 min-w-0 truncate text-sm text-text">{fact_name}</span>
+                    <div class="flex items-center gap-3">
+                      <span class="flex-1 min-w-0 truncate text-sm text-text">{fact_name}</span>
+                      <form
+                        phx-change="update_target_profile"
+                        id={"profile-#{fact_id}"}
+                        class="flex items-center gap-2 shrink-0"
+                      >
+                        <input type="hidden" name="fact_id" value={fact_id} />
+                        <input type="hidden" name="pattern" value={pattern || ""} />
+                        <select
+                          name="expected"
+                          class="rounded border border-border bg-surface px-2 py-1 text-xs text-text outline-none focus:border-primary"
+                        >
+                          <option value="required" selected={expected == :required}>Required</option>
+                          <option value="optional" selected={expected == :optional}>Optional</option>
+                          <option value="excluded" selected={expected == :excluded}>Not checked</option>
+                        </select>
+                        <select
+                          :if={expected != :excluded}
+                          name="comparison_type"
+                          class="rounded border border-border bg-surface px-2 py-1 text-xs text-text outline-none focus:border-primary"
+                        >
+                          <option value="" selected={is_nil(comparison_type)}>Default</option>
+                          <%= for {label, val} <- comparison_type_options() do %>
+                            <option value={val} selected={to_string(comparison_type) == val}>{label}</option>
+                          <% end %>
+                        </select>
+                      </form>
+                    </div>
                     <form
+                      :if={expected != :excluded and comparison_type == :regex}
                       phx-change="update_target_profile"
-                      id={"profile-#{fact_id}"}
-                      class="flex items-center gap-2 shrink-0"
+                      id={"profile-pattern-#{fact_id}"}
                     >
                       <input type="hidden" name="fact_id" value={fact_id} />
-                      <select
-                        name="expected"
-                        class="rounded border border-border bg-surface px-2 py-1 text-xs text-text outline-none focus:border-primary"
-                      >
-                        <option value="required" selected={expected == :required}>Required</option>
-                        <option value="optional" selected={expected == :optional}>Optional</option>
-                        <option value="excluded" selected={expected == :excluded}>Not checked</option>
-                      </select>
-                      <select
-                        :if={expected != :excluded}
-                        name="comparison_type"
-                        class="rounded border border-border bg-surface px-2 py-1 text-xs text-text outline-none focus:border-primary"
-                      >
-                        <option value="" selected={is_nil(comparison_type)}>Default</option>
-                        <option value="text" selected={comparison_type == :text}>Text</option>
-                        <option value="text_case_insensitive" selected={comparison_type == :text_case_insensitive}>Ignore case</option>
-                        <option value="numeric" selected={comparison_type == :numeric}>Numeric</option>
-                        <option value="date" selected={comparison_type == :date}>Date</option>
-                      </select>
+                      <input type="hidden" name="expected" value={expected} />
+                      <input type="hidden" name="comparison_type" value="regex" />
+                      <input
+                        type="text"
+                        name="pattern"
+                        value={pattern || ""}
+                        placeholder="e.g. ^[A-Z]{3}$ or Co-op"
+                        class="w-full rounded border border-border bg-surface px-2 py-1 font-mono text-xs text-text placeholder:text-text-muted focus:outline-none focus:border-primary"
+                      />
                     </form>
                   </div>
                 </div>
@@ -1973,10 +1988,25 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
   defp source_adapter_label(%{format: :csv}), do: "CSV file"
   defp source_adapter_label(_), do: "HTTP JSON (per entity)"
 
+  defp comparison_type_options do
+    [
+      {"Exists (any value)", "exists"},
+      {"Text (exact)", "text"},
+      {"Text (ignore case)", "text_case_insensitive"},
+      {"Text (prefix match)", "text_prefix"},
+      {"Numeric", "numeric"},
+      {"Date", "date"},
+      {"Regex pattern", "regex"}
+    ]
+  end
+
+  defp comparison_type_label(:exists), do: "exists"
   defp comparison_type_label(:text), do: "text"
   defp comparison_type_label(:text_case_insensitive), do: "text (ignore case)"
+  defp comparison_type_label(:text_prefix), do: "text (prefix)"
   defp comparison_type_label(:numeric), do: "numeric"
   defp comparison_type_label(:date), do: "date"
+  defp comparison_type_label(:regex), do: "regex"
   defp comparison_type_label(_), do: "text"
 
   defp mapping_placeholder("http_html"), do: "e.g. h1.product-name or [data-field=title]"
@@ -2011,7 +2041,8 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
       profile = Map.get(profiles_by_fact_id, fact.id)
       expected = (profile && profile.expected) || :required
       comparison_type = profile && profile.comparison_type
-      {fact.id, fact.key, fact.name, expected, comparison_type}
+      pattern = profile && profile.pattern
+      {fact.id, fact.key, fact.name, expected, comparison_type, pattern}
     end)
   end
 
