@@ -1251,12 +1251,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
                     class="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
                   >{@fact_form[:description].value}</textarea>
                 </div>
-                <.input
-                  field={@fact_form[:comparison_type]}
-                  type="select"
-                  label="Default comparison"
-                  options={comparison_type_options()}
-                />
                 <div class="flex items-center gap-3 pt-1">
                   <.button type="submit" variant="primary" size="sm">Save</.button>
                   <.button type="button" phx-click="cancel_fact" variant="ghost" size="sm">Cancel</.button>
@@ -1281,11 +1275,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
               <:row :let={fact}>
                 <p class="text-sm font-medium text-text">{fact.name}</p>
                 <p :if={fact.description} class="mt-0.5 text-xs text-text-muted">{fact.description}</p>
-                <div class="mt-1 flex flex-wrap items-center gap-1.5">
-                  <span class="rounded bg-surface-raised px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-text-muted">
-                    {comparison_type_label(fact.comparison_type)}
-                  </span>
-                </div>
               </:row>
               <:action :let={fact}>
                 <.button
@@ -2039,7 +2028,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
     Enum.map(facts, fn fact ->
       profile = Map.get(profiles_by_fact_id, fact.id)
       expected = (profile && profile.expected) || :required
-      comparison_type = (profile && profile.comparison_type) || fact.comparison_type
+      comparison_type = (profile && profile.comparison_type) || :text
       pattern = profile && profile.pattern
       {fact.id, fact.key, fact.name, expected, comparison_type, pattern}
     end)
@@ -2092,7 +2081,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive do
   end
 
   defp new_fact_form do
-    to_form(Fact.changeset(%Fact{}, %{comparison_type: :text}), as: :fact)
+    to_form(Fact.changeset(%Fact{}, %{}), as: :fact)
   end
 
   defp fact_form_from(fact) do

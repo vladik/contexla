@@ -347,7 +347,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
         Enum.flat_map(entity_ids, fn entity_id ->
           for source <- data_sources, fact <- run.monitor.facts do
             profile = Enum.find(source.target_fact_profiles, &(&1.fact_id == fact.id))
-            comparison_type = (profile && profile.comparison_type) || fact.comparison_type
+            comparison_type = (profile && profile.comparison_type) || :text
             pattern = profile && profile.pattern
 
             source_check = find_entity_check(run.source_checks, source.id, entity_id)

@@ -12,10 +12,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Fact do
     field(:key, :string)
     field(:name, :string)
     field(:description, :string)
-    field(:comparison_type, Ecto.Enum,
-      values: [:exists, :text, :text_case_insensitive, :text_prefix, :numeric, :date, :regex],
-      default: :text
-    )
     belongs_to(:monitor, Contexla.Applications.ContentIntegrityMonitor.Monitor)
     has_many(:target_fact_profiles, Contexla.Applications.ContentIntegrityMonitor.TargetFactProfile)
     timestamps(type: :utc_datetime)
@@ -23,7 +19,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Fact do
 
   def changeset(fact, attrs) do
     fact
-    |> cast(attrs, [:monitor_id, :key, :name, :description, :comparison_type])
+    |> cast(attrs, [:monitor_id, :key, :name, :description])
     |> validate_required([:monitor_id, :key, :name])
     |> validate_format(:key, ~r/^[a-z0-9_-]+$/,
       message: "can only contain lowercase letters, numbers, hyphens and underscores"
