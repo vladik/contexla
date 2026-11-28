@@ -11,7 +11,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Run do
   schema "integrity_runs" do
     field(:application_instance_id, :binary_id)
     field(:initiated_by_user_id, :binary_id)
-    field(:status, Ecto.Enum, values: [:queued, :running, :waiting_tools, :succeeded, :failed])
+    field(:status, Ecto.Enum, values: [:queued, :running, :succeeded, :failed])
 
     field(:summary, :map, default: %{})
     field(:error, :map)

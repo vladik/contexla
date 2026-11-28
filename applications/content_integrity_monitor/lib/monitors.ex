@@ -784,7 +784,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Monitors do
 
   defp active_runs(runs) do
     runs
-    |> Enum.filter(&(&1.status in [:queued, :running, :waiting_tools]))
+    |> Enum.filter(&(&1.status in [:queued, :running]))
     |> Enum.reduce(%{}, fn run, acc -> Map.put_new(acc, run.monitor_id, run) end)
   end
 

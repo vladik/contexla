@@ -1,4 +1,4 @@
-defmodule Contexla.Platform.Test.ToolRuntime.SchemaTest do
+defmodule Contexla.Platform.Test.SchemaTest do
   use ExUnit.Case, async: true
 
   alias Contexla.Platform.Schema

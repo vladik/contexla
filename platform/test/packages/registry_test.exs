@@ -38,4 +38,24 @@ defmodule Contexla.Platform.Test.Packages.RegistryTest do
     assert {:error, :not_found} = Registry.fetch_application("missing")
     assert {:error, :not_found} = Registry.fetch_integration("missing")
   end
+
+  describe "node role" do
+    setup do
+      original = Application.get_env(:contexla, :node_role)
+      on_exit(fn -> Application.put_env(:contexla, :node_role, original) end)
+      :ok
+    end
+
+    test "defaults to :all when node_role is not configured" do
+      Application.delete_env(:contexla, :node_role)
+      assert Application.get_env(:contexla, :node_role, :all) == :all
+    end
+
+    test "registry loads applications regardless of node_role" do
+      for role <- [:all, :web, :worker] do
+        Application.put_env(:contexla, :node_role, role)
+        assert [_] = Registry.applications()
+      end
+    end
+  end
 end

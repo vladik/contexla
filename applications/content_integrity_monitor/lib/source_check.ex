@@ -1,5 +1,5 @@
 defmodule Contexla.Applications.ContentIntegrityMonitor.SourceCheck do
-  @moduledoc "Durable acquisition and Tool-execution state for one Source in a Run."
+  @moduledoc "Durable acquisition and evidence state for one Source in a Run."
 
   use Ecto.Schema
   import Ecto.Changeset
@@ -10,8 +10,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.SourceCheck do
 
   schema "integrity_source_checks" do
     field(:ref_id, :string)
-    field(:status, Ecto.Enum, values: [:pending, :waiting_tool, :completed, :failed])
-    field(:tool_invocation_id, :binary_id)
+    field(:status, Ecto.Enum, values: [:pending, :completed, :failed])
     field(:http_status, :integer)
     field(:fetched_at, :utc_datetime)
     field(:response_sha256, :string)
@@ -30,7 +29,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.SourceCheck do
       :source_id,
       :ref_id,
       :status,
-      :tool_invocation_id,
       :http_status,
       :fetched_at,
       :response_sha256,

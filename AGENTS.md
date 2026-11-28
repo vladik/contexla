@@ -57,7 +57,7 @@ Configured use of an Application?         -> Application Instance
 Native component in/near external system? -> Connector
 Low-level external communication?         -> Client
 Implements an Application-facing external-system contract? -> Adapter
-Small reusable executable operation?      -> Tool
+Small reusable operation within an Application? -> Processor (owned by the Application)
 Infrastructure needed by many Applications? -> Core/Runtime
 ```
 
@@ -98,18 +98,10 @@ translations.
 - Shared platform code owns only cross-Application concerns.
 - Use Oban for durable jobs and OTP supervision for runtime processes.
 - Store secrets encrypted and never include them in logs, artifacts, prompts, or
-  Tool input unless explicitly required and authorized.
-- A Tool owns one bounded operation, structured input/output schemas,
-  implementation, runtime, entrypoint, dependencies, permissions, limits, and
-  tests. Capability, Processor, and Capability Binding are superseded concepts.
-- Applications pin exact Tool versions and invoke them only through the Tool
-  Runtime; they never start commands, locate environments, or load Tool Package
-  files directly.
-- Python Tools own isolated virtual environments and communicate through the
-  standard structured JSON process protocol.
-- Create a durable Tool Invocation before enqueueing its Oban execution job.
-  Execute Tools only through the Tool Runtime so validation, permissions,
-  provenance, version pinning, and Invocation history cannot be bypassed.
+  operation input unless explicitly required and authorized.
+- Applications own their Processors (pure functions) and Workers (Oban.Worker).
+  Workers use namespaced queue names provisioned at startup by the platform
+  registry; each application's queues are isolated and never shared.
 - Treat generated code as untrusted. V1 requires developer review, CI
   validation, supported installation, and explicit administrator approval
   before execution.
@@ -118,8 +110,8 @@ translations.
 - Keep Runs auditable and retain evidence for important findings.
 - Execute Application Operations only through the platform Operation boundary.
   Commands use POST or trusted runtime services; GET is reserved for declared
-  read Operations. Enforce input schemas, required Tools, approval, safe
-  audit projection, and Invocation history before calling Application code.
+  read Operations. Enforce input schemas, approval, safe audit projection, and
+  Invocation history before calling Application code.
 - Keep package lifecycle stages explicit: validate/build, migrate/install, then
   discover/start. Registry startup must not run Application migrations, and an
   Instance must never execute against a different Application version than the
@@ -148,21 +140,17 @@ signal but is not required before a bounded portfolio proof. Read
 1. Treat Digital Estate Assessment as an architecture proof. Do not extend it
    unless it is needed as a technical fixture or a buyer specifically validates
    its standalone outcome.
-2. Keep the completed unified Tool runtime bounded. Do not add Python or dynamic
-   Tool installation until a concrete Application proof requires it.
-3. Keep the documented standalone Content Integrity Monitor contract,
+2. Keep the documented standalone Content Integrity Monitor contract,
    synthetic demonstration, proof boundary, and stop condition authoritative.
-4. Complete the Content Integrity Monitor UI so non-technical users can
+3. Complete the Content Integrity Monitor UI so non-technical users can
    understand results at a glance: replace the current stats-and-issues layout
    with a fact × source matrix showing healthy/overdue/missing/unavailable
    states, and ensure the demo flow (create → run → inspect) is self-evident.
-5. Publish and show the completed use case before broadening integrations,
+4. Publish and show the completed use case before broadening integrations,
    comparison behavior, or platform infrastructure.
-6. Add Agent operation only after the deterministic Application works manually
+5. Add Agent operation only after the deterministic Application works manually
    through the same Application services.
-7. Add an isolated or AI-generated Tool only for a real missing operation
-   exposed by the proof, using the reviewed package-delivery flow.
-8. Start another Application only when it passes the standalone-value and
+6. Start another Application only when it passes the standalone-value and
    bounded-portfolio tests.
 
 Before adding platform infrastructure, identify the current Application proof
@@ -171,9 +159,9 @@ mean building the hypothetical full platform.
 
 ## Current implementation state
 
-- [ADR 0024](docs/decisions/0024-unified-tool-execution-model.md) accepts Tool
-  as the single executable-extension concept. The former
-  Capability/Processor/Binding runtime has been migrated and removed.
+- Tool infrastructure has been removed. Applications own their Processors (pure
+  functions) and Workers directly. The former Capability/Processor/Binding and
+  unified Tool runtimes have both been removed.
 
 - Digital Estate Assessment is independently compiled and source-linked through
   the runtime registry; it is not a platform dependency.
@@ -227,8 +215,8 @@ mean building the hypothetical full platform.
 - Findings preserve deterministic versus expert origin, and status changes are
   recorded as append-only Review Decisions with reviewer and rationale.
 - Installation administrators have a read-only Operations Console with bounded
-  readiness, registered package state, recent Operation and Tool Invocations,
-  Oban job metadata, lifecycle audit events, and Application Instance links.
+  readiness, registered package state, recent Operation Invocations, Oban job
+  metadata, lifecycle audit events, and Application Instance links.
   Payloads, job arguments, secrets, Artifact contents, and exception text are
   intentionally excluded; external uptime checks and logs remain required.
 - Administrators can download an in-memory, checksummed support bundle from the
@@ -239,8 +227,8 @@ mean building the hypothetical full platform.
   stable inventory identity, preserving added, changed, and removed values.
 - A read-only Drush collector spike under `connectors/drupal_snapshot/` has been
   run against a disposable Drupal 11 site. Clean and seeded synthetic-college
-  snapshots completed the real Artifact, native Composer Tool Invocation, Oban,
-  persistence, comparison, deterministic Finding, and report path. Aggregate
+  snapshots completed the real Artifact, Oban, persistence, comparison,
+  deterministic Finding, and report path. Aggregate
   content/media counts are normalized as evidence-backed Resources.
 - The synthetic proof is not real buyer evidence and must not be presented as
   commercial validation. Local DDEV database checkpoints and generated ZIPs are
@@ -254,14 +242,12 @@ mean building the hypothetical full platform.
 - Content Integrity Monitor is independently generated and owns its
   `contexla_integrity` schema, Monitors, Sources, Facts, Runs, source checks,
   Observations, Issues, Evidence, workers, and UI. Its first slice uses exact
-  JSON/HTML extraction Tools and a development-only synthetic content chain.
+  JSON/HTML extraction processors and a development-only synthetic content chain.
   PostgreSQL-backed overdue, pending, missing, healthy, and unavailable modes
-  completed through Operations, Oban, Tool Invocations, evidence, Issue
-  reconciliation, and history. This is a technical portfolio proof, not market
+  completed through Operations, Oban, evidence, Issue reconciliation, and history. This is a technical portfolio proof, not market
   validation.
-- Repository-wide module namespaces now follow the folder-matched convention:
+- Repository-wide module namespaces follow the folder-matched convention:
   `Contexla.Platform.*` for the platform, `Contexla.Applications.*` for
-  Applications, `Contexla.Integrations.*` for Integrations, and
-  `Contexla.Tools.*` for Tools. The former `Contexla.*` and `Contexla.Web.*`
-  namespaces have been removed. All 201 tests across every Mix project pass.
+  Applications, and `Contexla.Integrations.*` for Integrations. The former
+  `Contexla.*` and `Contexla.Web.*` namespaces have been removed.
 

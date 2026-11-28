@@ -356,7 +356,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Web.OverviewLive do
   defp run_badge_attrs(:succeeded), do: {"badge badge-success", "Completed"}
   defp run_badge_attrs(:failed), do: {"badge badge-danger", "Failed"}
   defp run_badge_attrs(:running), do: {"badge badge-warning", "Running"}
-  defp run_badge_attrs(:waiting_tools), do: {"badge badge-warning", "Running"}
   defp run_badge_attrs(:queued), do: {"badge badge-neutral", "Queued"}
 
   defp panel_description(_is_collection, _summary, _matrix, active) when not is_nil(active),

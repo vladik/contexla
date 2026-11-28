@@ -10,7 +10,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Evidence do
 
   schema "integrity_evidence" do
     field(:ref_id, :string)
-    field(:tool_invocation_id, :binary_id)
     field(:response_sha256, :string)
     field(:media_type, :string)
     field(:excerpt, :string)
@@ -27,7 +26,6 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Evidence do
       :run_id,
       :source_id,
       :ref_id,
-      :tool_invocation_id,
       :response_sha256,
       :media_type,
       :excerpt,
