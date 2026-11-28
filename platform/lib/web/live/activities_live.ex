@@ -12,7 +12,7 @@ defmodule Contexla.Platform.Web.ActivitiesLive do
 
     {:ok,
      socket
-     |> assign(:page_title, "Activity")
+     |> assign(:page_title, "Activity Log")
      |> assign(:operation_names, load_operation_names())
      |> load_invocations()}
   end
@@ -54,7 +54,7 @@ defmodule Contexla.Platform.Web.ActivitiesLive do
       <.surface>
         <:header>
           <.header id="activities-header" icon="hero-queue-list">
-            Activity
+            Activity Log
             <:subtitle>Recent Operation Invocations across your Application Instances</:subtitle>
             <:actions>
               <UIButton.button phx-click="refresh" size="sm">

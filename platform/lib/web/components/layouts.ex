@@ -122,13 +122,13 @@ defmodule Contexla.Platform.Web.Layouts do
           <a
             href="/activities"
             data-sidebar-row
-            data-tooltip="Activity"
+            data-tooltip="Activity Log"
             data-tooltip-position="side"
             aria-current={if String.starts_with?(@current_path, "/activities"), do: "page"}
             class={nav_item_class(String.starts_with?(@current_path, "/activities"))}
           >
             <.icon name="hero-queue-list" class="size-4 shrink-0" />
-            <span data-sidebar-expanded class="min-w-0 flex-1 truncate">Activity</span>
+            <span data-sidebar-expanded class="min-w-0 flex-1 truncate">Activity Log</span>
           </a>
 
           <a
