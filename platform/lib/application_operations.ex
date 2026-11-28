@@ -8,6 +8,8 @@ defmodule Contexla.Platform.ApplicationOperations do
 
   require Logger
 
+  import Ecto.Query, warn: false
+
   alias Contexla.Platform.Accounts.Scope
   alias Contexla.Platform.ApplicationOperations.Invocation
   alias Contexla.Applications.Sdk.Error
@@ -15,6 +17,30 @@ defmodule Contexla.Platform.ApplicationOperations do
   alias Contexla.Platform.{Applications, Repo}
   alias Contexla.Platform.Packages.Registry
   alias Contexla.Platform.Schema
+
+  @doc "Lists recent invocations visible to the given scope, optionally scoped to one instance."
+  def list_recent_invocations(%Scope{} = scope, opts \\ []) do
+    instance_id = Keyword.get(opts, :instance_id)
+    limit = Keyword.get(opts, :limit, 20)
+
+    instances = Applications.list_instances(scope)
+    visible_ids = MapSet.new(instances, & &1.id)
+
+    base =
+      Invocation
+      |> order_by([inv], desc: inv.started_at)
+      |> limit(^limit)
+      |> preload(:application_instance)
+
+    base =
+      if instance_id && MapSet.member?(visible_ids, instance_id) do
+        where(base, [inv], inv.application_instance_id == ^instance_id)
+      else
+        where(base, [inv], inv.application_instance_id in ^MapSet.to_list(visible_ids))
+      end
+
+    Repo.all(base)
+  end
 
   def invoke(%Scope{} = scope, instance_id, operation_id, input, opts \\ [])
       when is_binary(operation_id) and is_map(input) do
@@ -149,15 +175,32 @@ defmodule Contexla.Platform.ApplicationOperations do
   end
 
   defp complete!(invocation, status, output, error, run_id) do
-    invocation
-    |> Invocation.complete_changeset(%{
-      status: status,
-      output: output,
-      error: error,
-      run_id: run_id,
-      completed_at: DateTime.utc_now(:second)
-    })
-    |> Repo.update!()
+    completed =
+      invocation
+      |> Invocation.complete_changeset(%{
+        status: status,
+        output: output,
+        error: error,
+        run_id: run_id,
+        completed_at: DateTime.utc_now(:second)
+      })
+      |> Repo.update!()
+
+    instance_id = completed.application_instance_id
+
+    Phoenix.PubSub.broadcast(
+      Contexla.PubSub,
+      "activity:instance:#{instance_id}",
+      {:invocation_completed, completed}
+    )
+
+    Phoenix.PubSub.broadcast(
+      Contexla.PubSub,
+      "activity:platform",
+      {:invocation_completed, completed}
+    )
+
+    completed
   end
 
   defp instance_context(instance, actor_id) do

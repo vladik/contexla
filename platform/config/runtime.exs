@@ -24,6 +24,10 @@ node_role =
 
 config :contexla, node_role: node_role
 
+if key = System.get_env("CONTEXLA_MCP_API_KEY") do
+  config :contexla, mcp_api_key: key
+end
+
 if value = System.get_env("CONTEXLA_INTEGRATION_PACKAGES") do
   config :contexla, integration_packages: parse_packages.(value)
 end

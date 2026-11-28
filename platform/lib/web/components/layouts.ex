@@ -309,6 +309,7 @@ defmodule Contexla.Platform.Web.Layouts do
     <aside
       id="agent-workspace"
       data-agent-workspace
+      data-instance-id={@context[:instance_id]}
       class="agent-workspace"
       aria-label="Contexla Agent"
       aria-hidden="true"
@@ -428,17 +429,21 @@ defmodule Contexla.Platform.Web.Layouts do
           role="tabpanel"
           aria-labelledby="agent-activity-tab"
           data-agent-view="activity"
-          class="flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-6 text-center"
+          data-agent-activity
+          class="flex min-h-0 flex-1 flex-col overflow-y-auto"
           hidden
         >
-          <div class="max-w-64">
-            <span class="mx-auto grid size-11 place-items-center rounded-2xl border border-border bg-surface-raised text-text-muted">
-              <.icon name="hero-queue-list" class="size-5" />
-            </span>
-            <h3 class="mt-3 text-sm font-semibold text-text">No Agent activity</h3>
-            <p class="mt-1.5 text-xs leading-5 text-text-muted">
-              Plans, approvals, linked Runs, tool calls, and completion status will appear here when Agent execution is configured.
-            </p>
+          <div data-activity-items class="divide-y divide-border" aria-live="polite"></div>
+          <div data-activity-empty class="flex flex-1 items-center justify-center p-6 text-center">
+            <div class="max-w-64">
+              <span class="mx-auto grid size-11 place-items-center rounded-2xl border border-border bg-surface-raised text-text-muted">
+                <.icon name="hero-queue-list" class="size-5" />
+              </span>
+              <h3 class="mt-3 text-sm font-semibold text-text">No recent activity</h3>
+              <p class="mt-1.5 text-xs leading-5 text-text-muted">
+                Operation invocations for this context will appear here.
+              </p>
+            </div>
           </div>
         </section>
       </div>
@@ -572,7 +577,8 @@ defmodule Contexla.Platform.Web.Layouts do
           level: "Application Instance",
           title: instance.name,
           area: instance_area(current_path, instance),
-          icon: instance.icon
+          icon: instance.icon,
+          instance_id: instance.id
         }
     end
   end
@@ -599,7 +605,7 @@ defmodule Contexla.Platform.Web.Layouts do
           {"Applications", "Platform overview", "hero-squares-2x2"}
       end
 
-    %{level: "Platform", title: title, area: area, icon: icon}
+    %{level: "Platform", title: title, area: area, icon: icon, instance_id: nil}
   end
 
   defp instance_area(current_path, instance) do

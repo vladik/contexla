@@ -43,10 +43,11 @@ defmodule Contexla.Platform.Web.Router do
     get "/ready", HealthController, :ready
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", Contexla.Platform.Web do
-  #   pipe_through :api
-  # end
+  scope "/api/mcp", Contexla.Platform.Web do
+    pipe_through :api
+
+    post "/", McpController, :handle
+  end
 
   # Enable LiveDashboard in development
   if Application.compile_env(:contexla, :dev_routes) do
@@ -82,6 +83,8 @@ defmodule Contexla.Platform.Web.Router do
     pipe_through [:browser, :require_authenticated_user, :require_password_change_completed]
 
     get "/applications/new/:application_id/:surface", ApplicationSurfaceController, :new
+
+    get "/api/agent/activity", AgentActivityController, :index
 
     get "/application-operations/:instance_id/:operation_id",
         ApplicationOperationController,
