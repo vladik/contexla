@@ -44,11 +44,7 @@
         "required": ["monitor_id"],
         "additionalProperties": false,
         "properties": {"monitor_id": {"type": "string"}}
-      },
-      "requiredTools": [
-        {"toolId": "com.contexla.extract.json-values", "version": "1.0.0"},
-        {"toolId": "com.contexla.extract.html-values", "version": "1.0.0"}
-      ]
+      }
     },
     {
       "id": "integrity.issue.acknowledge",

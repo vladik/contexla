@@ -36,19 +36,18 @@ defmodule Contexla.Applications.Sdk.Test.RuntimeTest do
     def fetch_adapter(adapter_id), do: {:adapter, adapter_id}
 
     @impl true
-    def request_tool(actor_id, instance_id, tool_id, version, input, options),
-      do: {:tool, actor_id, instance_id, tool_id, version, input, options}
-
-    @impl true
-    def get_tool_invocation(actor_id, instance_id, invocation_id),
-      do: {:tool_invocation, actor_id, instance_id, invocation_id}
-
-    @impl true
     def invoke_operation(actor_id, instance_id, operation_id, input, options),
       do: {:operation, actor_id, instance_id, operation_id, input, options}
 
     @impl true
     def enqueue(worker, args, options), do: {:job, worker, args, options}
+
+    @impl true
+    def gateway_fetch(connection_id, path_template, entity_ref),
+      do: {:gateway, connection_id, path_template, entity_ref}
+
+    @impl true
+    def list_connections, do: []
   end
 
   setup do
@@ -93,12 +92,6 @@ defmodule Contexla.Applications.Sdk.Test.RuntimeTest do
 
     assert Runtime.artifact_path(:artifact) == {:path, :artifact}
     assert Runtime.fetch_adapter("adapter") == {:adapter, "adapter"}
-
-    assert Runtime.request_tool("actor", "instance", "tool", "1", %{}, parent_run_id: "run") ==
-             {:tool, "actor", "instance", "tool", "1", %{}, [parent_run_id: "run"]}
-
-    assert Runtime.get_tool_invocation("actor", "instance", "invocation") ==
-             {:tool_invocation, "actor", "instance", "invocation"}
 
     assert Runtime.invoke_operation("actor", "instance", "operation", %{}, approved: true) ==
              {:operation, "actor", "instance", "operation", %{}, [approved: true]}

@@ -12,9 +12,9 @@ defmodule Contexla.Platform.ApplicationOperations do
   alias Contexla.Platform.ApplicationOperations.Invocation
   alias Contexla.Applications.Sdk.Error
   alias Contexla.Applications.Sdk.Instance, as: SDKInstance
-  alias Contexla.Platform.{Applications, Repo, Tools}
+  alias Contexla.Platform.{Applications, Repo}
   alias Contexla.Platform.Packages.Registry
-  alias Contexla.Platform.ToolRuntime.Schema
+  alias Contexla.Platform.Schema
 
   def invoke(%Scope{} = scope, instance_id, operation_id, input, opts \\ [])
       when is_binary(operation_id) and is_map(input) do
@@ -28,7 +28,6 @@ defmodule Contexla.Platform.ApplicationOperations do
          :ok <- allow_transport(operation, transport),
          true <- function_exported?(entry, :execute_operation, 3),
          :ok <- Schema.validate(input, operation.input_schema),
-         :ok <- Tools.ensure_requirements(instance, operation.required_tools),
          :ok <- require_approval(operation, approved?),
          {:ok, invocation} <- start_invocation(scope, instance, operation, input, approved?) do
       execute(entry, operation, instance, scope, input, invocation)

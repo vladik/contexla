@@ -20,7 +20,6 @@ defmodule Contexla.Applications.Sdk.Manifest do
   """
 
   alias Contexla.Applications.Sdk.{Definition, Operation, Queue, Surface}
-  alias Contexla.Applications.Sdk.Requirement
 
   defmacro __using__(_opts) do
     manifest_path =
@@ -95,8 +94,7 @@ defmodule Contexla.Applications.Sdk.Manifest do
       max_attempts: Map.get(op, "maxAttempts", 3),
       timeout_seconds: Map.get(op, "timeoutSeconds", 60),
       requires_approval: Map.get(op, "requiresApproval", false),
-      input_schema: Map.get(op, "inputSchema", %{"type" => "object", "properties" => %{}}),
-      required_tools: op |> Map.get("requiredTools", []) |> Enum.map(&to_requirement/1)
+      input_schema: Map.get(op, "inputSchema", %{"type" => "object", "properties" => %{}})
     }
   end
 
@@ -125,10 +123,6 @@ defmodule Contexla.Applications.Sdk.Manifest do
         kind: s |> Map.get("kind", "page") |> String.to_atom()
       }
     end)
-  end
-
-  defp to_requirement(r) do
-    %Requirement{tool_id: r["toolId"], version: r["version"]}
   end
 
   defp parse_kind("read"), do: :read

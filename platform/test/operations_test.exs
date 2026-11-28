@@ -17,7 +17,6 @@ defmodule Contexla.Platform.Test.OperationsTest do
     assert {:ok, snapshot} = Operations.snapshot(Scope.for_user(admin))
     assert snapshot.diagnostics.status == :ok
     assert is_list(snapshot.operation_invocations)
-    assert is_list(snapshot.tool_invocations)
     assert is_list(snapshot.audit_events)
 
     assert operational_job = Enum.find(snapshot.jobs, &(&1.id == job.id))

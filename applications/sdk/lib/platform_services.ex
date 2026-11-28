@@ -21,10 +21,6 @@ defmodule Contexla.Applications.Sdk.PlatformServices do
 
   @callback fetch_adapter(binary()) :: {:ok, {struct(), struct()}} | {:error, term()}
 
-  @callback request_tool(binary(), binary(), binary(), binary(), map(), keyword()) ::
-              {:ok, struct()} | {:error, term()}
-  @callback get_tool_invocation(binary(), binary(), binary()) ::
-              {:ok, struct()} | {:error, term()}
   @callback invoke_operation(binary(), binary(), binary(), map(), keyword()) :: term()
   @callback enqueue(module(), map(), keyword()) :: {:ok, struct()} | {:error, term()}
 

@@ -23,6 +23,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.MixProject do
     [
       {:contexla_application_sdk, path: "../sdk"},
       {:contexla_ui, path: "../../ui/contexla_ui"},
+      {:floki, "~> 0.38.0"},
       {:ecto_sql, "~> 3.14"},
       {:postgrex, ">= 0.0.0"},
       {:oban, "~> 2.24"},

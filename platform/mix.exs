@@ -43,7 +43,6 @@ defmodule Contexla.Platform.MixProject do
     [
       {:pbkdf2_elixir, "~> 2.0"},
       {:swoosh, "~> 1.19"},
-      {:floki, "~> 0.38.0"},
       {:contexla_application_sdk, path: "../applications/sdk"},
       {:contexla_ui, path: "../ui/contexla_ui"},
       {:contexla_integration_sdk, path: "../integrations/sdk"},

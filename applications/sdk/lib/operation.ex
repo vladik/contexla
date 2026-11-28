@@ -3,8 +3,6 @@ defmodule Contexla.Applications.Sdk.Operation do
   An operation exposed by an Application to the platform, UI, API, and agents.
   """
 
-  alias Contexla.Applications.Sdk.Requirement
-
   @enforce_keys [:id, :name]
   defstruct [
     :id,
@@ -15,8 +13,7 @@ defmodule Contexla.Applications.Sdk.Operation do
     max_attempts: 3,
     timeout_seconds: 60,
     requires_approval: false,
-    input_schema: %{"type" => "object", "properties" => %{}},
-    required_tools: []
+    input_schema: %{"type" => "object", "properties" => %{}}
   ]
 
   @type t :: %__MODULE__{
@@ -28,8 +25,7 @@ defmodule Contexla.Applications.Sdk.Operation do
           max_attempts: pos_integer(),
           timeout_seconds: pos_integer(),
           requires_approval: boolean(),
-          input_schema: map(),
-          required_tools: [Requirement.t()]
+          input_schema: map()
         }
 
   @spec validate(t()) :: :ok | {:error, term()}
@@ -43,9 +39,7 @@ defmodule Contexla.Applications.Sdk.Operation do
         is_integer(operation.max_attempts) and operation.max_attempts > 0 and
         is_integer(operation.timeout_seconds) and operation.timeout_seconds > 0 and
         is_boolean(operation.requires_approval) and
-        is_map(operation.input_schema) and
-        is_list(operation.required_tools) and
-        Enum.all?(operation.required_tools, &(Requirement.validate(&1) == :ok))
+        is_map(operation.input_schema)
 
     if valid?, do: :ok, else: {:error, {:invalid_operation, operation.id}}
   end

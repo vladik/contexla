@@ -2,7 +2,6 @@ defmodule Contexla.Platform.Test.Support.PackageFixtures.TestApplication do
   @behaviour Contexla.Applications.Sdk.Application
 
   alias Contexla.Applications.Sdk.{Definition, Operation, Surface}
-  alias Contexla.Applications.Sdk.Requirement
 
   @operations [
     %Operation{
@@ -21,14 +20,7 @@ defmodule Contexla.Platform.Test.Support.PackageFixtures.TestApplication do
       requires_approval: true
     },
     %Operation{id: "test.download", name: "Download", kind: :read},
-    %Operation{id: "test.failure", name: "Failure"},
-    %Operation{
-      id: "test.missing-tool",
-      name: "Missing Tool",
-      required_tools: [
-        %Requirement{tool_id: "com.contexla.missing", version: "1.0.0"}
-      ]
-    }
+    %Operation{id: "test.failure", name: "Failure"}
   ]
 
   @impl true
@@ -95,10 +87,6 @@ defmodule Contexla.Platform.Test.Support.PackageFixtures.TestApplication do
   end
 
   def execute_operation("test.failure", _instance, _input), do: {:error, :expected_failure}
-
-  def execute_operation("test.missing-tool", _instance, _input) do
-    raise "unavailable Tool should prevent execution"
-  end
 end
 
 defmodule Contexla.Platform.Test.Support.PackageFixtures.TestSettingsSurfaceLive do

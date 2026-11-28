@@ -13,7 +13,6 @@ defmodule Contexla.Platform.Test.Test.Web.OperationsLiveTest do
     assert has_element?(view, "#operations-header")
     assert html =~ "System checks"
     assert html =~ "Application Operations"
-    assert html =~ "Tool Invocations"
     assert html =~ "Background Jobs"
     assert html =~ "Audit Activity"
     assert has_element?(view, ~s(a[href="/operations/support-bundle"]), "Support bundle")

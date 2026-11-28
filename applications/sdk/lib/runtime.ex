@@ -46,16 +46,6 @@ defmodule Contexla.Applications.Sdk.Runtime do
   @spec fetch_adapter(binary()) :: {:ok, {struct(), struct()}} | {:error, term()}
   def fetch_adapter(adapter_id), do: platform().fetch_adapter(adapter_id)
 
-  @spec request_tool(binary(), binary(), binary(), binary(), map(), keyword()) ::
-          {:ok, struct()} | {:error, term()}
-  def request_tool(actor_id, instance_id, tool_id, version, input, options \\ []),
-    do: platform().request_tool(actor_id, instance_id, tool_id, version, input, options)
-
-  @spec get_tool_invocation(binary(), binary(), binary()) ::
-          {:ok, struct()} | {:error, term()}
-  def get_tool_invocation(actor_id, instance_id, invocation_id),
-    do: platform().get_tool_invocation(actor_id, instance_id, invocation_id)
-
   @spec invoke_operation(binary(), binary(), binary(), map(), keyword()) :: term()
   def invoke_operation(actor_id, instance_id, operation_id, input, options \\ []),
     do: platform().invoke_operation(actor_id, instance_id, operation_id, input, options)

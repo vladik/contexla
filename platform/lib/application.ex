@@ -13,10 +13,7 @@ defmodule Contexla.Platform.Application do
       {DNSCluster, query: Application.get_env(:contexla, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Contexla.PubSub},
       Contexla.Platform.Packages.Registry,
-      Contexla.Platform.ToolRuntime.Registry,
-      {Task.Supervisor, name: Contexla.Platform.ToolRuntime.TaskSupervisor},
       {Oban, Application.fetch_env!(:contexla, Oban)},
-      # Start to serve requests, typically the last entry
       Contexla.Platform.Web.Endpoint
     ]
 

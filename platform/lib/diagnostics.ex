@@ -11,8 +11,7 @@ defmodule Contexla.Platform.Diagnostics do
       database: database(),
       artifact_storage: artifact_storage(),
       oban: oban(),
-      package_registry: process(Contexla.Platform.Packages.Registry),
-      tool_registry: process(Contexla.Platform.ToolRuntime.Registry)
+      package_registry: process(Contexla.Platform.Packages.Registry)
     }
 
     status = if Enum.all?(checks, fn {_name, result} -> result == :ok end), do: :ok, else: :error

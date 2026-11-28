@@ -10,11 +10,11 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
     Evidence,
     Issue,
     Observation,
+    Processors.ExtractHtml,
+    Processors.ExtractJson,
     Run,
     SourceCheck
   }
-
-  alias Contexla.Applications.ContentIntegrityMonitor.Workers.RunWorker
 
   def perform(run_id) do
     case load_run(run_id) do
@@ -44,20 +44,13 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
   end
 
   # ---------------------------------------------------------------------------
-  # Single-entity path (backward compatible with pre-collection monitors)
+  # Single-entity path
   # ---------------------------------------------------------------------------
 
   defp execute_single_entity(run) do
     Enum.each(run.source_checks, &start_source_check(run, &1))
     run = load_run(run.id)
-    Enum.each(run.source_checks, &complete_source_check(run, &1))
-    run = load_run(run.id)
-
-    if Enum.any?(run.source_checks, &(&1.status in [:pending, :waiting_tool])) do
-      wait_for_tools(run)
-    else
-      evaluate_single_entity(run)
-    end
+    evaluate_single_entity(run)
   end
 
   defp evaluate_single_entity(run) do
@@ -122,31 +115,25 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
   # ---------------------------------------------------------------------------
 
   defp execute_collection(run) do
-    entity_ids = run.summary["entity_ids"]
+    scope_source =
+      Enum.find(run.monitor.sources, &(&1.id == run.monitor.scope_source_id))
 
-    if entity_ids do
-      continue_collection(run, entity_ids)
-    else
-      scope_source =
-        Enum.find(run.monitor.sources, &(&1.id == run.monitor.scope_source_id))
+    scope_check =
+      Enum.find(run.source_checks, &(&1.source_id == run.monitor.scope_source_id))
 
-      scope_check =
-        Enum.find(run.source_checks, &(&1.source_id == run.monitor.scope_source_id))
+    case discover_entity_ids(scope_source) do
+      {:ok, []} ->
+        update_check(scope_check, %{status: :failed, error: Error.map(:empty_collection, "scope_discovery")})
+        fail(run, :empty_collection)
 
-      case discover_entity_ids(scope_source) do
-        {:ok, []} ->
-          update_check(scope_check, %{status: :failed, error: Error.map(:empty_collection, "scope_discovery")})
-          fail(run, :empty_collection)
+      {:ok, entity_ids} ->
+        update_check(scope_check, %{status: :completed})
+        run = save_entity_ids(run, entity_ids)
+        start_collection_checks(run, entity_ids)
 
-        {:ok, entity_ids} ->
-          update_check(scope_check, %{status: :completed})
-          run = save_entity_ids(run, entity_ids)
-          start_collection_checks(run, entity_ids)
-
-        {:error, reason} ->
-          update_check(scope_check, %{status: :failed, error: Error.map(reason, "scope_discovery")})
-          fail(run, :scope_discovery_failed)
-      end
+      {:error, reason} ->
+        update_check(scope_check, %{status: :failed, error: Error.map(reason, "scope_discovery")})
+        fail(run, :scope_discovery_failed)
     end
   end
 
@@ -246,11 +233,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
     end)
 
     run = load_run(run.id)
-    entity_checks = Enum.filter(run.source_checks, & &1.ref_id)
-    Enum.each(entity_checks, &complete_source_check(run, &1))
-
-    run = load_run(run.id)
-    check_continuation_or_evaluate(run, entity_ids)
+    evaluate_collection(run, entity_ids)
   end
 
   defp start_bulk_source_checks(_run, _source, []), do: :ok
@@ -282,30 +265,12 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
         Enum.each(checks, fn check ->
           case Map.get(index, check.ref_id) do
             nil -> fail_check(check, :entity_not_found_in_bulk_response)
-            entity_data -> request_extraction(run, check, %{acquisition | document: entity_data})
+            entity_data -> extract_and_record(run, check, %{acquisition | document: entity_data})
           end
         end)
 
       {:error, reason} ->
         Enum.each(checks, &fail_check(&1, reason))
-    end
-  end
-
-  defp continue_collection(run, entity_ids) do
-    waiting = Enum.filter(run.source_checks, &(&1.ref_id && &1.status == :waiting_tool))
-    Enum.each(waiting, &complete_source_check(run, &1))
-
-    run = load_run(run.id)
-    check_continuation_or_evaluate(run, entity_ids)
-  end
-
-  defp check_continuation_or_evaluate(run, entity_ids) do
-    entity_checks = Enum.filter(run.source_checks, & &1.ref_id)
-
-    if Enum.any?(entity_checks, &(&1.status in [:pending, :waiting_tool])) do
-      wait_for_tools(run)
-    else
-      evaluate_collection(run, entity_ids)
     end
   end
 
@@ -315,7 +280,7 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
     source = Enum.find(run.monitor.sources, &(&1.id == check.source_id))
 
     case Runtime.gateway_fetch(source.connection_id, source.url, check.ref_id) do
-      {:ok, acquisition} -> request_extraction(run, check, acquisition)
+      {:ok, acquisition} -> extract_and_record(run, check, acquisition)
       {:error, reason} -> fail_check(check, reason)
     end
   end
@@ -388,105 +353,57 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
   end
 
   # ---------------------------------------------------------------------------
-  # Shared — source check acquisition and tool invocation
+  # Shared — source check acquisition and synchronous extraction
   # ---------------------------------------------------------------------------
 
   defp start_source_check(_run, %SourceCheck{status: status}) when status != :pending, do: :ok
 
   defp start_source_check(run, %SourceCheck{} = check) do
     case Runtime.gateway_fetch(check.source.connection_id, check.source.url) do
-      {:ok, acquisition} -> request_extraction(run, check, acquisition)
+      {:ok, acquisition} -> extract_and_record(run, check, acquisition)
       {:error, reason} -> fail_check(check, reason)
     end
   end
 
-  defp request_extraction(run, check, acquisition) do
-    {tool_id, input} = extraction_request(acquisition.adapter_key, check.source.mappings, acquisition.document)
-
-    case Runtime.request_tool(
-           run.initiated_by_user_id,
-           run.application_instance_id,
-           tool_id,
-           "1.0.0",
-           input,
-           parent_run_id: run.id
-         ) do
-      {:ok, invocation} ->
-        update_check(check, %{
-          status: :waiting_tool,
-          tool_invocation_id: invocation.id,
-          http_status: acquisition.status,
-          fetched_at: acquisition.fetched_at,
-          response_sha256: acquisition.sha256,
-          media_type: acquisition.media_type,
-          excerpt: acquisition.excerpt,
-          error: nil
-        })
-
-      {:error, reason} ->
-        fail_check(check, {:tool_request_failed, reason})
-    end
-  end
-
-  defp extraction_request("generic_http_html", mappings, document) do
-    {"com.contexla.extract.html-values", %{"html" => document, "mappings" => mappings}}
-  end
-
-  defp extraction_request(_adapter_key, mappings, document) do
-    {"com.contexla.extract.json-values", %{"document" => document, "mappings" => mappings}}
-  end
-
-  defp complete_source_check(_run, %SourceCheck{status: status}) when status != :waiting_tool,
-    do: :ok
-
-  defp complete_source_check(run, %SourceCheck{} = check) do
-    case Runtime.get_tool_invocation(
-           run.initiated_by_user_id,
-           run.application_instance_id,
-           check.tool_invocation_id
-         ) do
-      {:ok, %{status: status}} when status in [:pending, :running] ->
-        :ok
-
-      {:ok, %{status: :succeeded, output: %{"values" => values}}} ->
+  defp extract_and_record(run, check, acquisition) do
+    case extract(acquisition.adapter_key, check.source.mappings, acquisition.document) do
+      {:ok, values} ->
         repo().transaction(fn ->
           %Evidence{}
           |> Evidence.changeset(%{
             run_id: run.id,
             source_id: check.source_id,
             ref_id: check.ref_id,
-            tool_invocation_id: check.tool_invocation_id,
-            response_sha256: check.response_sha256,
-            media_type: check.media_type,
-            excerpt: check.excerpt,
+            response_sha256: acquisition.sha256,
+            media_type: acquisition.media_type,
+            excerpt: acquisition.excerpt,
             values: values,
-            observed_at: check.fetched_at
+            observed_at: acquisition.fetched_at
           })
           |> repo().insert!()
 
-          update_check(check, %{status: :completed, error: nil})
+          update_check(check, %{
+            status: :completed,
+            http_status: acquisition.status,
+            fetched_at: acquisition.fetched_at,
+            response_sha256: acquisition.sha256,
+            media_type: acquisition.media_type,
+            excerpt: acquisition.excerpt,
+            error: nil
+          })
         end)
 
-      {:ok, %{status: status}} when status in [:failed, :timed_out, :cancelled] ->
-        fail_check(check, {:tool_execution_failed, status})
-
-      {:ok, _invocation} ->
-        fail_check(check, :invalid_tool_result)
-
       {:error, reason} ->
-        fail_check(check, {:tool_invocation_unavailable, reason})
+        fail_check(check, reason)
     end
   end
 
-  defp wait_for_tools(run) do
-    run
-    |> Run.status_changeset(%{status: :waiting_tools})
-    |> repo().update!()
+  defp extract("generic_http_html", mappings, document) do
+    ExtractHtml.run(document, mappings)
+  end
 
-    case Runtime.enqueue(RunWorker, %{"integrity_run_id" => run.id}, schedule_in: 1) do
-      {:ok, _job} -> :ok
-      {:error, reason} -> fail(run, {:continuation_enqueue_failed, reason})
-    end
+  defp extract(_adapter_key, mappings, document) do
+    ExtractJson.run(document, mappings)
   end
 
   # ---------------------------------------------------------------------------
@@ -657,9 +574,10 @@ defmodule Contexla.Applications.ContentIntegrityMonitor.Executor do
   end
 
   defp resolve_authority(primary_sources, evidence, entity_id, source_checks, fact, comparison_type \\ :text) do
-    owner = Enum.find(primary_sources, fn p ->
-      Map.get(p.mappings || %{}, fact.key) not in [nil, ""]
-    end)
+    owner =
+      Enum.find(primary_sources, fn p ->
+        Map.get(p.mappings || %{}, fact.key) not in [nil, ""]
+      end)
 
     case owner do
       nil ->

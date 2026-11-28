@@ -13,8 +13,7 @@ defmodule Contexla.Platform.Operations do
   alias Contexla.Platform.Applications.ApplicationInstance
   alias Contexla.Platform.ApplicationOperations.Invocation, as: OperationInvocation
   alias Contexla.Platform.AuditEvents.Event
-  alias Contexla.Platform.Tools.Invocation, as: ToolInvocation
-  alias Contexla.Platform.{Diagnostics, Packages, Repo, ToolRuntime}
+  alias Contexla.Platform.{Diagnostics, Packages, Repo}
 
   @recent_limit 20
 
@@ -27,7 +26,6 @@ defmodule Contexla.Platform.Operations do
        counts: counts(),
        packages: packages(),
        operation_invocations: operation_invocations(),
-       tool_invocations: tool_invocations(),
        jobs: jobs(),
        audit_events: audit_events()
      }}
@@ -50,7 +48,6 @@ defmodule Contexla.Platform.Operations do
          packages: support_packages(snapshot.packages),
          operation_invocations:
            Enum.map(snapshot.operation_invocations, &support_operation_invocation/1),
-         tool_invocations: Enum.map(snapshot.tool_invocations, &support_tool_invocation/1),
          jobs: Enum.map(snapshot.jobs, &support_job/1),
          audit_events: Enum.map(snapshot.audit_events, &support_audit_event/1)
        }}
@@ -64,8 +61,6 @@ defmodule Contexla.Platform.Operations do
       instances: Repo.aggregate(ApplicationInstance, :count),
       running_operations: invocation_count(OperationInvocation, :running),
       failed_operations: invocation_count(OperationInvocation, :failed),
-      running_tools: invocation_count(ToolInvocation, :running),
-      failed_tools: invocation_count(ToolInvocation, [:failed, :timed_out]),
       active_jobs: job_count(["available", "executing", "retryable", "scheduled"]),
       failed_jobs: job_count(["discarded"])
     }
@@ -102,8 +97,7 @@ defmodule Contexla.Platform.Operations do
             otp_application: definition.otp_application,
             running: otp_running?(definition.otp_application)
           }
-        end),
-      tools: safe_registry(&ToolRuntime.Registry.tools/0)
+        end)
     }
   end
 
@@ -124,14 +118,6 @@ defmodule Contexla.Platform.Operations do
     |> order_by([invocation], desc: invocation.started_at)
     |> limit(@recent_limit)
     |> preload([:application_instance, :invoked_by_user])
-    |> Repo.all()
-  end
-
-  defp tool_invocations do
-    ToolInvocation
-    |> order_by([invocation], desc: invocation.requested_at)
-    |> limit(@recent_limit)
-    |> preload([:application_instance, :invoked_by_user, :tool])
     |> Repo.all()
   end
 
@@ -186,18 +172,6 @@ defmodule Contexla.Platform.Operations do
             otp_application: to_string(package.otp_application),
             running: package.running
           }
-        end),
-      tools:
-        Enum.map(packages.tools, fn tool ->
-          %{
-            id: tool.id,
-            version: tool.version,
-            name: tool.name,
-            runtime: to_string(tool.runtime),
-            worker_profile: tool.worker_profile,
-            owner_scope: to_string(tool.owner_scope),
-            owner_key: tool.owner_key
-          }
         end)
     }
   end
@@ -212,22 +186,6 @@ defmodule Contexla.Platform.Operations do
       status: to_string(invocation.status),
       run_id: invocation.run_id,
       error_code: error_code(invocation.error),
-      started_at: iso8601(invocation.started_at),
-      completed_at: iso8601(invocation.completed_at)
-    }
-  end
-
-  defp support_tool_invocation(invocation) do
-    %{
-      id: invocation.id,
-      application_instance_id: invocation.application_instance_id,
-      parent_run_id: invocation.parent_run_id,
-      tool_id: invocation.tool.key,
-      tool_version: invocation.tool.version,
-      tool_runtime: to_string(invocation.tool.runtime),
-      status: to_string(invocation.status),
-      error_code: error_code(invocation.error),
-      requested_at: iso8601(invocation.requested_at),
       started_at: iso8601(invocation.started_at),
       completed_at: iso8601(invocation.completed_at)
     }

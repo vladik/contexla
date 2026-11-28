@@ -10,8 +10,7 @@ defmodule Contexla.Platform.ApplicationServices do
     Applications,
     Artifacts,
     Repo,
-    SourceImports,
-    Tools
+    SourceImports
   }
 
   alias Contexla.Platform.Packages.Registry
@@ -33,22 +32,6 @@ defmodule Contexla.Platform.ApplicationServices do
 
   def artifact_path(artifact), do: Artifacts.local_path(artifact)
   def fetch_adapter(adapter_id), do: Registry.fetch_adapter(adapter_id)
-
-  def request_tool(actor_id, instance_id, key, version, input, options) do
-    scope = scope!(actor_id)
-
-    with {:ok, instance} <- Applications.fetch_instance(scope, instance_id) do
-      Tools.request(scope, instance, key, version, input, options)
-    end
-  end
-
-  def get_tool_invocation(actor_id, instance_id, invocation_id) do
-    scope = scope!(actor_id)
-
-    with {:ok, instance} <- Applications.fetch_instance(scope, instance_id) do
-      Tools.fetch_invocation(scope, instance, invocation_id)
-    end
-  end
 
   def invoke_operation(actor_id, instance_id, operation_id, input, options \\ []) do
     ApplicationOperations.invoke(

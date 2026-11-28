@@ -106,7 +106,6 @@ defmodule Contexla.Platform.SupportBundles do
     %{
       captured_at: snapshot.captured_at,
       operation_invocations: snapshot.operation_invocations,
-      tool_invocations: snapshot.tool_invocations,
       jobs: snapshot.jobs,
       audit_events: snapshot.audit_events
     }

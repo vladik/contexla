@@ -25,13 +25,12 @@ config :contexla,
   generators: [timestamp_type: :utc_datetime, binary_id: true],
   application_packages: [],
   integration_packages: [],
-  tool_packages: [Contexla.Tools.Bundled.Package],
   artifact_storage_path: Path.expand("../.tmp/artifacts", __DIR__)
 
 config :contexla, Oban,
   engine: Oban.Engines.Basic,
   repo: Contexla.Platform.Repo,
-  queues: [application_runs: 4, tool_invocations: 4]
+  queues: [application_runs: 4]
 
 config :contexla_application_sdk,
   services: %{repo: Contexla.Platform.Repo, platform: Contexla.Platform.ApplicationServices}

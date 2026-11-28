@@ -107,18 +107,6 @@ defmodule Contexla.Platform.Test.ApplicationOperationsTest do
     assert invocation.output["type"] == "download"
   end
 
-  test "preflights required Tools before creating an invocation", context do
-    assert {:error, {:required_tool_unavailable, "com.contexla.missing", "1.0.0"}} =
-             ApplicationOperations.invoke(
-               context.scope,
-               context.instance.id,
-               "test.missing-tool",
-               %{}
-             )
-
-    refute Repo.exists?(Invocation)
-  end
-
   test "records a normalized failure without persisting arbitrary error details", context do
     assert {:error, :expected_failure, invocation} =
              ApplicationOperations.invoke(

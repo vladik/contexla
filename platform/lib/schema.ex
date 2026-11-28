@@ -1,5 +1,5 @@
-defmodule Contexla.Platform.ToolRuntime.Schema do
-  @moduledoc "Validates the small JSON Schema subset supported by Tool contracts in v1."
+defmodule Contexla.Platform.Schema do
+  @moduledoc "Validates the JSON Schema subset used by Application Operation inputs."
 
   @spec validate(term(), map()) :: :ok | {:error, map()}
   def validate(value, schema) when is_map(schema), do: validate(value, schema, "$")

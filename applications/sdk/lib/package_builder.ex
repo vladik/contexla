@@ -79,16 +79,10 @@ defmodule Contexla.Applications.Sdk.PackageBuilder do
          (is_integer(op["timeoutSeconds"]) and op["timeoutSeconds"] > 0)) and
       (not Map.has_key?(op, "requiresApproval") or is_boolean(op["requiresApproval"])) and
       (not Map.has_key?(op, "inputSchema") or is_map(op["inputSchema"])) and
-      (not Map.has_key?(op, "requiredTools") or valid_required_tools?(op["requiredTools"])) and
       (not Map.has_key?(op, "kind") or op["kind"] in ["command", "read"])
   end
 
   defp valid_operation?(_), do: false
-
-  defp valid_required_tools?(tools) when is_list(tools),
-    do: Enum.all?(tools, &(is_map(&1) and is_binary(&1["toolId"]) and is_binary(&1["version"])))
-
-  defp valid_required_tools?(_), do: false
 
   defp valid_surface?(surface) when is_map(surface) do
     is_binary(surface["id"]) and surface["id"] != "" and

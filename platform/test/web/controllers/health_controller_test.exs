@@ -19,7 +19,6 @@ defmodule Contexla.Platform.Test.Test.Web.HealthControllerTest do
              "status" => "ok",
              "checks" => %{
                "artifact_storage" => "ok",
-               "tool_registry" => "ok",
                "database" => "ok",
                "oban" => "ok",
                "package_registry" => "ok"

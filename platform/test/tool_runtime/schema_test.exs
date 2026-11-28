@@ -1,7 +1,7 @@
 defmodule Contexla.Platform.Test.ToolRuntime.SchemaTest do
   use ExUnit.Case, async: true
 
-  alias Contexla.Platform.ToolRuntime.Schema
+  alias Contexla.Platform.Schema
 
   test "retains allowed dynamic output properties while redacting declared sensitive fields" do
     schema = %{

@@ -69,15 +69,12 @@ defmodule Contexla.Platform.Web.OperationsLive do
             />
             <.stat
               label="Active execution"
-              value={@snapshot.counts.running_operations + @snapshot.counts.running_tools}
-              hint="Operation and Tool Invocations"
+              value={@snapshot.counts.running_operations}
+              hint="Running Operation Invocations"
             />
             <.stat
               label="Recorded failures"
-              value={
-                @snapshot.counts.failed_operations + @snapshot.counts.failed_tools +
-                  @snapshot.counts.failed_jobs
-              }
+              value={@snapshot.counts.failed_operations + @snapshot.counts.failed_jobs}
               hint="Retained failures; not a rolling time window"
             />
           </div>
@@ -104,10 +101,9 @@ defmodule Contexla.Platform.Web.OperationsLive do
               description="Trusted packages and executable Tools currently registered."
               icon="hero-cube-transparent"
             >
-              <dl class="grid grid-cols-3 gap-3 text-sm">
+              <dl class="grid grid-cols-2 gap-3 text-sm">
                 <.runtime_count label="Applications" value={length(@snapshot.packages.applications)} />
                 <.runtime_count label="Integrations" value={length(@snapshot.packages.integrations)} />
-                <.runtime_count label="Tools" value={length(@snapshot.packages.tools)} />
               </dl>
               <div
                 :if={@snapshot.packages.applications != []}
@@ -167,42 +163,6 @@ defmodule Contexla.Platform.Web.OperationsLive do
           </.activity_panel>
 
           <div class="grid gap-4 xl:grid-cols-2">
-            <.activity_panel
-              title="Tool Invocations"
-              description="Recent durable executions of exact Tool versions."
-              icon="hero-bolt"
-              empty={@snapshot.tool_invocations == []}
-            >
-              <div
-                :for={invocation <- @snapshot.tool_invocations}
-                class="flex items-start justify-between gap-4 py-3 text-sm"
-              >
-                <div class="min-w-0">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <span class="truncate font-medium text-text">{invocation.tool.name}</span>
-                    <.status_pill status={invocation.status} />
-                  </div>
-                  <p class="mt-1 truncate text-xs text-text-muted">
-                    {invocation.tool.key} · {invocation.tool.version}
-                  </p>
-                  <p :if={error_code(invocation.error)} class="mt-1 text-xs text-danger">
-                    {error_code(invocation.error)}
-                  </p>
-                </div>
-                <div class="shrink-0 text-end text-xs text-text-muted">
-                  <a
-                    :if={invocation.application_instance}
-                    href={"/applications/#{invocation.application_instance_id}"}
-                    class="block max-w-40 truncate font-medium text-primary hover:underline"
-                  >
-                    {invocation.application_instance.name}
-                  </a>
-                  <span class="mt-1 block">{format_time(invocation.requested_at)}</span>
-                  <span class="block">{short_id(invocation.id)}</span>
-                </div>
-              </div>
-            </.activity_panel>
-
             <.activity_panel
               title="Background Jobs"
               description="Recent Oban jobs without arguments or exception details."
