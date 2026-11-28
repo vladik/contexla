@@ -12,8 +12,8 @@ defmodule Contexla.Platform.Application do
       Contexla.Platform.Repo,
       {DNSCluster, query: Application.get_env(:contexla, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Contexla.PubSub},
-      Contexla.Platform.Packages.Registry,
       {Oban, Application.fetch_env!(:contexla, Oban)},
+      Contexla.Platform.Packages.Registry,
       Contexla.Platform.Web.Endpoint
     ]
 

@@ -15,6 +15,15 @@ if value = System.get_env("CONTEXLA_APPLICATION_PACKAGES") do
   config :contexla, application_packages: parse_packages.(value)
 end
 
+node_role =
+  case System.get_env("CONTEXLA_NODE_ROLE", "all") do
+    "web" -> :web
+    "worker" -> :worker
+    _ -> :all
+  end
+
+config :contexla, node_role: node_role
+
 if value = System.get_env("CONTEXLA_INTEGRATION_PACKAGES") do
   config :contexla, integration_packages: parse_packages.(value)
 end

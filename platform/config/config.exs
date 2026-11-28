@@ -30,7 +30,7 @@ config :contexla,
 config :contexla, Oban,
   engine: Oban.Engines.Basic,
   repo: Contexla.Platform.Repo,
-  queues: [application_runs: 4]
+  queues: []
 
 config :contexla_application_sdk,
   services: %{repo: Contexla.Platform.Repo, platform: Contexla.Platform.ApplicationServices}

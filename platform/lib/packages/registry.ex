@@ -57,6 +57,7 @@ defmodule Contexla.Platform.Packages.Registry do
   def init(_opts) do
     with {:ok, applications} <- load_applications(),
          {:ok, integrations} <- load_integrations() do
+      provision_queues(applications)
       {:ok, %{applications: applications, integrations: integrations}}
     else
       {:error, reason} -> {:stop, reason}
@@ -288,6 +289,17 @@ defmodule Contexla.Platform.Packages.Registry do
     case Map.fetch(packages, id) do
       {:ok, {_module, definition}} -> {:ok, definition}
       :error -> {:error, :not_found}
+    end
+  end
+
+  defp provision_queues(applications) do
+    if Application.get_env(:contexla, :node_role, :all) in [:worker, :all] do
+      Enum.each(applications, fn {_id, {_module, definition}} ->
+        Enum.each(definition.queues, fn queue ->
+          queue_name = :"#{definition.otp_application}_#{queue.name}"
+          Oban.start_queue(queue: queue_name, limit: queue.concurrency)
+        end)
+      end)
     end
   end
 end

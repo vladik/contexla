@@ -4,7 +4,7 @@ defmodule <%= module %>.Workers.ExampleWorker do
   Enqueue via Runtime.enqueue/2 from execute_operation/3 in package.ex.
   """
 
-  use Oban.Worker, queue: :default, max_attempts: 3
+  use Oban.Worker, queue: :"<%= project %>_default", max_attempts: 3
 
   alias Contexla.Applications.Sdk.Runtime
   alias <%= module %>.Processors.Example
