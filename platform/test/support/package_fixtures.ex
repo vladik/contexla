@@ -7,6 +7,7 @@ defmodule Contexla.Platform.Test.Support.PackageFixtures.TestApplication do
     %Operation{
       id: "test.echo",
       name: "Echo",
+      type: :command,
       input_schema: %{
         "type" => "object",
         "required" => ["message"],
@@ -17,10 +18,11 @@ defmodule Contexla.Platform.Test.Support.PackageFixtures.TestApplication do
     %Operation{
       id: "test.approved",
       name: "Approved command",
+      type: :command,
       requires_approval: true
     },
-    %Operation{id: "test.download", name: "Download", kind: :read},
-    %Operation{id: "test.failure", name: "Failure"}
+    %Operation{id: "test.download", name: "Download", type: :query},
+    %Operation{id: "test.failure", name: "Failure", type: :command}
   ]
 
   @impl true

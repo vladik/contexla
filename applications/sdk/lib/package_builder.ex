@@ -42,17 +42,22 @@ defmodule Contexla.Applications.Sdk.PackageBuilder do
        } = manifest)
        when is_binary(id) and is_binary(name) and is_binary(version) and
               is_binary(application) and is_binary(entry_module) and is_binary(icon) and
-              is_binary(sdk_requirement) and is_list(surfaces) and is_list(operations) do
+              is_binary(sdk_requirement) and is_list(surfaces) and is_map(operations) do
     queues = Map.get(manifest, "queues", [])
+
+    all_operations =
+      Map.get(operations, "jobs", []) ++
+        Map.get(operations, "commands", []) ++
+        Map.get(operations, "queries", [])
 
     with true <- String.trim(id) != "",
          true <- String.trim(name) != "",
          true <- Version.match?(sdk_version(), sdk_requirement),
          true <- icon =~ ~r/^hero-[a-z0-9-]+$/,
-         true <- Enum.all?(operations, &valid_operation?/1),
+         true <- valid_operations?(operations),
          true <- Enum.all?(surfaces, &valid_surface?/1),
          true <- Enum.all?(queues, &valid_queue?/1),
-         true <- unique_ids?(operations, "id"),
+         true <- unique_ids?(all_operations, "id"),
          true <- unique_ids?(surfaces, "id"),
          true <- unique_ids?(surfaces, "path"),
          true <- surface_roles_valid?(surfaces) do
@@ -69,20 +74,51 @@ defmodule Contexla.Applications.Sdk.PackageBuilder do
 
   defp validate_manifest(_manifest), do: {:error, :invalid_manifest}
 
-  defp valid_operation?(op) when is_map(op) do
+  defp valid_operations?(%{} = ops) do
+    jobs = Map.get(ops, "jobs", [])
+    commands = Map.get(ops, "commands", [])
+    queries = Map.get(ops, "queries", [])
+
+    is_list(jobs) and Enum.all?(jobs, &valid_job?/1) and
+      is_list(commands) and Enum.all?(commands, &valid_command?/1) and
+      is_list(queries) and Enum.all?(queries, &valid_query?/1)
+  end
+
+  defp valid_operations?(_), do: false
+
+  defp valid_job?(op) when is_map(op) do
     is_binary(op["id"]) and op["id"] != "" and
       (not Map.has_key?(op, "name") or is_binary(op["name"])) and
+      (not Map.has_key?(op, "description") or is_binary(op["description"])) and
       (not Map.has_key?(op, "queue") or is_binary(op["queue"])) and
       (not Map.has_key?(op, "maxAttempts") or
          (is_integer(op["maxAttempts"]) and op["maxAttempts"] > 0)) and
       (not Map.has_key?(op, "timeoutSeconds") or
          (is_integer(op["timeoutSeconds"]) and op["timeoutSeconds"] > 0)) and
       (not Map.has_key?(op, "requiresApproval") or is_boolean(op["requiresApproval"])) and
-      (not Map.has_key?(op, "inputSchema") or is_map(op["inputSchema"])) and
-      (not Map.has_key?(op, "kind") or op["kind"] in ["command", "read"])
+      (not Map.has_key?(op, "inputSchema") or is_map(op["inputSchema"]))
   end
 
-  defp valid_operation?(_), do: false
+  defp valid_job?(_), do: false
+
+  defp valid_command?(op) when is_map(op) do
+    is_binary(op["id"]) and op["id"] != "" and
+      (not Map.has_key?(op, "name") or is_binary(op["name"])) and
+      (not Map.has_key?(op, "description") or is_binary(op["description"])) and
+      (not Map.has_key?(op, "requiresApproval") or is_boolean(op["requiresApproval"])) and
+      (not Map.has_key?(op, "inputSchema") or is_map(op["inputSchema"]))
+  end
+
+  defp valid_command?(_), do: false
+
+  defp valid_query?(op) when is_map(op) do
+    is_binary(op["id"]) and op["id"] != "" and
+      (not Map.has_key?(op, "name") or is_binary(op["name"])) and
+      (not Map.has_key?(op, "description") or is_binary(op["description"])) and
+      (not Map.has_key?(op, "inputSchema") or is_map(op["inputSchema"]))
+  end
+
+  defp valid_query?(_), do: false
 
   defp valid_surface?(surface) when is_map(surface) do
     is_binary(surface["id"]) and surface["id"] != "" and

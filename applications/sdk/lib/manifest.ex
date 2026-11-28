@@ -76,24 +76,49 @@ defmodule Contexla.Applications.Sdk.Manifest do
     }
   end
 
-  @doc "Converts the manifest operations array to Operation structs."
+  @doc "Converts the manifest operations object to Operation structs."
   @spec to_operations(map()) :: [Operation.t()]
   def to_operations(manifest) do
-    manifest
-    |> Map.get("operations", [])
-    |> Enum.map(&to_operation/1)
+    ops = Map.get(manifest, "operations", %{})
+
+    jobs = ops |> Map.get("jobs", []) |> Enum.map(&to_job/1)
+    commands = ops |> Map.get("commands", []) |> Enum.map(&to_command/1)
+    queries = ops |> Map.get("queries", []) |> Enum.map(&to_query/1)
+
+    jobs ++ commands ++ queries
   end
 
-  defp to_operation(op) when is_map(op) do
+  defp to_job(op) when is_map(op) do
     %Operation{
       id: op["id"],
       name: Map.get(op, "name", op["id"]),
+      type: :job,
       description: Map.get(op, "description", ""),
-      kind: parse_kind(Map.get(op, "kind", "command")),
       queue: op |> Map.get("queue", "default") |> String.to_atom(),
       max_attempts: Map.get(op, "maxAttempts", 3),
       timeout_seconds: Map.get(op, "timeoutSeconds", 60),
       requires_approval: Map.get(op, "requiresApproval", false),
+      input_schema: Map.get(op, "inputSchema", %{"type" => "object", "properties" => %{}})
+    }
+  end
+
+  defp to_command(op) when is_map(op) do
+    %Operation{
+      id: op["id"],
+      name: Map.get(op, "name", op["id"]),
+      type: :command,
+      description: Map.get(op, "description", ""),
+      requires_approval: Map.get(op, "requiresApproval", false),
+      input_schema: Map.get(op, "inputSchema", %{"type" => "object", "properties" => %{}})
+    }
+  end
+
+  defp to_query(op) when is_map(op) do
+    %Operation{
+      id: op["id"],
+      name: Map.get(op, "name", op["id"]),
+      type: :query,
+      description: Map.get(op, "description", ""),
       input_schema: Map.get(op, "inputSchema", %{"type" => "object", "properties" => %{}})
     }
   end
@@ -125,6 +150,4 @@ defmodule Contexla.Applications.Sdk.Manifest do
     end)
   end
 
-  defp parse_kind("read"), do: :read
-  defp parse_kind(_), do: :command
 end

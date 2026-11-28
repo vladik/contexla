@@ -64,7 +64,7 @@ defmodule Contexla.Applications.Sdk.Test.PackageBuilderTest do
         "entryModule" => "Contexla.Applications.Sdk.Test.PackageBuilderTest.PackagedApplication",
         "sdkRequirement" => "~> 0.1",
         "queues" => [%{"name" => "default", "concurrency" => 10}],
-        "operations" => [],
+        "operations" => %{"jobs" => [], "commands" => [], "queries" => []},
         "surfaces" => [
           %{
             "id" => "new",
@@ -127,7 +127,7 @@ defmodule Contexla.Applications.Sdk.Test.PackageBuilderTest do
         "entryModule" => "Some.Other.Module",
         "sdkRequirement" => "~> 0.1",
         "queues" => [%{"name" => "default", "concurrency" => 10}],
-        "operations" => [],
+        "operations" => %{"jobs" => [], "commands" => [], "queries" => []},
         "surfaces" => [
           %{
             "id" => "new",

@@ -12,7 +12,25 @@ defmodule <%= package_module %> do
 
   def validate_instance_config(_config), do: {:error, {:invalid_config, "purpose is required"}}
 
+  # Operations declared in contexla-application.json are invoked here by the platform.
+  # The platform validates input, enforces approval, and records an invocation BEFORE
+  # calling this function. Add one clause per declared operation, matching on the id.
+  #
+  # Return values:
+  #   {:ok, result}           — success, result is stored on the invocation
+  #   {:error, reason}        — failure, reason is stored on the invocation
+  #   {:download, data, opts} — stream a file back to the caller (kind: read only)
+  #
+  # Long-running work should enqueue a Worker and return {:ok, %{}} immediately.
+  # The Worker runs the actual logic in the background via Oban.
+
   @impl true
+  def execute_operation("<%= project %>.example", %Instance{} = _instance, _input) do
+    # Replace with real logic or enqueue a Worker for long-running work:
+    # Workers.ExampleWorker.enqueue(instance.id)
+    {:ok, %{}}
+  end
+
   def execute_operation(_operation, %Instance{} = _instance, _input),
     do: {:error, :unsupported_operation}
 end

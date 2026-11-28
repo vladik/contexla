@@ -21,58 +21,54 @@
     {"id": "collection", "path": "monitors", "label": "Monitors", "module": "Contexla.Applications.ContentIntegrityMonitor.Web.CollectionLive", "role": "instance"},
     {"id": "settings", "path": "configuration", "label": "Application settings", "module": "Contexla.Applications.ContentIntegrityMonitor.Web.SettingsLive", "role": "instance", "kind": "settings"}
   ],
-  "operations": [
-    {
-      "id": "integrity.demo_setup",
-      "name": "Create demonstration monitor",
-      "description": "Create the deterministic program-content integrity demonstration.",
-      "queue": "default",
-      "maxAttempts": 1,
-      "timeoutSeconds": 60,
-      "requiresApproval": true,
-      "inputSchema": {"type": "object", "properties": {}}
-    },
-    {
-      "id": "integrity.run",
-      "name": "Run monitor",
-      "description": "Acquire configured sources and evaluate content integrity.",
-      "queue": "default",
-      "maxAttempts": 3,
-      "timeoutSeconds": 300,
-      "inputSchema": {
-        "type": "object",
-        "required": ["monitor_id"],
-        "additionalProperties": false,
-        "properties": {"monitor_id": {"type": "string"}}
+  "operations": {
+    "jobs": [
+      {
+        "id": "integrity.run",
+        "name": "Run monitor",
+        "description": "Acquire configured sources and evaluate content integrity.",
+        "queue": "default",
+        "maxAttempts": 3,
+        "timeoutSeconds": 300,
+        "inputSchema": {
+          "type": "object",
+          "required": ["monitor_id"],
+          "additionalProperties": false,
+          "properties": {"monitor_id": {"type": "string"}}
+        }
       }
-    },
-    {
-      "id": "integrity.issue.acknowledge",
-      "name": "Acknowledge issue",
-      "description": "Mark an open integrity Issue as acknowledged.",
-      "queue": "default",
-      "maxAttempts": 3,
-      "timeoutSeconds": 30,
-      "inputSchema": {
-        "type": "object",
-        "required": ["issue_id"],
-        "additionalProperties": false,
-        "properties": {"issue_id": {"type": "string"}}
+    ],
+    "commands": [
+      {
+        "id": "integrity.demo_setup",
+        "name": "Create demonstration monitor",
+        "description": "Create the deterministic program-content integrity demonstration.",
+        "requiresApproval": true,
+        "inputSchema": {"type": "object", "properties": {}}
+      },
+      {
+        "id": "integrity.issue.acknowledge",
+        "name": "Acknowledge issue",
+        "description": "Mark an open integrity Issue as acknowledged.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["issue_id"],
+          "additionalProperties": false,
+          "properties": {"issue_id": {"type": "string"}}
+        }
+      },
+      {
+        "id": "integrity.issue.resolve",
+        "name": "Resolve issue",
+        "description": "Mark an open or acknowledged integrity Issue as resolved.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["issue_id"],
+          "additionalProperties": false,
+          "properties": {"issue_id": {"type": "string"}}
+        }
       }
-    },
-    {
-      "id": "integrity.issue.resolve",
-      "name": "Resolve issue",
-      "description": "Mark an open or acknowledged integrity Issue as resolved.",
-      "queue": "default",
-      "maxAttempts": 3,
-      "timeoutSeconds": 30,
-      "inputSchema": {
-        "type": "object",
-        "required": ["issue_id"],
-        "additionalProperties": false,
-        "properties": {"issue_id": {"type": "string"}}
-      }
-    }
-  ]
+    ],
+    "queries": []
+  }
 }

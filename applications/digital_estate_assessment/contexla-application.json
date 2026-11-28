@@ -23,39 +23,40 @@
     {"id": "report", "path": "report", "label": "Assessment report", "module": "Contexla.Applications.DigitalEstateAssessment.Web.ReportLive", "role": "instance"},
     {"id": "settings", "path": "configuration", "label": "Application settings", "module": "Contexla.Applications.DigitalEstateAssessment.Web.SettingsLive", "role": "instance", "kind": "settings"}
   ],
-  "operations": [
-    {
-      "id": "assessment.run",
-      "name": "Run assessment",
-      "description": "Analyze approved evidence and produce draft findings.",
-      "queue": "default",
-      "maxAttempts": 1,
-      "timeoutSeconds": 600,
-      "requiresApproval": true,
-      "inputSchema": {
-        "type": "object",
-        "required": ["artifact_id"],
-        "additionalProperties": false,
-        "properties": {"artifact_id": {"type": "string"}}
-      }
-    },
-    {
-      "id": "assessment.report",
-      "name": "Generate report",
-      "description": "Render an evidence-linked assessment report.",
-      "kind": "read",
-      "queue": "default",
-      "maxAttempts": 1,
-      "timeoutSeconds": 30,
-      "inputSchema": {
-        "type": "object",
-        "required": ["run_id"],
-        "additionalProperties": false,
-        "properties": {
-          "run_id": {"type": "string"},
-          "download": {"type": "string"}
+  "operations": {
+    "jobs": [
+      {
+        "id": "assessment.run",
+        "name": "Run assessment",
+        "description": "Analyze approved evidence and produce draft findings.",
+        "queue": "default",
+        "maxAttempts": 1,
+        "timeoutSeconds": 600,
+        "requiresApproval": true,
+        "inputSchema": {
+          "type": "object",
+          "required": ["artifact_id"],
+          "additionalProperties": false,
+          "properties": {"artifact_id": {"type": "string"}}
         }
       }
-    }
-  ]
+    ],
+    "commands": [],
+    "queries": [
+      {
+        "id": "assessment.report",
+        "name": "Generate report",
+        "description": "Render an evidence-linked assessment report.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["run_id"],
+          "additionalProperties": false,
+          "properties": {
+            "run_id": {"type": "string"},
+            "download": {"type": "string"}
+          }
+        }
+      }
+    ]
+  }
 }

@@ -38,7 +38,7 @@ defmodule Contexla.Platform.ApplicationOperations do
     end
   end
 
-  defp allow_transport(%{kind: :read}, :read), do: :ok
+  defp allow_transport(%{type: :query}, :read), do: :ok
   defp allow_transport(_operation, :command), do: :ok
   defp allow_transport(_operation, :read), do: {:error, :operation_requires_post}
 

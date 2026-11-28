@@ -20,5 +20,25 @@
     {"id": "collection", "path": "collection", "label": "Records", "module": "<%= web_module %>.CollectionLive", "role": "instance"},
     {"id": "settings", "path": "configuration", "label": "Application settings", "module": "<%= web_module %>.SettingsLive", "role": "instance", "kind": "settings"}
   ],
-  "operations": []
+  "operations": {
+    "jobs": [
+      {
+        "id": "<%= project %>.example",
+        "name": "Example job",
+        "description": "Describe what this does. Long-running: enqueues a Worker and returns immediately.",
+        "queue": "default",
+        "maxAttempts": 3,
+        "timeoutSeconds": 60,
+        "requiresApproval": false,
+        "inputSchema": {
+          "type": "object",
+          "required": [],
+          "additionalProperties": false,
+          "properties": {}
+        }
+      }
+    ],
+    "commands": [],
+    "queries": []
+  }
 }
