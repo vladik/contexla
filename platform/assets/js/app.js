@@ -186,88 +186,6 @@ const installAgentWorkspace = () => {
 
   let open = localStorage.getItem("agent-workspace-open") === "true"
   let returnFocus = null
-  let activityRefreshTimer = null
-
-  const instanceId = () => workspace.dataset.instanceId || null
-
-  const statusBadgeClass = status => ({
-    succeeded: "activity-badge-success",
-    failed: "activity-badge-error",
-    running: "activity-badge-running",
-  }[status] || "activity-badge-neutral")
-
-  const formatDuration = ms => {
-    if (ms === null || ms === undefined) return "—"
-    if (ms < 1000) return `${ms}ms`
-    return `${(ms / 1000).toFixed(1)}s`
-  }
-
-  const formatRelative = iso => {
-    const diff = Math.floor((Date.now() - new Date(iso)) / 1000)
-    if (diff < 60) return `${diff}s ago`
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-    return `${Math.floor(diff / 3600)}h ago`
-  }
-
-  const renderActivityItem = inv => {
-    const el = document.createElement("div")
-    el.className = "activity-item"
-    el.setAttribute("data-invocation-id", inv.id)
-    el.innerHTML = `
-      <div class="activity-item-header">
-        <span class="activity-item-name">${inv.operation_name || inv.operation_id}</span>
-        <span class="activity-badge ${statusBadgeClass(inv.status)}">${inv.status}</span>
-      </div>
-      <div class="activity-item-meta">
-        ${inv.instance_name ? `<span>${inv.instance_name}</span><span aria-hidden="true">·</span>` : ""}
-        <span>${formatRelative(inv.started_at)}</span>
-        <span aria-hidden="true">·</span>
-        <span>${formatDuration(inv.duration_ms)}</span>
-      </div>
-    `
-    return el
-  }
-
-  const loadActivity = async () => {
-    const activitySection = workspace.querySelector("[data-agent-activity]")
-    if (!activitySection || activitySection.hidden) return
-
-    const id = instanceId()
-    const url = id ? `/api/agent/activity?instance_id=${encodeURIComponent(id)}` : "/api/agent/activity"
-
-    try {
-      const response = await fetch(url, {headers: {"accept": "application/json"}})
-      if (!response.ok) return
-
-      const {invocations} = await response.json()
-      const itemsContainer = activitySection.querySelector("[data-activity-items]")
-      const emptyState = activitySection.querySelector("[data-activity-empty]")
-      if (!itemsContainer || !emptyState) return
-
-      itemsContainer.innerHTML = ""
-
-      if (invocations.length === 0) {
-        emptyState.hidden = false
-      } else {
-        emptyState.hidden = true
-        invocations.forEach(inv => itemsContainer.appendChild(renderActivityItem(inv)))
-      }
-    } catch (_) {
-      // Network error — leave existing content in place
-    }
-  }
-
-  const startActivityRefresh = () => {
-    loadActivity()
-    activityRefreshTimer = setInterval(loadActivity, 30_000)
-  }
-
-  const stopActivityRefresh = () => {
-    if (activityRefreshTimer) {
-      clearInterval(activityRefreshTimer)
-      activityRefreshTimer = null
-    }
-  }
 
   const render = () => {
     document.documentElement.classList.toggle("agent-workspace-open", open)
@@ -297,28 +215,6 @@ const installAgentWorkspace = () => {
 
   toggles.forEach(toggle => toggle.addEventListener("click", () => setOpen(!open, toggle)))
   closeTriggers.forEach(trigger => trigger.addEventListener("click", () => setOpen(false)))
-
-  workspace.querySelectorAll("[data-agent-tab]").forEach(tab => {
-    tab.addEventListener("click", () => {
-      const selected = tab.dataset.agentTab
-
-      workspace.querySelectorAll("[data-agent-tab]").forEach(candidate => {
-        const active = candidate.dataset.agentTab === selected
-        candidate.classList.toggle("is-active", active)
-        candidate.setAttribute("aria-selected", String(active))
-      })
-
-      workspace.querySelectorAll("[data-agent-view]").forEach(view => {
-        view.hidden = view.dataset.agentView !== selected
-      })
-
-      if (selected === "activity") {
-        startActivityRefresh()
-      } else {
-        stopActivityRefresh()
-      }
-    })
-  })
 
   document.addEventListener("keydown", event => {
     if (event.key === "Escape" && open) setOpen(false)

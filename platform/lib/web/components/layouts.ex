@@ -120,6 +120,18 @@ defmodule Contexla.Platform.Web.Layouts do
           </p>
 
           <a
+            href="/activities"
+            data-sidebar-row
+            data-tooltip="Activity"
+            data-tooltip-position="side"
+            aria-current={if String.starts_with?(@current_path, "/activities"), do: "page"}
+            class={nav_item_class(String.starts_with?(@current_path, "/activities"))}
+          >
+            <.icon name="hero-queue-list" class="size-4 shrink-0" />
+            <span data-sidebar-expanded class="min-w-0 flex-1 truncate">Activity</span>
+          </a>
+
+          <a
             href="/connections"
             data-sidebar-row
             data-tooltip="Connections"
@@ -309,7 +321,6 @@ defmodule Contexla.Platform.Web.Layouts do
     <aside
       id="agent-workspace"
       data-agent-workspace
-      data-instance-id={@context[:instance_id]}
       class="agent-workspace"
       aria-label="Contexla Agent"
       aria-hidden="true"
@@ -334,33 +345,6 @@ defmodule Contexla.Platform.Web.Layouts do
           </button>
         </header>
 
-        <div class="border-b border-border px-3 pt-2">
-          <div class="flex gap-1" role="tablist" aria-label="Agent workspace views">
-            <button
-              id="agent-chat-tab"
-              type="button"
-              role="tab"
-              data-agent-tab="chat"
-              aria-controls="agent-chat-view"
-              aria-selected="true"
-              class="agent-workspace-tab is-active"
-            >
-              <.icon name="hero-chat-bubble-left-right" class="size-3.5" /> Chat
-            </button>
-            <button
-              id="agent-activity-tab"
-              type="button"
-              role="tab"
-              data-agent-tab="activity"
-              aria-controls="agent-activity-view"
-              aria-selected="false"
-              class="agent-workspace-tab"
-            >
-              <.icon name="hero-queue-list" class="size-3.5" /> Activity
-            </button>
-          </div>
-        </div>
-
         <div class="border-b border-border bg-surface-raised/60 px-4 py-3">
           <div class="mb-1.5 flex items-center justify-between gap-2">
             <span class="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted">
@@ -381,13 +365,7 @@ defmodule Contexla.Platform.Web.Layouts do
           </div>
         </div>
 
-        <section
-          id="agent-chat-view"
-          role="tabpanel"
-          aria-labelledby="agent-chat-tab"
-          data-agent-view="chat"
-          class="flex min-h-0 flex-1 flex-col"
-        >
+        <section class="flex min-h-0 flex-1 flex-col">
           <div class="flex flex-1 items-center justify-center overflow-y-auto p-6 text-center">
             <div class="max-w-64">
               <span class="mx-auto grid size-11 place-items-center rounded-2xl border border-border bg-surface-raised text-text-muted">
@@ -424,28 +402,6 @@ defmodule Contexla.Platform.Web.Layouts do
           </div>
         </section>
 
-        <section
-          id="agent-activity-view"
-          role="tabpanel"
-          aria-labelledby="agent-activity-tab"
-          data-agent-view="activity"
-          data-agent-activity
-          class="flex min-h-0 flex-1 flex-col overflow-y-auto"
-          hidden
-        >
-          <div data-activity-items class="divide-y divide-border" aria-live="polite"></div>
-          <div data-activity-empty class="flex flex-1 items-center justify-center p-6 text-center">
-            <div class="max-w-64">
-              <span class="mx-auto grid size-11 place-items-center rounded-2xl border border-border bg-surface-raised text-text-muted">
-                <.icon name="hero-queue-list" class="size-5" />
-              </span>
-              <h3 class="mt-3 text-sm font-semibold text-text">No recent activity</h3>
-              <p class="mt-1.5 text-xs leading-5 text-text-muted">
-                Operation invocations for this context will appear here.
-              </p>
-            </div>
-          </div>
-        </section>
       </div>
     </aside>
     """
@@ -577,8 +533,7 @@ defmodule Contexla.Platform.Web.Layouts do
           level: "Application Instance",
           title: instance.name,
           area: instance_area(current_path, instance),
-          icon: instance.icon,
-          instance_id: instance.id
+          icon: instance.icon
         }
     end
   end
@@ -605,7 +560,7 @@ defmodule Contexla.Platform.Web.Layouts do
           {"Applications", "Platform overview", "hero-squares-2x2"}
       end
 
-    %{level: "Platform", title: title, area: area, icon: icon, instance_id: nil}
+    %{level: "Platform", title: title, area: area, icon: icon}
   end
 
   defp instance_area(current_path, instance) do

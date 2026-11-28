@@ -100,6 +100,7 @@ defmodule Contexla.Platform.Web.Router do
       live "/applications", ApplicationLive.Index, :index
       live "/applications/new", ApplicationLive.New, :new
       live "/applications/:instance_id/settings", ApplicationInstanceSettingsLive, :edit
+      live "/activities", ActivitiesLive, :index
       live "/connections", ConnectionLive.Index, :index
       live "/settings", PlatformSettingsLive, :index
     end
