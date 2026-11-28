@@ -20,7 +20,7 @@ defmodule Contexla.Applications.Sdk.Manifest do
   """
 
   alias Contexla.Applications.Sdk.{Definition, Operation, Queue, Surface}
-  alias Contexla.Tools.Sdk.Requirement
+  alias Contexla.Applications.Sdk.Requirement
 
   defmacro __using__(_opts) do
     manifest_path =

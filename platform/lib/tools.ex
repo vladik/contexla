@@ -9,7 +9,7 @@ defmodule Contexla.Platform.Tools do
   alias Contexla.Platform.{Artifacts, Repo}
   alias Contexla.Platform.ToolRuntime.{Registry, Schema}
   alias Contexla.Platform.ToolRuntime.Runners.Native
-  alias Contexla.Tools.Sdk.Requirement
+  alias Contexla.Applications.Sdk.Requirement
   alias Contexla.Platform.Tools.{Catalog, Invocation, Tool}
   alias Contexla.Platform.Tools.Workers.ToolInvocationWorker
 

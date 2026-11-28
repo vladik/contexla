@@ -21,7 +21,6 @@ defmodule Contexla.Applications.Sdk.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:contexla_tool_sdk, path: "../../tools/sdk"},
       {:jason, "~> 1.2"}
     ]
   end

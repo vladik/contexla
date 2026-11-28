@@ -32,10 +32,6 @@ jobs:
           - name: Content Integrity Monitor
             path: applications/content_integrity_monitor
             package: true
-          - name: Tool SDK
-            path: tools/sdk
-          - name: Bundled Tools
-            path: tools/bundled
           - name: Integration SDK
             path: integrations/sdk
           - name: Drupal Integration

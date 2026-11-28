@@ -3,7 +3,7 @@ defmodule Contexla.Applications.Sdk.Operation do
   An operation exposed by an Application to the platform, UI, API, and agents.
   """
 
-  alias Contexla.Tools.Sdk.Requirement
+  alias Contexla.Applications.Sdk.Requirement
 
   @enforce_keys [:id, :name]
   defstruct [

@@ -1,1 +1,0 @@
-{application,contexla_tool_sdk,[{modules,['Elixir.Contexla.ToolSDK','Elixir.Contexla.ToolSDK.NativeTool','Elixir.Contexla.ToolSDK.Package','Elixir.Contexla.ToolSDK.Requirement','Elixir.Contexla.ToolSDK.Tool']},{optional_applications,[]},{applications,[kernel,stdlib,elixir,logger]},{description,"contexla_tool_sdk"},{registered,[]},{vsn,"0.1.0"}]}.

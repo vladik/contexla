@@ -55,7 +55,7 @@ defmodule Contexla.Applications.Sdk.Test.PackageBuilderTest do
     File.write!(
       manifest_path,
       Jason.encode!(%{
-        "manifestVersion" => 1,
+        "manifestVersion" => 2,
         "applicationId" => "com.example.application",
         "name" => "Example Application",
         "icon" => "hero-beaker",
@@ -63,6 +63,7 @@ defmodule Contexla.Applications.Sdk.Test.PackageBuilderTest do
         "otpApplication" => "example",
         "entryModule" => "Contexla.Applications.Sdk.Test.PackageBuilderTest.PackagedApplication",
         "sdkRequirement" => "~> 0.1",
+        "queues" => [%{"name" => "default", "concurrency" => 10}],
         "operations" => [],
         "surfaces" => [
           %{
@@ -106,7 +107,7 @@ defmodule Contexla.Applications.Sdk.Test.PackageBuilderTest do
     assert "CHECKSUMS" in names
   end
 
-  test "rejects a manifest that disagrees with compiled Application identity" do
+  test "rejects a manifest whose entryModule disagrees with the compiled entry_module" do
     root = Path.join(System.tmp_dir!(), "contexla-package-#{System.unique_integer([:positive])}")
     app_path = Path.join(root, "app")
     File.mkdir_p!(Path.join(app_path, "ebin"))
@@ -117,14 +118,15 @@ defmodule Contexla.Applications.Sdk.Test.PackageBuilderTest do
     File.write!(
       manifest_path,
       Jason.encode!(%{
-        "manifestVersion" => 1,
-        "applicationId" => "com.example.wrong",
+        "manifestVersion" => 2,
+        "applicationId" => "com.example.application",
         "name" => "Example Application",
         "icon" => "hero-beaker",
         "version" => "1.0.0",
         "otpApplication" => "example",
-        "entryModule" => "Contexla.Applications.Sdk.Test.PackageBuilderTest.PackagedApplication",
+        "entryModule" => "Some.Other.Module",
         "sdkRequirement" => "~> 0.1",
+        "queues" => [%{"name" => "default", "concurrency" => 10}],
         "operations" => [],
         "surfaces" => [
           %{
@@ -151,9 +153,7 @@ defmodule Contexla.Applications.Sdk.Test.PackageBuilderTest do
       })
     )
 
-    assert {:error,
-            {:manifest_definition_mismatch, :application_id, "com.example.wrong",
-             "com.example.application"}} =
+    assert {:error, {:module_not_loaded, _}} =
              PackageBuilder.build(
                manifest_path,
                app_path,

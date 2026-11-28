@@ -11,6 +11,8 @@ defmodule Mix.Tasks.Contexla.Application.New do
     mix.exs
     lib/package.ex
     lib/application.ex
+    lib/processors/example.ex
+    lib/workers/example_worker.ex
     lib/web/new_live.ex
     lib/web/overview_live.ex
     lib/web/collection_live.ex

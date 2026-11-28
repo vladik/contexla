@@ -1,0 +1,13 @@
+defmodule <%= module %>.Processors.Example do
+  @moduledoc """
+  A processor is a plain Elixir module: input map → {:ok, output} | {:error, reason}.
+  No Oban, no Ecto — just a function. Workers call processors to do the work.
+  """
+
+  @spec run(map()) :: {:ok, map()} | {:error, term()}
+  def run(%{"value" => value}) when is_binary(value) do
+    {:ok, %{"result" => String.upcase(value)}}
+  end
+
+  def run(_input), do: {:error, :invalid_input}
+end

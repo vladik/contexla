@@ -1,0 +1,29 @@
+defmodule <%= module %>.Workers.ExampleWorker do
+  @moduledoc """
+  Oban worker: durable, retryable job that orchestrates processors.
+  Enqueue via Runtime.enqueue/2 from execute_operation/3 in package.ex.
+  """
+
+  use Oban.Worker, queue: :default, max_attempts: 3
+
+  alias Contexla.Applications.Sdk.Runtime
+  alias <%= module %>.Processors.Example
+
+  @impl Oban.Worker
+  def perform(%Oban.Job{args: %{"record_id" => record_id}}) do
+    with {:ok, input} <- load(record_id),
+         {:ok, output} <- Example.run(input) do
+      persist(record_id, output)
+    end
+  end
+
+  # Replace with your domain data loading
+  defp load(_record_id), do: {:ok, %{"value" => "example"}}
+
+  # Replace with your domain persistence
+  defp persist(_record_id, _output), do: :ok
+
+  def enqueue(record_id) do
+    Runtime.enqueue(__MODULE__, %{"record_id" => record_id})
+  end
+end

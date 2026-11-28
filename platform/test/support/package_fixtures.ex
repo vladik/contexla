@@ -2,7 +2,7 @@ defmodule Contexla.Platform.Test.Support.PackageFixtures.TestApplication do
   @behaviour Contexla.Applications.Sdk.Application
 
   alias Contexla.Applications.Sdk.{Definition, Operation, Surface}
-  alias Contexla.Tools.Sdk.Requirement
+  alias Contexla.Applications.Sdk.Requirement
 
   @operations [
     %Operation{
